@@ -1,0 +1,142 @@
+{
+  "name": "Project",
+  "type": "object",
+  "properties": {
+    "crea": {
+      "type": "number",
+      "description": "ID \u00fanico de creaci\u00f3n"
+    },
+    "proyecto": {
+      "type": "string",
+      "description": "Informaci\u00f3n general del proyecto"
+    },
+    "asignado": {
+      "type": "string",
+      "description": "Nombre de la persona responsable"
+    },
+    "fecha_inicio": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha y hora de inicio"
+    },
+    "fecha_final": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha y hora final"
+    },
+    "proceso": {
+      "type": "string",
+      "enum": [
+        "registrado",
+        "asignado",
+        "finalizado"
+      ],
+      "description": "Estado del proyecto"
+    },
+    "cortes_vinil_meta": {
+      "type": "number",
+      "description": "Meta total de cortes de vinil"
+    },
+    "cortes_realizados_total": {
+      "type": "number",
+      "description": "Acumulado de cortes realizados"
+    },
+    "parches_sublimar": {
+      "type": "number",
+      "description": "Parches por sublimar"
+    },
+    "sublimados_listos": {
+      "type": "boolean",
+      "description": "Sublimados listos"
+    },
+    "parches_bordar": {
+      "type": "number",
+      "description": "Parches por bordar"
+    },
+    "bordados_listos": {
+      "type": "boolean",
+      "description": "Bordados listos"
+    },
+    "laser_tatami": {
+      "type": "number",
+      "description": "Cortes l\u00e1ser Tatami"
+    },
+    "laser_velcro_macho": {
+      "type": "number",
+      "description": "Cortes l\u00e1ser Velcro Macho"
+    },
+    "laser_velcro_hembra": {
+      "type": "number",
+      "description": "Cortes l\u00e1ser Velcro Hembra"
+    },
+    "laser_tela_canasta": {
+      "type": "number",
+      "description": "Cortes l\u00e1ser Tela de Canasta"
+    },
+    "cortes_laser_listos": {
+      "type": "boolean",
+      "description": "Cortes l\u00e1ser listos"
+    },
+    "calidad_folio": {
+      "type": "string",
+      "description": "Folio de calidad"
+    },
+    "calidad_fecha_entrega": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha y hora de entrega calidad"
+    },
+    "calidad_archivo_url": {
+      "type": "string",
+      "description": "URL del archivo PDF de calidad"
+    },
+    "calidad_estado": {
+      "type": "string",
+      "enum": [
+        "aprobada",
+        "rechazada"
+      ],
+      "description": "Estado de calidad"
+    },
+    "calidad_motivo_rechazo": {
+      "type": "string",
+      "description": "Motivo de rechazo de calidad"
+    },
+    "calidad_nombre": {
+      "type": "string",
+      "description": "Nombre de quien eval\u00faa calidad"
+    },
+    "calidad_nombre_extra": {
+      "type": "string",
+      "description": "Nombre extra de calidad"
+    },
+    "desarrollo_archivo_url": {
+      "type": "string",
+      "description": "URL del archivo PDF de desarrollo"
+    },
+    "desarrollo_estado": {
+      "type": "string",
+      "enum": [
+        "aprobado",
+        "rechazado"
+      ],
+      "description": "Estado de desarrollo"
+    },
+    "desarrollo_motivo_rechazo": {
+      "type": "string",
+      "description": "Motivo de rechazo de desarrollo"
+    },
+    "desarrollo_nombre": {
+      "type": "string",
+      "description": "Nombre de quien autoriza desarrollo"
+    },
+    "desarrollo_nombre_extra": {
+      "type": "string",
+      "description": "Nombre extra de desarrollo"
+    }
+  },
+  "required": [
+    "crea",
+    "proyecto"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "name": "QualityFolioCounter",
+  "type": "object",
+  "properties": {
+    "last_number": {
+      "type": "number",
+      "description": "\u00daltimo n\u00famero de folio generado"
+    }
+  },
+  "required": [
+    "last_number"
+  ]
+}
