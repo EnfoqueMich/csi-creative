@@ -1,0 +1,21 @@
+{
+  "name": "Worker",
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string",
+      "description": "Nombre completo del trabajador"
+    },
+    "puesto": {
+      "type": "string",
+      "description": "Puesto o rol"
+    },
+    "activo": {
+      "type": "boolean",
+      "description": "Si est\u00e1 activo"
+    }
+  },
+  "required": [
+    "nombre"
+  ]
+}

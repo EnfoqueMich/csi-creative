@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
 import StatusBadge from "../components/project/StatusBadge";
+import MonthlyScrapPanel from "../components/MonthlyScrapPanel";
 import moment from "moment";
 
 function ProjectRow({ project }) {
@@ -135,6 +136,9 @@ export default function Dashboard() {
           className="pl-10"
         />
       </div>
+
+      {/* Monthly Scrap Panel */}
+      <MonthlyScrapPanel />
 
       {/* List */}
       {loading ? (

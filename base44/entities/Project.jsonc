@@ -3,16 +3,13 @@
   "type": "object",
   "properties": {
     "crea": {
-      "type": "number",
-      "description": "ID \u00fanico de creaci\u00f3n"
+      "type": "number"
     },
     "proyecto": {
-      "type": "string",
-      "description": "Informaci\u00f3n general del proyecto"
+      "type": "string"
     },
     "asignado": {
-      "type": "string",
-      "description": "Nombre de la persona responsable"
+      "type": "string"
     },
     "fecha_inicio": {
       "type": "string",
@@ -65,7 +62,6 @@
     },
     "calidad_folios": {
       "type": "array",
-      "description": "Historial de folios de calidad",
       "items": {
         "type": "object",
         "properties": {
@@ -118,7 +114,6 @@
     },
     "desarrollo_rechazos": {
       "type": "array",
-      "description": "Historial de rechazos de desarrollo",
       "items": {
         "type": "object",
         "properties": {
@@ -139,21 +134,20 @@
     },
     "bordados_scrap": {
       "type": "array",
-      "description": "Bordados de scrap",
       "items": {
         "type": "object",
         "properties": {
-          "base": {
-            "type": "number"
-          },
-          "altura": {
-            "type": "number"
-          },
           "puntadas": {
             "type": "number"
           },
-          "tiempo": {
-            "type": "string"
+          "tiempo_horas": {
+            "type": "number"
+          },
+          "tiempo_minutos": {
+            "type": "number"
+          },
+          "tiempo_segundos": {
+            "type": "number"
           },
           "total_hilo": {
             "type": "number"
@@ -161,17 +155,89 @@
           "total_bobina": {
             "type": "number"
           },
-          "material": {
-            "type": "string"
-          },
-          "tela_base": {
-            "type": "number"
-          },
-          "tela_altura": {
-            "type": "number"
-          },
           "imagen_url": {
             "type": "string"
+          },
+          "base": {
+            "type": "number"
+          },
+          "altura": {
+            "type": "number"
+          },
+          "materiales": {
+            "type": "object",
+            "properties": {
+              "tatami": {
+                "type": "object",
+                "properties": {
+                  "cantidad": {
+                    "type": "number"
+                  },
+                  "base": {
+                    "type": "number"
+                  },
+                  "altura": {
+                    "type": "number"
+                  }
+                }
+              },
+              "velcro_macho": {
+                "type": "object",
+                "properties": {
+                  "cantidad": {
+                    "type": "number"
+                  },
+                  "base": {
+                    "type": "number"
+                  },
+                  "altura": {
+                    "type": "number"
+                  }
+                }
+              },
+              "velcro_hembra": {
+                "type": "object",
+                "properties": {
+                  "cantidad": {
+                    "type": "number"
+                  },
+                  "base": {
+                    "type": "number"
+                  },
+                  "altura": {
+                    "type": "number"
+                  }
+                }
+              },
+              "tela_canasta": {
+                "type": "object",
+                "properties": {
+                  "cantidad": {
+                    "type": "number"
+                  },
+                  "base": {
+                    "type": "number"
+                  },
+                  "altura": {
+                    "type": "number"
+                  }
+                }
+              },
+              "tela_scrap": {
+                "type": "object",
+                "properties": {
+                  "cantidad": {
+                    "type": "number"
+                  },
+                  "base": {
+                    "type": "number"
+                  },
+                  "altura": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
           }
         }
       }
