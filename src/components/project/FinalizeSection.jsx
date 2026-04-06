@@ -23,14 +23,14 @@ export default function FinalizeSection({ project, onFinalize }) {
   const sublimadosOk = project.sublimados_listos === true;
   const bordadosOk = project.bordados_listos === true;
   const laserOk = project.cortes_laser_listos === true;
-  const calidadOk = project.calidad_estado === "aprobada";
+  const calidadOk = project.calidad_estado_final === "aprobada";
   const desarrolloOk = project.desarrollo_estado === "aprobado";
 
   const allMet = cortesOk && sublimadosOk && bordadosOk && laserOk && calidadOk && desarrolloOk;
   const isFinalized = project.proceso === "finalizado";
 
   return (
-    <SectionCard icon={Flag} title="Validación Final" number="5">
+    <SectionCard icon={Flag} title="Validación Final" number="6">
       <div className="space-y-2">
         <ConditionRow label="Cortes de Vinil completados" met={cortesOk} />
         <ConditionRow label="Sublimados listos" met={sublimadosOk} />

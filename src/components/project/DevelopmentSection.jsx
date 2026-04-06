@@ -2,14 +2,20 @@ import { useState } from "react";
 import { Code, Upload, UserPlus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import SectionCard from "./SectionCard";
 import FieldLabel from "./FieldLabel";
 import { cn } from "@/lib/utils";
 import { base44 } from "@/api/base44Client";
+import moment from "moment";
 
 export default function DevelopmentSection({ project, onChange }) {
   const [uploading, setUploading] = useState(false);
   const [showExtraName, setShowExtraName] = useState(!!project.desarrollo_nombre_extra);
+  const [motivoInput, setMotivoInput] = useState("");
+
+  const rechazos = project.desarrollo_rechazos || [];
+  const isApproved = project.desarrollo_estado === "aprobado";
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
@@ -22,6 +28,20 @@ export default function DevelopmentSection({ project, onChange }) {
     const { file_url } = await base44.integrations.Core.UploadFile({ file });
     onChange({ desarrollo_archivo_url: file_url });
     setUploading(false);
+  };
+
+  const handleRechazar = () => {
+    if (!motivoInput.trim()) return;
+    const nuevoRechazo = { motivo: motivoInput.trim(), fecha: new Date().toISOString() };
+    onChange({
+      desarrollo_estado: "rechazado",
+      desarrollo_rechazos: [...rechazos, nuevoRechazo],
+    });
+    setMotivoInput("");
+  };
+
+  const handleAprobar = () => {
+    onChange({ desarrollo_estado: "aprobado" });
   };
 
   return (
@@ -47,47 +67,63 @@ export default function DevelopmentSection({ project, onChange }) {
         </div>
       </div>
 
-      {/* Estado */}
-      <div className="space-y-3">
-        <FieldLabel>Desarrollo Listo?</FieldLabel>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => onChange({ desarrollo_estado: "aprobado", desarrollo_motivo_rechazo: "" })}
-            className={cn(
-              "px-5 py-2 rounded-lg text-sm font-semibold transition-all border",
-              project.desarrollo_estado === "aprobado"
-                ? "bg-status-green text-white border-transparent shadow-md"
-                : "bg-card text-muted-foreground border-border hover:border-green-300"
-            )}
-          >
-            APROBADO
-          </button>
-          <button
-            type="button"
-            onClick={() => onChange({ desarrollo_estado: "rechazado" })}
-            className={cn(
-              "px-5 py-2 rounded-lg text-sm font-semibold transition-all border",
-              project.desarrollo_estado === "rechazado"
-                ? "bg-status-red text-white border-transparent shadow-md"
-                : "bg-card text-muted-foreground border-border hover:border-red-300"
-            )}
-          >
-            RECHAZADO
-          </button>
-        </div>
-        {project.desarrollo_estado === "rechazado" && (
-          <div>
-            <FieldLabel required>Motivo de Rechazo</FieldLabel>
-            <Textarea
-              placeholder="Describa el motivo del rechazo..."
-              value={project.desarrollo_motivo_rechazo || ""}
-              onChange={(e) => onChange({ desarrollo_motivo_rechazo: e.target.value })}
-              rows={2}
-            />
+      {/* Historial de rechazos */}
+      {rechazos.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Historial de Rechazos</p>
+          <div className="space-y-2">
+            {rechazos.map((r, i) => (
+              <div key={i} className="rounded-lg border border-red-200 bg-red-50 px-4 py-2.5">
+                <div className="flex items-center justify-between gap-2 mb-0.5">
+                  <span className="text-xs text-red-400">{moment(r.fecha).format("DD/MM/YYYY HH:mm")}</span>
+                  <span className="text-xs font-bold text-red-600 uppercase">Rechazado</span>
+                </div>
+                <p className="text-sm text-red-700">{r.motivo}</p>
+              </div>
+            ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* Estado */}
+      {!isApproved && (
+        <div className="space-y-3">
+          <FieldLabel>Resultado de Desarrollo</FieldLabel>
+          <div className="flex gap-2">
+            <button type="button" onClick={handleAprobar}
+              className="px-5 py-2 rounded-lg text-sm font-semibold border bg-card text-muted-foreground border-border hover:border-green-300 hover:bg-green-50 hover:text-green-700 transition-all">
+              APROBADO
+            </button>
+          </div>
+          <div>
+            <FieldLabel>Motivo de Rechazo</FieldLabel>
+            <div className="flex gap-2 items-start">
+              <Textarea
+                placeholder="Escriba el motivo y haga clic en Rechazar..."
+                value={motivoInput}
+                onChange={(e) => setMotivoInput(e.target.value)}
+                rows={2}
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={handleRechazar}
+                disabled={!motivoInput.trim()}
+                className="mt-0.5"
+              >
+                Rechazar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isApproved && (
+        <div className="flex items-center gap-2 text-green-700 font-bold text-sm">
+          ✅ Desarrollo APROBADO
+        </div>
+      )}
 
       {/* Nombres */}
       <div className="space-y-3">
@@ -112,11 +148,8 @@ export default function DevelopmentSection({ project, onChange }) {
           )}
         </div>
         {!showExtraName && (
-          <button
-            type="button"
-            onClick={() => setShowExtraName(true)}
-            className="flex items-center gap-1.5 text-xs text-primary font-medium hover:underline"
-          >
+          <button type="button" onClick={() => setShowExtraName(true)}
+            className="flex items-center gap-1.5 text-xs text-primary font-medium hover:underline">
             <UserPlus className="w-3.5 h-3.5" />
             + Agregar otra persona
           </button>
