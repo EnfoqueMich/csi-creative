@@ -127,16 +127,37 @@ export default function QualitySection({ project, onChange }) {
         </div>
       )}
 
-      {/* Botón generar folio */}
-      {canGenerateNewFolio && !isApproved && (
-        <div>
-          <Button
-            onClick={handleGenerateFolio}
-            disabled={generatingFolio}
-            variant="outline"
-            className="gap-2"
+      {/* Liberar sin folio */}
+      {folios.length === 0 && project.calidad_estado_final !== 'no_aplica' && (
+        <div className="flex items-center gap-3">
+          <Button onClick={handleGenerateFolio} disabled={generatingFolio} variant="outline" className="gap-2">
+            {generatingFolio ? "Generando..." : "Crear Folio de Calidad"}
+          </Button>
+          <button
+            type="button"
+            onClick={() => onChange({ calidad_estado_final: 'no_aplica' })}
+            className="px-4 py-2 rounded-lg text-sm font-semibold border bg-card text-muted-foreground border-border hover:border-muted-foreground hover:bg-muted transition-all"
           >
-            {generatingFolio ? "Generando..." : isRejected ? "Generar Nuevo Folio" : "Crear Folio de Calidad"}
+            Liberar (No Aplica)
+          </button>
+        </div>
+      )}
+
+      {/* Folio ya liberado sin folio */}
+      {folios.length === 0 && project.calidad_estado_final === 'no_aplica' && (
+        <div className="flex items-center gap-3">
+          <div className="text-sm text-muted-foreground font-medium bg-muted/50 px-4 py-2 rounded-lg border border-border">
+            ✓ Liberado — No requiere hoja de calidad
+          </div>
+          <button type="button" onClick={() => onChange({ calidad_estado_final: null })} className="text-xs text-muted-foreground hover:underline">Cancelar</button>
+        </div>
+      )}
+
+      {/* Botón generar nuevo folio (cuando hay folios rechazados) */}
+      {canGenerateNewFolio && !isApproved && folios.length > 0 && (
+        <div>
+          <Button onClick={handleGenerateFolio} disabled={generatingFolio} variant="outline" className="gap-2">
+            {generatingFolio ? "Generando..." : "Generar Nuevo Folio"}
           </Button>
         </div>
       )}

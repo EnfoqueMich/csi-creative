@@ -33,6 +33,9 @@
     "cortes_realizados_total": {
       "type": "number"
     },
+    "cortes_vinil_no_aplica": {
+      "type": "boolean"
+    },
     "parches_sublimar": {
       "type": "number"
     },
@@ -44,6 +47,23 @@
     },
     "bordados_listos": {
       "type": "boolean"
+    },
+    "dtf_piezas": {
+      "type": "number"
+    },
+    "dtf_disenos": {
+      "type": "number"
+    },
+    "dtf_metros": {
+      "type": "number"
+    },
+    "dtf_listo": {
+      "type": "string",
+      "enum": [
+        "si",
+        "no",
+        "no_aplica"
+      ]
     },
     "laser_tatami": {
       "type": "number"
@@ -93,7 +113,8 @@
       "type": "string",
       "enum": [
         "aprobada",
-        "rechazada"
+        "rechazada",
+        "no_aplica"
       ]
     },
     "calidad_nombre": {

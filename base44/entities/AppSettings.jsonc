@@ -1,0 +1,15 @@
+{
+  "name": "AppSettings",
+  "type": "object",
+  "properties": {
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo principal del panel"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "URL del logo de la empresa"
+    }
+  },
+  "required": []
+}

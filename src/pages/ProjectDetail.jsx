@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
 import GeneralSection from "../components/project/GeneralSection";
@@ -50,6 +50,11 @@ export default function ProjectDetail() {
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
 
+  // Reset form when navigating to new project
+  useEffect(() => {
+    if (isNew) setProject(defaultProject);
+  }, [isNew]);
+
   useEffect(() => {
     if (projectId) loadProject();
   }, [projectId]);
@@ -87,6 +92,12 @@ export default function ProjectDetail() {
     setSaving(false);
   };
 
+  const handleDelete = async () => {
+    if (!confirm(`¿Eliminar el proyecto CREA #${project.crea}? Esta acción no se puede deshacer.`)) return;
+    await base44.entities.Project.delete(projectId);
+    navigate("/");
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -104,17 +115,25 @@ export default function ProjectDetail() {
           </Button>
           <div>
             <h1 className="text-xl font-bold text-foreground">
-              {isNew ? "Nuevo Proyecto" : `Proyecto #${project.crea || project.id}`}
+              {isNew ? "Nuevo Proyecto" : `PROYECTO CREA #${project.crea || "—"}`}
             </h1>
             <p className="text-sm text-muted-foreground">
               {isNew ? "Complete los datos para crear el proyecto" : project.proyecto?.slice(0, 60)}
             </p>
           </div>
         </div>
-        <Button onClick={handleSave} disabled={saving} className="gap-2">
-          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-          {saving ? "Guardando..." : "Guardar"}
-        </Button>
+        <div className="flex items-center gap-2">
+          {!isNew && (
+            <Button variant="outline" onClick={handleDelete} className="gap-2 text-destructive hover:text-destructive border-destructive/30 hover:border-destructive/60">
+              <Trash2 className="w-4 h-4" />
+              Eliminar
+            </Button>
+          )}
+          <Button onClick={handleSave} disabled={saving} className="gap-2">
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            {saving ? "Guardando..." : "Guardar"}
+          </Button>
+        </div>
       </div>
 
       <GeneralSection project={project} onChange={handleChange} isNew={isNew} />

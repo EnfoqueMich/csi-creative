@@ -1,57 +1,91 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Search, Loader2, FolderOpen } from "lucide-react";
+import { Plus, Search, Loader2, FolderOpen, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
 import StatusBadge from "../components/project/StatusBadge";
 import MonthlyScrapPanel from "../components/MonthlyScrapPanel";
+import DashboardHeader from "../components/DashboardHeader";
 import moment from "moment";
 
-function ProjectRow({ project }) {
+function formatDuration(start, end) {
+  if (!start || !end) return null;
+  const mins = moment(end).diff(moment(start), 'minutes');
+  if (mins < 60) return `${mins}m`;
+  const totalHours = Math.floor(mins / 60);
+  const remMins = mins % 60;
+  if (totalHours < 24) return `${totalHours}h ${remMins}m`;
+  const days = Math.floor(totalHours / 24);
+  const remHours = totalHours % 24;
+  return `${days}d ${remHours}h ${remMins}m`;
+}
+
+function ProjectRow({ project, onDelete }) {
   const meta = project.cortes_vinil_meta || 0;
   const total = project.cortes_realizados_total || 0;
   const progress = meta > 0 ? Math.min(100, Math.round((total / meta) * 100)) : 0;
+  const duration = project.proceso === 'finalizado' ? formatDuration(project.fecha_inicio, project.fecha_final) : null;
+
+  const handleDelete = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!confirm(`¿Eliminar el proyecto CREA #${project.crea}? Esta acción no se puede deshacer.`)) return;
+    await base44.entities.Project.delete(project.id);
+    onDelete(project.id);
+  };
 
   return (
-    <Link
-      to={`/proyecto?id=${project.id}`}
-      className="block bg-card rounded-xl border border-border hover:border-primary/20 hover:shadow-md transition-all p-5 group"
-    >
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-3 mb-1">
-            <span className="font-mono text-xs font-bold text-muted-foreground">#{project.crea || "—"}</span>
-            <StatusBadge status={project.proceso || "registrado"} />
+    <div className="relative group">
+      <Link
+        to={`/proyecto?id=${project.id}`}
+        className="block bg-card rounded-xl border border-border hover:border-primary/20 hover:shadow-md transition-all p-5"
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-3 mb-1">
+              <span className="font-mono text-xs font-bold text-muted-foreground">PROYECTO CREA #{project.crea || "—"}</span>
+              <StatusBadge status={project.proceso || "registrado"} />
+              {duration && (
+                <span className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full font-mono font-medium">
+                  ⏱ {duration}
+                </span>
+              )}
+            </div>
+            <h3 className="text-sm font-semibold text-foreground truncate">
+              {project.proyecto || "Sin descripción"}
+            </h3>
+            <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+              {project.asignado && <span>Asignado: <strong>{project.asignado}</strong></span>}
+              {project.fecha_inicio && (
+                <span>Inicio: {moment(project.fecha_inicio).format("DD/MM/YY HH:mm")}</span>
+              )}
+            </div>
           </div>
-          <h3 className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors">
-            {project.proyecto || "Sin descripción"}
-          </h3>
-          <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-            {project.asignado && <span>Asignado: <strong>{project.asignado}</strong></span>}
-            {project.fecha_inicio && (
-              <span>Inicio: {moment(project.fecha_inicio).format("DD/MM/YY HH:mm")}</span>
-            )}
+          <div className="flex-shrink-0 w-20 text-right">
+            <div className="text-xs font-mono font-bold text-muted-foreground mb-1">
+              {total}/{meta}
+            </div>
+            <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all"
+                style={{
+                  width: `${progress}%`,
+                  backgroundColor: progress >= 100 ? "hsl(var(--status-green))" : "hsl(var(--status-red))",
+                }}
+              />
+            </div>
           </div>
         </div>
-
-        {/* Progress mini */}
-        <div className="flex-shrink-0 w-20 text-right">
-          <div className="text-xs font-mono font-bold text-muted-foreground mb-1">
-            {total}/{meta}
-          </div>
-          <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all"
-              style={{
-                width: `${progress}%`,
-                backgroundColor: progress >= 100 ? "hsl(var(--status-green))" : "hsl(var(--status-red))",
-              }}
-            />
-          </div>
-        </div>
-      </div>
-    </Link>
+      </Link>
+      <button
+        onClick={handleDelete}
+        className="absolute top-3 right-3 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-red-50 hover:text-destructive transition-all text-muted-foreground"
+        title="Eliminar proyecto"
+      >
+        <Trash2 className="w-3.5 h-3.5" />
+      </button>
+    </div>
   );
 }
 
@@ -67,12 +101,16 @@ export default function Dashboard() {
 
   const loadProjects = async () => {
     setLoading(true);
-    const data = await base44.entities.Project.list("-updated_date", 100);
+    const data = await base44.entities.Project.list("-crea", 200);
     setProjects(data);
     setLoading(false);
   };
 
-  const filtered = projects.filter((p) => {
+  const handleDelete = (id) => {
+    setProjects((prev) => prev.filter((p) => p.id !== id));
+  };
+
+  const filtered = [...projects.filter((p) => {
     const matchSearch =
       !search ||
       (p.proyecto || "").toLowerCase().includes(search.toLowerCase()) ||
@@ -80,7 +118,7 @@ export default function Dashboard() {
       String(p.crea).includes(search);
     const matchFilter = filter === "all" || p.proceso === filter;
     return matchSearch && matchFilter;
-  });
+  })].sort((a, b) => (b.crea || 0) - (a.crea || 0));
 
   const counts = {
     all: projects.length,
@@ -91,10 +129,13 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
+      {/* App Header */}
+      <DashboardHeader />
+
       {/* Header */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Proyectos</h1>
+          <h2 className="text-xl font-bold text-foreground">Proyectos</h2>
           <p className="text-sm text-muted-foreground mt-0.5">{projects.length} proyecto(s) en total</p>
         </div>
         <Link to="/nuevo">
@@ -154,7 +195,7 @@ export default function Dashboard() {
       ) : (
         <div className="space-y-3">
           {filtered.map((project) => (
-            <ProjectRow key={project.id} project={project} />
+            <ProjectRow key={project.id} project={project} onDelete={handleDelete} />
           ))}
         </div>
       )}
