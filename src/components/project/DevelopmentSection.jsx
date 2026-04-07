@@ -16,6 +16,7 @@ export default function DevelopmentSection({ project, onChange }) {
 
   const rechazos = project.desarrollo_rechazos || [];
   const isApproved = project.desarrollo_estado === "aprobado";
+  const noAplica = project.desarrollo_estado === "no_aplica";
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
@@ -46,6 +47,23 @@ export default function DevelopmentSection({ project, onChange }) {
 
   return (
     <SectionCard icon={Code} title="Desarrollo y Cierre" number="4">
+      {/* No Aplica */}
+      {!isApproved && !noAplica && (
+        <div className="flex justify-end">
+          <label className="flex items-center gap-2 cursor-pointer text-xs text-muted-foreground">
+            <input type="checkbox" checked={false} onChange={() => onChange({ desarrollo_estado: "no_aplica" })} className="rounded" />
+            No Aplica (liberar sin desarrollo)
+          </label>
+        </div>
+      )}
+      {noAplica && (
+        <div className="flex items-center gap-3">
+          <div className="text-sm text-muted-foreground font-medium bg-muted/50 px-4 py-2 rounded-lg border border-border">
+            ✓ Liberado — No requiere desarrollo
+          </div>
+          <button type="button" onClick={() => onChange({ desarrollo_estado: null })} className="text-xs text-muted-foreground hover:underline">Cancelar</button>
+        </div>
+      )}
       {/* File Upload */}
       <div>
         <FieldLabel>Archivo de Desarrollo (PDF)</FieldLabel>
@@ -68,7 +86,7 @@ export default function DevelopmentSection({ project, onChange }) {
       </div>
 
       {/* Historial de rechazos */}
-      {rechazos.length > 0 && (
+      {!noAplica && rechazos.length > 0 && (
         <div className="space-y-2">
           <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Historial de Rechazos</p>
           <div className="space-y-2">
@@ -86,7 +104,7 @@ export default function DevelopmentSection({ project, onChange }) {
       )}
 
       {/* Estado */}
-      {!isApproved && (
+      {!noAplica && !isApproved && (
         <div className="space-y-3">
           <FieldLabel>Resultado de Desarrollo</FieldLabel>
           <div className="flex gap-2">
@@ -98,22 +116,8 @@ export default function DevelopmentSection({ project, onChange }) {
           <div>
             <FieldLabel>Motivo de Rechazo</FieldLabel>
             <div className="flex gap-2 items-start">
-              <Textarea
-                placeholder="Escriba el motivo y haga clic en Rechazar..."
-                value={motivoInput}
-                onChange={(e) => setMotivoInput(e.target.value)}
-                rows={2}
-                className="flex-1"
-              />
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={handleRechazar}
-                disabled={!motivoInput.trim()}
-                className="mt-0.5"
-              >
-                Rechazar
-              </Button>
+              <Textarea placeholder="Escriba el motivo y haga clic en Rechazar..." value={motivoInput} onChange={(e) => setMotivoInput(e.target.value)} rows={2} className="flex-1" />
+              <Button type="button" variant="destructive" onClick={handleRechazar} disabled={!motivoInput.trim()} className="mt-0.5">Rechazar</Button>
             </div>
           </div>
         </div>

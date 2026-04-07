@@ -20,11 +20,11 @@ export default function FinalizeSection({ project, onFinalize }) {
   const meta = project.cortes_vinil_meta || 0;
   const total = project.cortes_realizados_total || 0;
   const cortesOk = project.cortes_vinil_no_aplica === true || (total >= meta && meta > 0);
-  const sublimadosOk = project.sublimados_listos === true;
-  const bordadosOk = project.bordados_listos === true;
-  const laserOk = project.cortes_laser_listos === true;
+  const sublimadosOk = project.sublimacion_no_aplica === true || project.sublimados_listos === true;
+  const bordadosOk = project.bordado_no_aplica === true || project.bordados_listos === true;
+  const laserOk = project.laser_no_aplica === true || project.cortes_laser_listos === true;
   const calidadOk = project.calidad_estado_final === "aprobada" || project.calidad_estado_final === "no_aplica";
-  const desarrolloOk = project.desarrollo_estado === "aprobado";
+  const desarrolloOk = project.desarrollo_estado === "aprobado" || project.desarrollo_estado === "no_aplica";
 
   const allMet = cortesOk && sublimadosOk && bordadosOk && laserOk && calidadOk && desarrolloOk;
   const isFinalized = project.proceso === "finalizado";
@@ -33,11 +33,11 @@ export default function FinalizeSection({ project, onFinalize }) {
     <SectionCard icon={Flag} title="Validación Final" number="6">
       <div className="space-y-2">
         <ConditionRow label={`Cortes de Vinil ${project.cortes_vinil_no_aplica ? '(No Aplica)' : 'completados'}`} met={cortesOk} />
-        <ConditionRow label="Sublimados listos" met={sublimadosOk} />
-        <ConditionRow label="Bordados listos" met={bordadosOk} />
-        <ConditionRow label="Cortes Láser listos" met={laserOk} />
+        <ConditionRow label={`Sublimados ${project.sublimacion_no_aplica ? '(No Aplica)' : 'listos'}`} met={sublimadosOk} />
+        <ConditionRow label={`Bordados ${project.bordado_no_aplica ? '(No Aplica)' : 'listos'}`} met={bordadosOk} />
+        <ConditionRow label={`Cortes Láser ${project.laser_no_aplica ? '(No Aplica)' : 'listos'}`} met={laserOk} />
         <ConditionRow label={`Calidad ${project.calidad_estado_final === 'no_aplica' ? '(No Aplica)' : 'aprobada'}`} met={calidadOk} />
-        <ConditionRow label="Desarrollo aprobado" met={desarrolloOk} />
+        <ConditionRow label={`Desarrollo ${project.desarrollo_estado === 'no_aplica' ? '(No Aplica)' : 'aprobado'}`} met={desarrolloOk} />
       </div>
 
       <div className="pt-4 flex justify-center">
