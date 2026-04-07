@@ -72,14 +72,17 @@ export default function ProjectDetail() {
 
   const handleSave = async () => {
     setSaving(true);
-    const { id, created_date, updated_date, created_by, ...data } = project;
-    if (isNew) {
-      const created = await base44.entities.Project.create(data);
-      navigate(`/proyecto?id=${created.id}`, { replace: true });
-    } else {
-      await base44.entities.Project.update(projectId, data);
+    try {
+      const { id, created_date, updated_date, created_by, ...data } = project;
+      if (isNew) {
+        const created = await base44.entities.Project.create(data);
+        navigate(`/proyecto?id=${created.id}`, { replace: true });
+      } else {
+        await base44.entities.Project.update(projectId, data);
+      }
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   const handleFinalize = async () => {
@@ -87,9 +90,12 @@ export default function ProjectDetail() {
     const merged = { ...project, ...updates };
     setProject(merged);
     setSaving(true);
-    const { id, created_date, updated_date, created_by, ...data } = merged;
-    await base44.entities.Project.update(projectId, data);
-    setSaving(false);
+    try {
+      const { id, created_date, updated_date, created_by, ...data } = merged;
+      await base44.entities.Project.update(projectId, data);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDelete = async () => {
