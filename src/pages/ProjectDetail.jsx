@@ -70,10 +70,40 @@ export default function ProjectDetail() {
     setProject((prev) => ({ ...prev, ...updates }));
   };
 
+  const sanitize = (proj) => {
+    const cleanMat = (m) => ({
+      cantidad: Number(m?.cantidad) || 0,
+      base: Number(m?.base) || 0,
+      altura: Number(m?.altura) || 0,
+    });
+    return {
+      ...proj,
+      bordados_scrap: (proj.bordados_scrap || []).map((b) => ({
+        ...b,
+        base: Number(b.base) || 0,
+        altura: Number(b.altura) || 0,
+        puntadas: Number(b.puntadas) || 0,
+        tiempo_horas: Number(b.tiempo_horas) || 0,
+        tiempo_minutos: Number(b.tiempo_minutos) || 0,
+        tiempo_segundos: Number(b.tiempo_segundos) || 0,
+        total_hilo: Number(b.total_hilo) || 0,
+        total_bobina: Number(b.total_bobina) || 0,
+        materiales: {
+          tatami: cleanMat(b.materiales?.tatami),
+          velcro_macho: cleanMat(b.materiales?.velcro_macho),
+          velcro_hembra: cleanMat(b.materiales?.velcro_hembra),
+          tela_canasta: cleanMat(b.materiales?.tela_canasta),
+          tela_scrap: cleanMat(b.materiales?.tela_scrap),
+        },
+      })),
+    };
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
-      const { id, created_date, updated_date, created_by, ...data } = project;
+      const { id, created_date, updated_date, created_by, ...raw } = project;
+      const data = sanitize(raw);
       if (isNew) {
         const created = await base44.entities.Project.create(data);
         navigate(`/proyecto?id=${created.id}`, { replace: true });
