@@ -1,11 +1,12 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, FolderPlus, Menu, X, Users } from "lucide-react";
+import { LayoutDashboard, FolderPlus, Menu, X, Users, ClipboardList } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { path: "/", label: "Panel", icon: LayoutDashboard },
   { path: "/nuevo", label: "Nuevo Proyecto", icon: FolderPlus },
+  { path: "/tareas", label: "Tareas", icon: ClipboardList },
   { path: "/trabajadores", label: "Trabajadores", icon: Users },
 ];
 

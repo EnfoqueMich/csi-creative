@@ -1,0 +1,24 @@
+{
+  "name": "Task",
+  "type": "object",
+  "properties": {
+    "folio": {
+      "type": "string"
+    },
+    "descripcion": {
+      "type": "string"
+    },
+    "completada": {
+      "type": "boolean"
+    },
+    "imagenes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "descripcion"
+  ]
+}

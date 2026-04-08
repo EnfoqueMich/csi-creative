@@ -9,6 +9,7 @@ import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import ProjectDetail from './pages/ProjectDetail';
 import Workers from './pages/Workers';
+import Tasks from './pages/Tasks';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -41,6 +42,7 @@ const AuthenticatedApp = () => {
         <Route path="/nuevo" element={<ProjectDetail />} />
         <Route path="/proyecto" element={<ProjectDetail />} />
         <Route path="/trabajadores" element={<Workers />} />
+        <Route path="/tareas" element={<Tasks />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>
