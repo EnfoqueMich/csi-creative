@@ -11,6 +11,9 @@
     "completada": {
       "type": "boolean"
     },
+    "urgente": {
+      "type": "boolean"
+    },
     "imagenes": {
       "type": "array",
       "items": {
