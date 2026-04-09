@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Package, Plus, X, ZoomIn } from "lucide-react";
+import { Package, Plus, X, ZoomIn, ChevronDown, ChevronUp } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import SectionCard from "./SectionCard";
@@ -68,17 +68,32 @@ function MaterialRow({ label, value, onChange }) {
 }
 
 function BordadoForm({ bordado, index, onChange, onRemove, uploadingIndex, onUploadImage }) {
+  const [collapsed, setCollapsed] = useState(true);
   const mats = bordado.materiales || {};
   const updateMat = (key, val) => onChange({ materiales: { ...mats, [key]: val } });
 
   return (
-    <div className="rounded-xl border border-border bg-card p-5 space-y-5 relative">
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-bold">Bordado #{index + 1}</p>
-        <button type="button" onClick={onRemove} className="text-muted-foreground hover:text-destructive transition-colors">
+    <div className="rounded-xl border border-border bg-card overflow-hidden">
+      {/* Header colapsable */}
+      <div
+        className="flex items-center justify-between px-5 py-3 cursor-pointer hover:bg-muted/30 transition-colors"
+        onClick={() => setCollapsed(!collapsed)}
+      >
+        <div className="flex items-center gap-3">
+          {collapsed ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronUp className="w-4 h-4 text-muted-foreground" />}
+          <p className="text-sm font-bold">Bordado #{index + 1}</p>
+          {collapsed && bordado.puntadas ? (
+            <span className="text-xs text-muted-foreground font-mono">{Number(bordado.puntadas).toLocaleString()} puntadas</span>
+          ) : null}
+        </div>
+        <button type="button" onClick={(e) => { e.stopPropagation(); onRemove(); }} className="text-muted-foreground hover:text-destructive transition-colors">
           <X className="w-4 h-4" />
         </button>
       </div>
+
+      {!collapsed && (
+    <div className="p-5 space-y-5 border-t border-border">
+
 
       {/* Dimensiones + Puntadas */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -121,7 +136,7 @@ function BordadoForm({ bordado, index, onChange, onRemove, uploadingIndex, onUpl
       <div className="grid grid-cols-2 gap-4">
         <div>
           <FieldLabel>Total de Hilo (m)</FieldLabel>
-          <Input type="number" placeholder="0" value={bordado.total_hilo} onChange={(e) => onChange({ total_hilo: e.target.value })} className="font-mono" />
+          <Input type="number" placeholder="0" step="0.01" value={bordado.total_hilo} onChange={(e) => onChange({ total_hilo: e.target.value })} className="font-mono" />
         </div>
         <div>
           <FieldLabel>Total Bobina (m)</FieldLabel>
@@ -161,6 +176,8 @@ function BordadoForm({ bordado, index, onChange, onRemove, uploadingIndex, onUpl
           {bordado.imagen_url && <ImageThumb url={bordado.imagen_url} />}
         </div>
       </div>
+    </div>
+    )}
     </div>
   );
 }
@@ -240,8 +257,8 @@ export default function ScrapSection({ project, onChange }) {
           </p>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             {[
-              { label: "Total Hilo (m)", value: totalHilo },
-              { label: "Total Bobina (m)", value: totalBobina },
+              { label: "Total Hilo (m)", value: totalHilo.toFixed(2) },
+              { label: "Total Bobina (m)", value: totalBobina.toFixed(2) },
               { label: "Total Tela (cm²)", value: totalTelaArea.toLocaleString() },
               { label: "Total Velcro (cm²)", value: totalVelcroArea.toLocaleString() },
               { label: "Tiempo Total", value: fmtTiempo },
