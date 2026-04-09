@@ -105,6 +105,12 @@
           },
           "archivo_url": {
             "type": "string"
+          },
+          "archivos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       }

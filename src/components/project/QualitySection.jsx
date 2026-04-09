@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ShieldCheck, Upload, UserPlus, ChevronDown, ChevronUp } from "lucide-react";
+import { ShieldCheck, Upload, UserPlus, ChevronDown, ChevronUp, X, ZoomIn, FileText } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -46,6 +46,7 @@ export default function QualitySection({ project, onChange }) {
   const rejectedHistory = folios.filter((f) => f.estado === "rechazada");
 
   const [uploading, setUploading] = useState(false);
+  const [uploadingCount, setUploadingCount] = useState(0);
   const [showExtraName, setShowExtraName] = useState(!!project.calidad_nombre_extra);
   const [generatingFolio, setGeneratingFolio] = useState(false);
 
@@ -88,16 +89,25 @@ export default function QualitySection({ project, onChange }) {
   };
 
   const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (!file.name.toLowerCase().endsWith(".pdf")) {
-      alert("Solo se permiten archivos .PDF");
-      return;
-    }
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
     setUploading(true);
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    updateActiveFolio({ archivo_url: file_url });
+    setUploadingCount(files.length);
+    const currentArchivos = activeFolio?.archivos || [];
+    const newUrls = [];
+    for (const file of files) {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      newUrls.push({ url: file_url, nombre: file.name, esImagen: file.type.startsWith("image/") });
+    }
+    updateActiveFolio({ archivos: [...currentArchivos, ...newUrls] });
     setUploading(false);
+    setUploadingCount(0);
+    e.target.value = "";
+  };
+
+  const handleRemoveArchivo = (idx) => {
+    const updated = (activeFolio?.archivos || []).filter((_, i) => i !== idx);
+    updateActiveFolio({ archivos: updated });
   };
 
   const handleSetEstado = (estado) => {
@@ -186,24 +196,48 @@ export default function QualitySection({ project, onChange }) {
             </div>
           </div>
 
-          {/* Archivo PDF */}
+          {/* Archivos */}
           {!isApproved && !isRejected && (
             <div>
-              <FieldLabel>Archivo Digital (PDF)</FieldLabel>
-              <div className="flex items-center gap-3">
+              <FieldLabel>Archivos (PDF o Imágenes)</FieldLabel>
+              <div className="space-y-3">
                 <label className={cn(
-                  "flex items-center gap-2 px-4 py-2 rounded-lg border border-dashed cursor-pointer transition-all text-sm",
+                  "inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-dashed cursor-pointer transition-all text-sm",
                   uploading ? "opacity-50 pointer-events-none" : "hover:border-primary hover:bg-muted/50",
-                  activeFolio.archivo_url ? "border-green-300 bg-green-50 text-green-700" : "border-border text-muted-foreground"
+                  "border-border text-muted-foreground"
                 )}>
                   <Upload className="w-4 h-4" />
-                  {uploading ? "Subiendo..." : activeFolio.archivo_url ? "PDF Subido ✓" : "Subir PDF"}
-                  <input type="file" accept=".pdf" className="hidden" onChange={handleFileUpload} />
+                  {uploading ? `Subiendo ${uploadingCount} archivo(s)...` : "Agregar archivos"}
+                  <input type="file" accept=".pdf,image/*" multiple className="hidden" onChange={handleFileUpload} />
                 </label>
-                {activeFolio.archivo_url && (
-                  <a href={activeFolio.archivo_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary underline">
-                    Ver archivo
-                  </a>
+                {/* Lista de archivos subidos */}
+                {(activeFolio?.archivos || []).length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {(activeFolio.archivos || []).map((archivo, idx) => (
+                      <div key={idx} className="relative group">
+                        {archivo.esImagen ? (
+                          <a href={archivo.url} target="_blank" rel="noopener noreferrer">
+                            <div className="w-20 h-20 rounded-lg overflow-hidden border border-border cursor-pointer">
+                              <img src={archivo.url} alt={archivo.nombre} className="w-full h-full object-cover" />
+                              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg">
+                                <ZoomIn className="w-4 h-4 text-white" />
+                              </div>
+                            </div>
+                          </a>
+                        ) : (
+                          <a href={archivo.url} target="_blank" rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border bg-muted/30 text-xs text-primary hover:bg-muted transition-all max-w-[160px] truncate">
+                            <FileText className="w-3.5 h-3.5 flex-shrink-0" />
+                            <span className="truncate">{archivo.nombre}</span>
+                          </a>
+                        )}
+                        <button type="button" onClick={() => handleRemoveArchivo(idx)}
+                          className="absolute -top-1.5 -right-1.5 bg-white border border-border rounded-full p-0.5 shadow opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50">
+                          <X className="w-3 h-3 text-destructive" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             </div>
