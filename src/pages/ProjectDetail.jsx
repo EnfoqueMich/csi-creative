@@ -12,6 +12,7 @@ import ScrapSection from "../components/project/ScrapSection";
 
 const defaultProject = {
   crea: null,
+  titulo: "",
   proyecto: "",
   asignado: "",
   fecha_inicio: null,

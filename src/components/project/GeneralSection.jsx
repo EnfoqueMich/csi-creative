@@ -61,7 +61,16 @@ export default function GeneralSection({ project, onChange }) {
       </div>
 
       <div>
-        <FieldLabel required>Proyecto</FieldLabel>
+        <FieldLabel required>Título del Proyecto</FieldLabel>
+        <Input
+          placeholder="Ej. Parches bordados temporada 2026..."
+          value={project.titulo || ""}
+          onChange={(e) => onChange({ titulo: e.target.value })}
+        />
+      </div>
+
+      <div>
+        <FieldLabel>Descripción</FieldLabel>
         <Textarea
           placeholder="Descripción general del proyecto..."
           value={project.proyecto || ""}

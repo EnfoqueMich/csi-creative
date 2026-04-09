@@ -5,6 +5,9 @@
     "crea": {
       "type": "number"
     },
+    "titulo": {
+      "type": "string"
+    },
     "proyecto": {
       "type": "string"
     },
