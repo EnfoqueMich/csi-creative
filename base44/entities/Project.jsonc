@@ -274,7 +274,6 @@
     }
   },
   "required": [
-    "crea",
-    "proyecto"
+    "crea"
   ]
 }
