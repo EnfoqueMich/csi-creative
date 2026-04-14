@@ -1,0 +1,39 @@
+{
+  "name": "PriceSettings",
+  "type": "object",
+  "properties": {
+    "precio_hilo_m": {
+      "type": "number",
+      "description": "Precio por metro de hilo ($)"
+    },
+    "precio_bobina_m": {
+      "type": "number",
+      "description": "Precio por metro de bobina ($)"
+    },
+    "precio_tatami_cm2": {
+      "type": "number",
+      "description": "Precio por cm\u00b2 de tatami ($)"
+    },
+    "precio_tela_canasta_cm2": {
+      "type": "number",
+      "description": "Precio por cm\u00b2 de tela canasta ($)"
+    },
+    "precio_tela_scrap_cm2": {
+      "type": "number",
+      "description": "Precio por cm\u00b2 de tela scrap ($)"
+    },
+    "precio_velcro_cm2": {
+      "type": "number",
+      "description": "Precio por cm\u00b2 de velcro ($)"
+    },
+    "precio_minuto_bordado": {
+      "type": "number",
+      "description": "Precio por minuto de bordado ($)"
+    },
+    "precio_hora_diseno": {
+      "type": "number",
+      "description": "Precio por hora de dise\u00f1o gr\u00e1fico ($)"
+    }
+  },
+  "required": []
+}

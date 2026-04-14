@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Package, Plus, X, ZoomIn, ChevronDown, ChevronUp, DollarSign } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -201,6 +201,13 @@ function PriceField({ label, value, onChange, unit }) {
 export default function ScrapSection({ project, onChange }) {
   const bordados = project.bordados_scrap || [];
   const [uploadingIndex, setUploadingIndex] = useState(null);
+  const [globalPrices, setGlobalPrices] = useState({});
+
+  useEffect(() => {
+    base44.entities.PriceSettings.list().then((data) => {
+      if (data.length > 0) setGlobalPrices(data[0]);
+    });
+  }, []);
 
   const handleAddBordado = () => onChange({ bordados_scrap: [...bordados, emptyBordado()] });
 
@@ -231,15 +238,15 @@ export default function ScrapSection({ project, onChange }) {
     s + (Number(b.tiempo_horas) || 0) * 3600 + (Number(b.tiempo_minutos) || 0) * 60 + (Number(b.tiempo_segundos) || 0), 0);
   const fmtTiempo = `${Math.floor(totalTiempoSecs / 3600)}h ${Math.floor((totalTiempoSecs % 3600) / 60)}m ${totalTiempoSecs % 60}s`;
 
-  // Precios unitarios del proyecto
-  const pHiloM = Number(project.precio_hilo_m) || 0;
-  const pBobinaM = Number(project.precio_bobina_m) || 0;
-  const pTatamiCm2 = Number(project.precio_tatami_cm2) || 0;
-  const pTelaCanastaCm2 = Number(project.precio_tela_canasta_cm2) || 0;
-  const pTelaScrapCm2 = Number(project.precio_tela_scrap_cm2) || 0;
-  const pVelcroCm2 = Number(project.precio_velcro_cm2) || 0;
-  const pMinBordado = Number(project.precio_minuto_bordado) || 0;
-  const pHoraDiseno = Number(project.precio_hora_diseno) || 0;
+  // Precios desde configuración global
+  const pHiloM = Number(globalPrices.precio_hilo_m) || 0;
+  const pBobinaM = Number(globalPrices.precio_bobina_m) || 0;
+  const pTatamiCm2 = Number(globalPrices.precio_tatami_cm2) || 0;
+  const pTelaCanastaCm2 = Number(globalPrices.precio_tela_canasta_cm2) || 0;
+  const pTelaScrapCm2 = Number(globalPrices.precio_tela_scrap_cm2) || 0;
+  const pVelcroCm2 = Number(globalPrices.precio_velcro_cm2) || 0;
+  const pMinBordado = Number(globalPrices.precio_minuto_bordado) || 0;
+  const pHoraDiseno = Number(globalPrices.precio_hora_diseno) || 0;
 
   // Costos calculados
   const costoHilo = totalHilo * pHiloM;
@@ -257,26 +264,6 @@ export default function ScrapSection({ project, onChange }) {
 
   return (
     <SectionCard icon={Package} title="Scrap — Bordados" number="5">
-
-      {/* Precios Unitarios */}
-      <div className="rounded-xl border border-border bg-muted/20 p-5 space-y-4">
-        <div className="flex items-center gap-2">
-          <DollarSign className="w-4 h-4 text-muted-foreground" />
-          <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Precios Unitarios</p>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <PriceField label="Hilo (por metro)" value={project.precio_hilo_m} onChange={(v) => onChange({ precio_hilo_m: v })} unit="$/m" />
-          <PriceField label="Bobina (por metro)" value={project.precio_bobina_m} onChange={(v) => onChange({ precio_bobina_m: v })} unit="$/m" />
-          <PriceField label="Minuto de bordado" value={project.precio_minuto_bordado} onChange={(v) => onChange({ precio_minuto_bordado: v })} unit="$/min" />
-          <PriceField label="Hora de diseño gráfico" value={project.precio_hora_diseno} onChange={(v) => onChange({ precio_hora_diseno: v })} unit="$/hora" />
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <PriceField label="Tatami (por cm²)" value={project.precio_tatami_cm2} onChange={(v) => onChange({ precio_tatami_cm2: v })} unit="$/cm²" />
-          <PriceField label="Tela Canasta (por cm²)" value={project.precio_tela_canasta_cm2} onChange={(v) => onChange({ precio_tela_canasta_cm2: v })} unit="$/cm²" />
-          <PriceField label="Tela Scrap (por cm²)" value={project.precio_tela_scrap_cm2} onChange={(v) => onChange({ precio_tela_scrap_cm2: v })} unit="$/cm²" />
-          <PriceField label="Velcro (por cm²)" value={project.precio_velcro_cm2} onChange={(v) => onChange({ precio_velcro_cm2: v })} unit="$/cm²" />
-        </div>
-      </div>
 
       {/* Lista de bordados */}
       <div className="space-y-4">

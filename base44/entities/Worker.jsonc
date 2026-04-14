@@ -13,6 +13,10 @@
     "activo": {
       "type": "boolean",
       "description": "Si est\u00e1 activo"
+    },
+    "foto_url": {
+      "type": "string",
+      "description": "URL de la foto del trabajador"
     }
   },
   "required": [

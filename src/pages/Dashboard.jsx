@@ -62,20 +62,7 @@ function ProjectRow({ project, onDelete }) {
               )}
             </div>
           </div>
-          <div className="flex-shrink-0 w-20 text-right">
-            <div className="text-xs font-mono font-bold text-muted-foreground mb-1">
-              {total}/{meta}
-            </div>
-            <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all"
-                style={{
-                  width: `${progress}%`,
-                  backgroundColor: progress >= 100 ? "hsl(var(--status-green))" : "hsl(var(--status-red))",
-                }}
-              />
-            </div>
-          </div>
+
         </div>
       </Link>
       <button
