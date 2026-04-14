@@ -79,6 +79,19 @@ export default function GeneralSection({ project, onChange }) {
         />
       </div>
 
+      <div>
+        <FieldLabel>Horas de Diseño / Digitalización</FieldLabel>
+        <Input
+          type="number"
+          placeholder="Ej. 2.5"
+          step="0.25"
+          min="0"
+          value={project.diseno_horas || ""}
+          onChange={(e) => onChange({ diseno_horas: Number(e.target.value) })}
+          className="font-mono max-w-[200px]"
+        />
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <div>
           <FieldLabel>Asignado</FieldLabel>
