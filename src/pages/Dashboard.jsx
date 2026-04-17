@@ -5,8 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
 import StatusBadge from "../components/project/StatusBadge";
-import MonthlyScrapPanel from "../components/MonthlyScrapPanel";
 import DashboardHeader from "../components/DashboardHeader";
+import ProductionOrderPanel from "../components/dashboard/ProductionOrderPanel";
 import moment from "moment";
 
 function formatDuration(start, end) {
@@ -138,11 +138,20 @@ export default function Dashboard() {
     finalizado: projects.filter((p) => p.proceso === "finalizado").length,
   };
 
-  // Group by category
-  const grouped = categories.map((cat) => ({
-    category: cat,
-    projects: filtered.filter((p) => p.categoria_id === cat.id),
-  }));
+  // Group by category — categorías con proyectos asignados primero
+  const grouped = categories
+    .map((cat) => ({
+      category: cat,
+      projects: filtered.filter((p) => p.categoria_id === cat.id),
+    }))
+    .filter((g) => g.projects.length > 0)
+    .sort((a, b) => {
+      const aHasAsignado = a.projects.some((p) => p.proceso === "asignado");
+      const bHasAsignado = b.projects.some((p) => p.proceso === "asignado");
+      if (aHasAsignado && !bHasAsignado) return -1;
+      if (!aHasAsignado && bHasAsignado) return 1;
+      return 0;
+    });
   const sinCategoria = filtered.filter((p) => !p.categoria_id);
 
   return (
@@ -205,7 +214,8 @@ export default function Dashboard() {
         />
       </div>
 
-      <MonthlyScrapPanel />
+      {/* Production Order */}
+      {!loading && <ProductionOrderPanel projects={projects} />}
 
       {/* List */}
       {loading ? (
@@ -220,7 +230,7 @@ export default function Dashboard() {
         </div>
       ) : groupByCategory ? (
         <div className="space-y-3">
-          {grouped.filter((g) => g.projects.length > 0).map((g) => (
+          {grouped.map((g) => (
             <CategoryGroup key={g.category.id} category={g.category} projects={g.projects} onDelete={handleDelete} defaultOpen={false} />
           ))}
           {sinCategoria.length > 0 && (

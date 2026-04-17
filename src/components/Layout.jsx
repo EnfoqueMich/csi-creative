@@ -3,6 +3,7 @@ import { LayoutDashboard, FolderPlus, Menu, X, Users, ClipboardList, DollarSign,
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { base44 } from "@/api/base44Client";
+import ScrapSummary from "./sidebar/ScrapSummary";
 
 const adminNavItems = [
   { path: "/", label: "Panel", icon: LayoutDashboard },
@@ -76,8 +77,9 @@ export default function Layout() {
             );
           })}
         </nav>
-        <div className="p-4 border-t border-sidebar-border">
-          <p className="text-xs text-sidebar-foreground/40">v1.0 — Control de Proyectos</p>
+        <div className="border-t border-sidebar-border pt-2 pb-4">
+          <ScrapSummary />
+          <p className="text-xs text-sidebar-foreground/40 px-4 pt-3">v1.0 — Control de Proyectos</p>
         </div>
       </aside>
 

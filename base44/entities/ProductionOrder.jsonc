@@ -1,0 +1,32 @@
+{
+  "name": "ProductionOrder",
+  "type": "object",
+  "properties": {
+    "items": {
+      "type": "array",
+      "description": "Lista ordenada de CREAs para producci\u00f3n",
+      "items": {
+        "type": "object",
+        "properties": {
+          "crea": {
+            "type": "number"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "titulo": {
+            "type": "string"
+          },
+          "orden": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "nombre": {
+      "type": "string",
+      "description": "Nombre del listado (singleton)"
+    }
+  },
+  "required": []
+}
