@@ -103,7 +103,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
-  const [groupByCategory, setGroupByCategory] = useState(false);
+  const [groupByCategory, setGroupByCategory] = useState(true);
 
   useEffect(() => {
     Promise.all([
@@ -228,6 +228,7 @@ export default function Dashboard() {
               category={{ nombre: "Sin categoría", color: "#94a3b8" }}
               projects={sinCategoria}
               onDelete={handleDelete}
+              defaultOpen={false}
             />
           )}
         </div>
