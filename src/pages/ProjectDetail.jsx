@@ -9,6 +9,7 @@ import QualitySection from "../components/project/QualitySection";
 import DevelopmentSection from "../components/project/DevelopmentSection";
 import FinalizeSection from "../components/project/FinalizeSection";
 import ScrapSection from "../components/project/ScrapSection";
+import CommentsSection from "../components/project/CommentsSection";
 
 const defaultProject = {
   crea: null,
@@ -188,6 +189,7 @@ export default function ProjectDetail() {
       <DevelopmentSection project={project} onChange={handleChange} />
       <ScrapSection project={project} onChange={handleChange} />
       {!isNew && <FinalizeSection project={project} onFinalize={handleFinalize} />}
+      {!isNew && <CommentsSection projectId={projectId} />}
     </div>
   );
 }

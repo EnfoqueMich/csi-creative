@@ -1,0 +1,48 @@
+{
+  "name": "Comment",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "ID del proyecto al que pertenece"
+    },
+    "parent_id": {
+      "type": "string",
+      "description": "ID del comentario padre (para respuestas)"
+    },
+    "texto": {
+      "type": "string",
+      "description": "Contenido del comentario"
+    },
+    "autor_nombre": {
+      "type": "string",
+      "description": "Nombre del autor"
+    },
+    "autor_email": {
+      "type": "string",
+      "description": "Email del autor"
+    },
+    "archivos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Archivos adjuntos (im\u00e1genes o PDFs)"
+    }
+  },
+  "required": [
+    "project_id",
+    "texto"
+  ]
+}
