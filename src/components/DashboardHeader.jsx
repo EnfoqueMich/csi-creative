@@ -52,7 +52,7 @@ export default function DashboardHeader() {
   };
 
   const logo = settings?.logo_url;
-  const title = settings?.titulo || "Gestión de Producción";
+  const title = settings?.titulo || "CSI CREATIVE";
 
   return (
     <div className="bg-card rounded-xl border border-border p-5 flex items-center gap-5">

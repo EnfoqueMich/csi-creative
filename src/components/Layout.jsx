@@ -54,8 +54,7 @@ export default function Layout() {
       {/* Sidebar Desktop */}
       <aside className="hidden lg:flex w-64 flex-col bg-sidebar text-sidebar-foreground fixed inset-y-0 left-0 z-30">
         <div className="p-6 border-b border-sidebar-border">
-          <h1 className="text-lg font-bold tracking-tight">Gestión de</h1>
-          <p className="text-sm text-sidebar-foreground/60 font-medium">Producción</p>
+          <h1 className="text-lg font-bold tracking-tight">CSI CREATIVE</h1>
         </div>
         <nav className="flex-1 p-4 space-y-1">
           {navItems.map((item) => {
@@ -85,7 +84,7 @@ export default function Layout() {
 
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-sidebar text-sidebar-foreground h-14 flex items-center px-4 justify-between">
-        <h1 className="text-sm font-bold">Gestión de Producción</h1>
+        <h1 className="text-sm font-bold">CSI CREATIVE</h1>
         <button onClick={() => setMobileOpen(!mobileOpen)} className="p-2">
           {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
