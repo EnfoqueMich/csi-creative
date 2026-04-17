@@ -38,7 +38,7 @@ function FolioHistoryItem({ folio }) {
   );
 }
 
-export default function QualitySection({ project, onChange }) {
+export default function QualitySection({ project, onChange, isDesigner = false }) {
   const folios = project.calidad_folios || [];
   const activeFolio = folios.length > 0 ? folios[folios.length - 1] : null;
   const isRejected = activeFolio?.estado === "rechazada";
@@ -138,7 +138,7 @@ export default function QualitySection({ project, onChange }) {
       )}
 
       {/* Liberar sin folio */}
-      {folios.length === 0 && project.calidad_estado_final !== 'no_aplica' && (
+      {!isDesigner && folios.length === 0 && project.calidad_estado_final !== 'no_aplica' && (
         <div className="flex items-center gap-3">
           <Button onClick={handleGenerateFolio} disabled={generatingFolio} variant="outline" className="gap-2">
             {generatingFolio ? "Generando..." : "Crear Folio de Calidad"}
@@ -153,18 +153,23 @@ export default function QualitySection({ project, onChange }) {
         </div>
       )}
 
+      {/* Diseñador: sin folio creado aún */}
+      {isDesigner && folios.length === 0 && (
+        <p className="text-sm text-muted-foreground italic">El folio de calidad será generado por el equipo de calidad.</p>
+      )}
+
       {/* Folio ya liberado sin folio */}
       {folios.length === 0 && project.calidad_estado_final === 'no_aplica' && (
         <div className="flex items-center gap-3">
           <div className="text-sm text-muted-foreground font-medium bg-muted/50 px-4 py-2 rounded-lg border border-border">
             ✓ Liberado — No requiere hoja de calidad
           </div>
-          <button type="button" onClick={() => onChange({ calidad_estado_final: null })} className="text-xs text-muted-foreground hover:underline">Cancelar</button>
+          {!isDesigner && <button type="button" onClick={() => onChange({ calidad_estado_final: null })} className="text-xs text-muted-foreground hover:underline">Cancelar</button>}
         </div>
       )}
 
       {/* Botón generar nuevo folio (cuando hay folios rechazados) */}
-      {canGenerateNewFolio && !isApproved && folios.length > 0 && (
+      {!isDesigner && canGenerateNewFolio && !isApproved && folios.length > 0 && (
         <div>
           <Button onClick={handleGenerateFolio} disabled={generatingFolio} variant="outline" className="gap-2">
             {generatingFolio ? "Generando..." : "Generar Nuevo Folio"}
@@ -196,8 +201,8 @@ export default function QualitySection({ project, onChange }) {
             </div>
           </div>
 
-          {/* Archivos */}
-          {!isApproved && !isRejected && (
+          {/* Archivos — siempre visible; diseñador puede subir en cualquier estado */}
+          {(!isApproved && !isRejected) || isDesigner ? (
             <div>
               <FieldLabel>Archivos (PDF o Imágenes)</FieldLabel>
               <div className="space-y-3">
@@ -210,7 +215,6 @@ export default function QualitySection({ project, onChange }) {
                   {uploading ? `Subiendo ${uploadingCount} archivo(s)...` : "Agregar archivos"}
                   <input type="file" accept=".pdf,image/*" multiple className="hidden" onChange={handleFileUpload} />
                 </label>
-                {/* Lista de archivos subidos */}
                 {(activeFolio?.archivos || []).length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {(activeFolio.archivos || []).map((archivo, idx) => (
@@ -231,20 +235,22 @@ export default function QualitySection({ project, onChange }) {
                             <span className="truncate">{archivo.nombre}</span>
                           </a>
                         )}
-                        <button type="button" onClick={() => handleRemoveArchivo(idx)}
-                          className="absolute -top-1.5 -right-1.5 bg-white border border-border rounded-full p-0.5 shadow opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50">
-                          <X className="w-3 h-3 text-destructive" />
-                        </button>
+                        {!isDesigner && (
+                          <button type="button" onClick={() => handleRemoveArchivo(idx)}
+                            className="absolute -top-1.5 -right-1.5 bg-white border border-border rounded-full p-0.5 shadow opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50">
+                            <X className="w-3 h-3 text-destructive" />
+                          </button>
+                        )}
                       </div>
                     ))}
                   </div>
                 )}
               </div>
             </div>
-          )}
+          ) : null}
 
-          {/* Estado */}
-          {!isApproved && !isRejected && (
+          {/* Estado — solo para no diseñadores */}
+          {!isDesigner && !isApproved && !isRejected && (
             <div className="space-y-3">
               <FieldLabel>Resultado de Calidad</FieldLabel>
               <div className="flex gap-2">

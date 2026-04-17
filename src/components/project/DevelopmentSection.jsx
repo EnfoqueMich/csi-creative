@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { base44 } from "@/api/base44Client";
 import moment from "moment";
 
-export default function DevelopmentSection({ project, onChange }) {
+export default function DevelopmentSection({ project, onChange, isDesigner = false }) {
   const [uploading, setUploading] = useState(false);
   const [showExtraName, setShowExtraName] = useState(!!project.desarrollo_nombre_extra);
   const [motivoInput, setMotivoInput] = useState("");
@@ -47,8 +47,8 @@ export default function DevelopmentSection({ project, onChange }) {
 
   return (
     <SectionCard icon={Code} title="Desarrollo y Cierre" number="4">
-      {/* No Aplica */}
-      {!isApproved && !noAplica && (
+      {/* No Aplica — solo no diseñadores */}
+      {!isDesigner && !isApproved && !noAplica && (
         <div className="flex justify-end">
           <label className="flex items-center gap-2 cursor-pointer text-xs text-muted-foreground">
             <input type="checkbox" checked={false} onChange={() => onChange({ desarrollo_estado: "no_aplica" })} className="rounded" />
@@ -61,7 +61,7 @@ export default function DevelopmentSection({ project, onChange }) {
           <div className="text-sm text-muted-foreground font-medium bg-muted/50 px-4 py-2 rounded-lg border border-border">
             ✓ Liberado — No requiere desarrollo
           </div>
-          <button type="button" onClick={() => onChange({ desarrollo_estado: null })} className="text-xs text-muted-foreground hover:underline">Cancelar</button>
+          {!isDesigner && <button type="button" onClick={() => onChange({ desarrollo_estado: null })} className="text-xs text-muted-foreground hover:underline">Cancelar</button>}
         </div>
       )}
       {/* File Upload */}
@@ -103,8 +103,8 @@ export default function DevelopmentSection({ project, onChange }) {
         </div>
       )}
 
-      {/* Estado */}
-      {!noAplica && !isApproved && (
+      {/* Estado — solo no diseñadores */}
+      {!isDesigner && !noAplica && !isApproved && (
         <div className="space-y-3">
           <FieldLabel>Resultado de Desarrollo</FieldLabel>
           <div className="flex gap-2">
@@ -129,8 +129,8 @@ export default function DevelopmentSection({ project, onChange }) {
         </div>
       )}
 
-      {/* Nombres */}
-      <div className="space-y-3">
+      {/* Nombres — solo no diseñadores */}
+      {!isDesigner && <div className="space-y-3">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <FieldLabel>Nombre Desarrollo</FieldLabel>
@@ -158,7 +158,7 @@ export default function DevelopmentSection({ project, onChange }) {
             + Agregar otra persona
           </button>
         )}
-      </div>
+      </div>}
     </SectionCard>
   );
 }

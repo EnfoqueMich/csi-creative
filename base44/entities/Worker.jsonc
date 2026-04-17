@@ -8,7 +8,13 @@
     },
     "puesto": {
       "type": "string",
-      "description": "Puesto o rol"
+      "description": "Puesto o rol",
+      "enum": [
+        "DISE\u00d1ADOR",
+        "LIDER",
+        "GERENTE"
+      ],
+      "default": "DISE\u00d1ADOR"
     },
     "activo": {
       "type": "boolean",

@@ -10,6 +10,7 @@ import DevelopmentSection from "../components/project/DevelopmentSection";
 import FinalizeSection from "../components/project/FinalizeSection";
 import ScrapSection from "../components/project/ScrapSection";
 import CommentsSection from "../components/project/CommentsSection";
+import { useWorkerRole } from "../hooks/useWorkerRole";
 
 const defaultProject = {
   crea: null,
@@ -60,6 +61,7 @@ export default function ProjectDetail() {
   const [project, setProject] = useState(defaultProject);
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
+  const { isDesigner, canFullEdit } = useWorkerRole();
 
   // Reset form when navigating to new project
   useEffect(() => {
@@ -170,7 +172,7 @@ export default function ProjectDetail() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {!isNew && (
+          {!isNew && canFullEdit && (
             <Button variant="outline" onClick={handleDelete} className="gap-2 text-destructive hover:text-destructive border-destructive/30 hover:border-destructive/60">
               <Trash2 className="w-4 h-4" />
               Eliminar
@@ -185,10 +187,10 @@ export default function ProjectDetail() {
 
       <GeneralSection project={project} onChange={handleChange} isNew={isNew} />
       <ProductionSection project={project} onChange={handleChange} />
-      <QualitySection project={project} onChange={handleChange} />
-      <DevelopmentSection project={project} onChange={handleChange} />
+      <QualitySection project={project} onChange={handleChange} isDesigner={isDesigner} />
+      <DevelopmentSection project={project} onChange={handleChange} isDesigner={isDesigner} />
       <ScrapSection project={project} onChange={handleChange} />
-      {!isNew && <FinalizeSection project={project} onFinalize={handleFinalize} />}
+      {!isNew && canFullEdit && <FinalizeSection project={project} onFinalize={handleFinalize} />}
       {!isNew && <CommentsSection projectId={projectId} />}
     </div>
   );
