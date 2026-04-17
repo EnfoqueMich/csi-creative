@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { MessageSquare, Send, Paperclip, X, FileText, Reply, Loader2, Image as ImageIcon } from "lucide-react";
+import { MessageSquare, Send, Paperclip, X, FileText, Reply, Loader2, Image as ImageIcon, Trash2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -132,8 +132,14 @@ function CommentInput({ projectId, parentId = null, onSent, currentUser, placeho
   );
 }
 
-function CommentItem({ comment, replies, currentUser, projectId, onRefresh }) {
+function CommentItem({ comment, replies, currentUser, projectId, onRefresh, isAdmin }) {
   const [showReply, setShowReply] = useState(false);
+
+  const handleDelete = async (id) => {
+    if (!confirm("¿Eliminar este comentario?")) return;
+    await base44.entities.Comment.delete(id);
+    onRefresh();
+  };
 
   return (
     <div className="space-y-3">
@@ -144,6 +150,11 @@ function CommentItem({ comment, replies, currentUser, projectId, onRefresh }) {
             <div className="flex items-center gap-2 mb-1.5 flex-wrap">
               <span className="text-sm font-semibold">{comment.autor_nombre || "Usuario"}</span>
               <span className="text-xs text-muted-foreground">{moment(comment.created_date).fromNow()}</span>
+              {isAdmin && (
+                <button onClick={() => handleDelete(comment.id)} className="ml-auto text-muted-foreground hover:text-destructive transition-colors">
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
             {comment.texto && <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{comment.texto}</p>}
             {comment.archivos?.length > 0 && (
@@ -184,6 +195,11 @@ function CommentItem({ comment, replies, currentUser, projectId, onRefresh }) {
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <span className="text-xs font-semibold">{r.autor_nombre || "Usuario"}</span>
                         <span className="text-xs text-muted-foreground">{moment(r.created_date).fromNow()}</span>
+                        {isAdmin && (
+                          <button onClick={() => handleDelete(r.id)} className="ml-auto text-muted-foreground hover:text-destructive transition-colors">
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        )}
                       </div>
                       {r.texto && <p className="text-xs text-foreground whitespace-pre-wrap leading-relaxed">{r.texto}</p>}
                       {r.archivos?.length > 0 && (
@@ -207,6 +223,7 @@ export default function CommentsSection({ projectId }) {
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const load = async () => {
     const [user, data] = await Promise.all([
@@ -214,6 +231,7 @@ export default function CommentsSection({ projectId }) {
       base44.entities.Comment.filter({ project_id: projectId }, "created_date", 200),
     ]);
     setCurrentUser(user);
+    setIsAdmin(user?.role === "admin");
     setComments(data);
     setLoading(false);
   };
@@ -242,6 +260,7 @@ export default function CommentsSection({ projectId }) {
               currentUser={currentUser}
               projectId={projectId}
               onRefresh={load}
+              isAdmin={isAdmin}
             />
           ))}
 

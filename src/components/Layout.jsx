@@ -13,6 +13,11 @@ const adminNavItems = [
   { path: "/precios", label: "Precios Unitarios", icon: DollarSign },
 ];
 
+const liderNavItems = [
+  { path: "/", label: "Panel", icon: LayoutDashboard },
+  { path: "/nuevo", label: "Nuevo Proyecto", icon: FolderPlus },
+];
+
 const workerNavItems = [
   { path: "/mis-proyectos", label: "Mis Proyectos", icon: LayoutDashboard },
 ];
@@ -20,15 +25,28 @@ const workerNavItems = [
 export default function Layout() {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [isWorker, setIsWorker] = useState(false);
+  const [navRole, setNavRole] = useState("admin"); // 'admin' | 'lider' | 'worker'
 
   useEffect(() => {
-    base44.auth.me().then((user) => {
-      setIsWorker(user?.role === "worker");
-    }).catch(() => {});
+    async function detectRole() {
+      try {
+        const user = await base44.auth.me();
+        if (user?.role === "worker") { setNavRole("worker"); return; }
+        if (user?.role === "admin") { setNavRole("admin"); return; }
+        // Check puesto in Worker entity
+        const workers = await base44.entities.Worker.list("nombre");
+        const match = workers.find(
+          (w) => w.nombre?.trim().toLowerCase() === user?.full_name?.trim().toLowerCase()
+        );
+        const puesto = match?.puesto;
+        if (puesto === "LIDER" || puesto === "GERENTE") setNavRole("lider");
+        else setNavRole("admin");
+      } catch { setNavRole("admin"); }
+    }
+    detectRole();
   }, []);
 
-  const navItems = isWorker ? workerNavItems : adminNavItems;
+  const navItems = navRole === "worker" ? workerNavItems : navRole === "lider" ? liderNavItems : adminNavItems;
 
   return (
     <div className="min-h-screen flex bg-background">

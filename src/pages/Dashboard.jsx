@@ -73,7 +73,7 @@ function ProjectRow({ project, onDelete }) {
 }
 
 function CategoryGroup({ category, projects, onDelete, defaultOpen }) {
-  const [open, setOpen] = useState(defaultOpen ?? true);
+  const [open, setOpen] = useState(defaultOpen ?? false);
 
   return (
     <div className="rounded-xl border border-border overflow-hidden">
@@ -221,7 +221,7 @@ export default function Dashboard() {
       ) : groupByCategory ? (
         <div className="space-y-3">
           {grouped.filter((g) => g.projects.length > 0).map((g) => (
-            <CategoryGroup key={g.category.id} category={g.category} projects={g.projects} onDelete={handleDelete} />
+            <CategoryGroup key={g.category.id} category={g.category} projects={g.projects} onDelete={handleDelete} defaultOpen={false} />
           ))}
           {sinCategoria.length > 0 && (
             <CategoryGroup
