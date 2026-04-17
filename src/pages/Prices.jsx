@@ -15,8 +15,8 @@ function PriceRow({ label, unit, field, value, onChange }) {
         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
         <Input
           type="number"
-          placeholder="0.00"
-          step="0.01"
+          placeholder="0.000"
+          step="0.001"
           min="0"
           value={value || ""}
           onChange={(e) => onChange(field, Number(e.target.value))}
