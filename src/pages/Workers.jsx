@@ -150,11 +150,17 @@ export default function Workers() {
           </div>
           <div>
             <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground block mb-1.5">Puesto</label>
-            <Input
-              placeholder="Ej. Bordador, Operador..."
+            <select
               value={form.puesto}
               onChange={(e) => setForm({ ...form, puesto: e.target.value })}
-            />
+              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            >
+              <option value="">— Seleccionar —</option>
+              <option value="LIDER">LIDER</option>
+              <option value="GERENTE">GERENTE</option>
+              <option value="DISEÑADOR">DISEÑADOR</option>
+              <option value="ADMIN">ADMIN</option>
+            </select>
           </div>
         </div>
         <div className="flex items-center gap-2">
