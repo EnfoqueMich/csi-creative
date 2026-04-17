@@ -1,19 +1,34 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, FolderPlus, Menu, X, Users, ClipboardList, DollarSign } from "lucide-react";
-import { useState } from "react";
+import { LayoutDashboard, FolderPlus, Menu, X, Users, ClipboardList, DollarSign, Tag } from "lucide-react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { base44 } from "@/api/base44Client";
 
-const navItems = [
+const adminNavItems = [
   { path: "/", label: "Panel", icon: LayoutDashboard },
   { path: "/nuevo", label: "Nuevo Proyecto", icon: FolderPlus },
   { path: "/tareas", label: "Tareas", icon: ClipboardList },
+  { path: "/categorias", label: "Categorías", icon: Tag },
   { path: "/trabajadores", label: "Trabajadores", icon: Users },
   { path: "/precios", label: "Precios Unitarios", icon: DollarSign },
+];
+
+const workerNavItems = [
+  { path: "/mis-proyectos", label: "Mis Proyectos", icon: LayoutDashboard },
 ];
 
 export default function Layout() {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isWorker, setIsWorker] = useState(false);
+
+  useEffect(() => {
+    base44.auth.me().then((user) => {
+      setIsWorker(user?.role === "worker");
+    }).catch(() => {});
+  }, []);
+
+  const navItems = isWorker ? workerNavItems : adminNavItems;
 
   return (
     <div className="min-h-screen flex bg-background">

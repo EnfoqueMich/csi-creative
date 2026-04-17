@@ -11,9 +11,16 @@ import moment from "moment";
 
 export default function GeneralSection({ project, onChange }) {
   const [workers, setWorkers] = useState([]);
+  const [categories, setCategories] = useState([]);
 
   useEffect(() => {
-    base44.entities.Worker.list("nombre").then((data) => setWorkers(data.filter((w) => w.activo !== false)));
+    Promise.all([
+      base44.entities.Worker.list("nombre").then((data) => data.filter((w) => w.activo !== false)),
+      base44.entities.Category.list("nombre"),
+    ]).then(([ws, cats]) => {
+      setWorkers(ws);
+      setCategories(cats);
+    });
   }, []);
 
   const handleAsignadoChange = (value) => {
@@ -77,6 +84,22 @@ export default function GeneralSection({ project, onChange }) {
           onChange={(e) => onChange({ proyecto: e.target.value })}
           rows={3}
         />
+      </div>
+
+      <div>
+        <FieldLabel>Categoría</FieldLabel>
+        <select
+          value={project.categoria_id || ""}
+          onChange={(e) => onChange({ categoria_id: e.target.value || null })}
+          className="w-full h-10 px-3 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          <option value="">— Sin categoría —</option>
+          {categories.map((cat) => (
+            <option key={cat.id} value={cat.id}>
+              {cat.nombre}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div>

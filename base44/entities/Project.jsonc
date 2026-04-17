@@ -11,6 +11,10 @@
     "proyecto": {
       "type": "string"
     },
+    "categoria_id": {
+      "type": "string",
+      "description": "ID de la categor\u00eda asignada"
+    },
     "asignado": {
       "type": "string"
     },
@@ -88,36 +92,28 @@
       "type": "boolean"
     },
     "precio_hilo_m": {
-      "type": "number",
-      "description": "Precio por metro de hilo ($)"
+      "type": "number"
     },
     "precio_bobina_m": {
-      "type": "number",
-      "description": "Precio por metro de bobina ($)"
+      "type": "number"
     },
     "precio_tatami_cm2": {
-      "type": "number",
-      "description": "Precio por cm\u00b2 de tatami ($)"
+      "type": "number"
     },
     "precio_tela_canasta_cm2": {
-      "type": "number",
-      "description": "Precio por cm\u00b2 de tela canasta ($)"
+      "type": "number"
     },
     "precio_tela_scrap_cm2": {
-      "type": "number",
-      "description": "Precio por cm\u00b2 de tela scrap ($)"
+      "type": "number"
     },
     "precio_velcro_cm2": {
-      "type": "number",
-      "description": "Precio por cm\u00b2 de velcro ($)"
+      "type": "number"
     },
     "precio_minuto_bordado": {
-      "type": "number",
-      "description": "Precio por minuto de bordado ($)"
+      "type": "number"
     },
     "precio_hora_diseno": {
-      "type": "number",
-      "description": "Precio por hora de dise\u00f1o gr\u00e1fico ($)"
+      "type": "number"
     },
     "calidad_folios": {
       "type": "array",
@@ -203,6 +199,10 @@
       "items": {
         "type": "object",
         "properties": {
+          "cantidad": {
+            "type": "number",
+            "description": "Cantidad de bordados id\u00e9nticos"
+          },
           "puntadas": {
             "type": "number"
           },

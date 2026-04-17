@@ -1,0 +1,21 @@
+{
+  "name": "Category",
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string",
+      "description": "Nombre de la categor\u00eda"
+    },
+    "color": {
+      "type": "string",
+      "description": "Color de la categor\u00eda (hex)"
+    },
+    "descripcion": {
+      "type": "string",
+      "description": "Descripci\u00f3n opcional"
+    }
+  },
+  "required": [
+    "nombre"
+  ]
+}

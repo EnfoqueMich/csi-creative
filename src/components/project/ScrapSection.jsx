@@ -9,6 +9,7 @@ import { base44 } from "@/api/base44Client";
 
 const emptyMat = () => ({ cantidad: "", base: "", altura: "" });
 const emptyBordado = () => ({
+  cantidad: 1,
   base: "", altura: "", puntadas: "",
   tiempo_horas: "", tiempo_minutos: "", tiempo_segundos: "",
   total_hilo: "", total_bobina: "", imagen_url: "",
@@ -95,6 +96,22 @@ function BordadoForm({ bordado, index, onChange, onRemove, uploadingIndex, onUpl
 
       {!collapsed && (
         <div className="p-5 space-y-5 border-t border-border">
+          {/* Cantidad */}
+          <div className="flex items-center gap-4 p-3 bg-primary/5 rounded-lg border border-primary/20">
+            <div className="flex-1">
+              <FieldLabel>Cantidad de bordados idénticos</FieldLabel>
+              <p className="text-xs text-muted-foreground">Si todos los datos son iguales, indica cuántos hay</p>
+            </div>
+            <Input
+              type="number"
+              min="1"
+              placeholder="1"
+              value={bordado.cantidad || 1}
+              onChange={(e) => onChange({ cantidad: Number(e.target.value) || 1 })}
+              className="font-mono w-24 text-center text-lg font-bold"
+            />
+          </div>
+
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div>
               <FieldLabel>Base Bordado (cm)</FieldLabel>
@@ -227,15 +244,16 @@ export default function ScrapSection({ project, onChange }) {
     setUploadingIndex(null);
   };
 
-  // Totals — quantities
-  const totalHilo = bordados.reduce((s, b) => s + (Number(b.total_hilo) || 0), 0);
-  const totalBobina = bordados.reduce((s, b) => s + (Number(b.total_bobina) || 0), 0);
-  const totalTatamiArea = bordados.reduce((s, b) => s + matArea(b.materiales?.tatami), 0);
-  const totalTelaCanastaArea = bordados.reduce((s, b) => s + matArea(b.materiales?.tela_canasta), 0);
-  const totalTelaScrapArea = bordados.reduce((s, b) => s + matArea(b.materiales?.tela_scrap), 0);
-  const totalVelcroArea = bordados.reduce((s, b) => s + matArea(b.materiales?.velcro_macho) + matArea(b.materiales?.velcro_hembra), 0);
+  // Totals — multiplied by cantidad
+  const qty = (b) => Number(b.cantidad) || 1;
+  const totalHilo = bordados.reduce((s, b) => s + (Number(b.total_hilo) || 0) * qty(b), 0);
+  const totalBobina = bordados.reduce((s, b) => s + (Number(b.total_bobina) || 0) * qty(b), 0);
+  const totalTatamiArea = bordados.reduce((s, b) => s + matArea(b.materiales?.tatami) * qty(b), 0);
+  const totalTelaCanastaArea = bordados.reduce((s, b) => s + matArea(b.materiales?.tela_canasta) * qty(b), 0);
+  const totalTelaScrapArea = bordados.reduce((s, b) => s + matArea(b.materiales?.tela_scrap) * qty(b), 0);
+  const totalVelcroArea = bordados.reduce((s, b) => s + (matArea(b.materiales?.velcro_macho) + matArea(b.materiales?.velcro_hembra)) * qty(b), 0);
   const totalTiempoSecs = bordados.reduce((s, b) =>
-    s + (Number(b.tiempo_horas) || 0) * 3600 + (Number(b.tiempo_minutos) || 0) * 60 + (Number(b.tiempo_segundos) || 0), 0);
+    s + ((Number(b.tiempo_horas) || 0) * 3600 + (Number(b.tiempo_minutos) || 0) * 60 + (Number(b.tiempo_segundos) || 0)) * qty(b), 0);
   const fmtTiempo = `${Math.floor(totalTiempoSecs / 3600)}h ${Math.floor((totalTiempoSecs % 3600) / 60)}m ${totalTiempoSecs % 60}s`;
 
   // Precios desde configuración global
@@ -290,7 +308,7 @@ export default function ScrapSection({ project, onChange }) {
           {/* Totales físicos */}
           <div className="rounded-xl border border-border bg-muted/30 p-5">
             <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">
-              Totales físicos ({bordados.length} bordado{bordados.length > 1 ? "s" : ""})
+              Totales físicos ({bordados.reduce((s, b) => s + (Number(b.cantidad) || 1), 0)} bordado(s) · {bordados.length} tipo(s))
             </p>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               {[
