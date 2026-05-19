@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { base44 } from "@/api/base44Client";
 import ScrapSummary from "./sidebar/ScrapSummary";
+import AdminNotifications from "./AdminNotifications";
 
 const adminNavItems = [
   { path: "/", label: "Panel", icon: LayoutDashboard },
@@ -21,6 +22,7 @@ const liderNavItems = [
 
 const workerNavItems = [
   { path: "/mis-proyectos", label: "Mis Proyectos", icon: LayoutDashboard },
+  { path: "/mis-tareas", label: "Mis Tareas", icon: ClipboardList },
 ];
 
 export default function Layout() {
@@ -77,6 +79,7 @@ export default function Layout() {
           })}
         </nav>
         <div className="border-t border-sidebar-border pt-2 pb-4">
+          {navRole === "admin" && <AdminNotifications />}
           <ScrapSummary />
           <p className="text-xs text-sidebar-foreground/40 px-4 pt-3">v1.0 — Control de Proyectos</p>
         </div>

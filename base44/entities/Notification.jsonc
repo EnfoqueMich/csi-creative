@@ -1,0 +1,40 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "tarea_completada",
+        "proyecto_completado"
+      ],
+      "description": "Tipo de notificaci\u00f3n"
+    },
+    "leida": {
+      "type": "boolean",
+      "default": false
+    },
+    "titulo": {
+      "type": "string"
+    },
+    "mensaje": {
+      "type": "string"
+    },
+    "referencia_id": {
+      "type": "string",
+      "description": "ID de la tarea o proyecto relacionado"
+    },
+    "trabajador_nombre": {
+      "type": "string"
+    },
+    "tiempo_segundos": {
+      "type": "number",
+      "description": "Tiempo total en segundos que tard\u00f3 la tarea/proyecto"
+    }
+  },
+  "required": [
+    "tipo",
+    "titulo",
+    "mensaje"
+  ]
+}
