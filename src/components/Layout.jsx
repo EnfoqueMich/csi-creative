@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, FolderPlus, Menu, X, Users, ClipboardList, DollarSign, Tag } from "lucide-react";
+import { LayoutDashboard, FolderPlus, Menu, X, Users, ClipboardList, DollarSign, Tag, FileText } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { base44 } from "@/api/base44Client";
@@ -9,6 +9,7 @@ import AdminNotifications from "./AdminNotifications";
 const adminNavItems = [
   { path: "/", label: "Panel", icon: LayoutDashboard },
   { path: "/nuevo", label: "Nuevo Proyecto", icon: FolderPlus },
+  { path: "/pedidos", label: "Pedidos", icon: FileText },
   { path: "/tareas", label: "Tareas", icon: ClipboardList },
   { path: "/categorias", label: "Categorías", icon: Tag },
   { path: "/trabajadores", label: "Trabajadores", icon: Users },

@@ -14,6 +14,7 @@ import Prices from './pages/Prices';
 import Categories from './pages/Categories';
 import WorkerDashboard from './pages/WorkerDashboard';
 import MyTasks from './pages/MyTasks';
+import WorkOrders from './pages/WorkOrders';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -51,6 +52,7 @@ const AuthenticatedApp = () => {
         <Route path="/precios" element={<Prices />} />
         <Route path="/categorias" element={<Categories />} />
         <Route path="/mis-tareas" element={<MyTasks />} />
+        <Route path="/pedidos" element={<WorkOrders />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>

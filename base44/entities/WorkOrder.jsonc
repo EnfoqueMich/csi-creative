@@ -1,0 +1,157 @@
+{
+  "name": "WorkOrder",
+  "type": "object",
+  "properties": {
+    "folio": {
+      "type": "string"
+    },
+    "nombre_cliente": {
+      "type": "string"
+    },
+    "fecha_orden": {
+      "type": "string",
+      "format": "date"
+    },
+    "articulo_solicitado": {
+      "type": "string"
+    },
+    "telefono": {
+      "type": "string"
+    },
+    "observaciones": {
+      "type": "string"
+    },
+    "tipo_trabajo": {
+      "type": "object",
+      "properties": {
+        "bordado": {
+          "type": "boolean"
+        },
+        "muestras": {
+          "type": "boolean"
+        },
+        "estampado": {
+          "type": "boolean"
+        },
+        "sublimado": {
+          "type": "boolean"
+        },
+        "costura": {
+          "type": "boolean"
+        },
+        "parche": {
+          "type": "boolean"
+        },
+        "riveteado": {
+          "type": "boolean"
+        },
+        "dtf": {
+          "type": "boolean"
+        }
+      }
+    },
+    "tipo_prenda": {
+      "type": "string"
+    },
+    "color_prenda": {
+      "type": "string"
+    },
+    "tallas": {
+      "type": "object",
+      "properties": {
+        "xs": {
+          "type": "number"
+        },
+        "s": {
+          "type": "number"
+        },
+        "m": {
+          "type": "number"
+        },
+        "l": {
+          "type": "number"
+        },
+        "xl": {
+          "type": "number"
+        },
+        "xxl": {
+          "type": "number"
+        },
+        "xxxl": {
+          "type": "number"
+        },
+        "xxxxl": {
+          "type": "number"
+        },
+        "otras": {
+          "type": "string"
+        }
+      }
+    },
+    "total_piezas": {
+      "type": "number"
+    },
+    "posiciones": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "numero": {
+            "type": "number"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "descripcion": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "color_hilos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "bobina_color": {
+      "type": "string"
+    },
+    "bobina_negra": {
+      "type": "boolean"
+    },
+    "bobina_blanca": {
+      "type": "boolean"
+    },
+    "extras": {
+      "type": "object",
+      "properties": {
+        "foamy": {
+          "type": "boolean"
+        },
+        "velcro_macho": {
+          "type": "boolean"
+        },
+        "velcro_hembra": {
+          "type": "boolean"
+        },
+        "adhesivo_termico": {
+          "type": "boolean"
+        }
+      }
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "borrador",
+        "enviada",
+        "produccion",
+        "completada"
+      ],
+      "default": "borrador"
+    }
+  },
+  "required": [
+    "nombre_cliente"
+  ]
+}
