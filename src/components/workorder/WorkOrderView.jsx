@@ -8,16 +8,34 @@ const TALLAS_KEYS =   ["xs","s","m","l","xl","xxl","xxxl","xxxxl"];
 function Check({ checked }) {
   return (
     <span className={cn(
-      "inline-block w-3.5 h-3.5 border border-gray-500 rounded-sm mr-1 flex-shrink-0",
+      "inline-flex items-center justify-center w-3.5 h-3.5 border border-gray-500 rounded-sm mr-1 flex-shrink-0",
       checked ? "bg-blue-600 border-blue-600" : "bg-white"
     )}>
-      {checked && <span className="text-white text-[9px] font-bold leading-none flex items-center justify-center w-full h-full">✓</span>}
+      {checked && <span className="text-white text-[9px] font-bold leading-none">✓</span>}
     </span>
+  );
+}
+
+function Field({ label, value, blue }) {
+  return (
+    <div className="border border-gray-300 rounded">
+      <div className={cn("text-[10px] font-bold px-2 py-0.5 uppercase tracking-wide", blue ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600")}>
+        {label}:
+      </div>
+      <div className="px-2 py-1.5 text-sm font-medium min-h-[28px]">{value || ""}</div>
+    </div>
   );
 }
 
 export default function WorkOrderView({ order, onBack, onEdit }) {
   const handlePrint = () => window.print();
+
+  // Normalizar especificaciones (compatibilidad con formato antiguo)
+  const especificaciones = order.especificaciones?.length
+    ? order.especificaciones
+    : (order.tipo_prenda !== undefined
+        ? [{ tipo_prenda: order.tipo_prenda, color_prenda: order.color_prenda, tallas: order.tallas, total_piezas: order.total_piezas }]
+        : []);
 
   return (
     <>
@@ -40,7 +58,6 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
         {/* Encabezado */}
         <div className="flex items-start justify-between px-6 pt-6 pb-3 border-b-2 border-blue-800">
           <div className="flex items-center gap-3">
-            {/* Logo CSI */}
             <div className="flex items-center gap-1">
               <div className="bg-yellow-600 text-white font-black text-xl px-2 py-1 rounded-sm">C</div>
               <div className="flex flex-col leading-none">
@@ -57,12 +74,15 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
         </div>
 
         <div className="px-6 py-4 space-y-4">
-          {/* Fila 1: cliente */}
+          {/* Fila cliente */}
           <div className="grid grid-cols-2 gap-3">
             <Field label="NOMBRE CLIENTE" value={order.nombre_cliente} blue />
             <Field label="FECHA DE ORDEN" value={order.fecha_orden} blue />
-            <Field label="ARTÍCULO SOLICITADO" value={order.articulo_solicitado} blue />
+            <Field label="AGENTE DE VENTAS" value={order.agente_ventas} blue />
             <Field label="TELÉFONO" value={order.telefono} blue />
+            <div className="col-span-2">
+              <Field label="ARTÍCULO SOLICITADO" value={order.articulo_solicitado} blue />
+            </div>
           </div>
 
           {/* Tipo trabajo + observaciones */}
@@ -89,35 +109,42 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
             </div>
           </div>
 
-          {/* Especificaciones */}
-          <div className="border-2 border-green-500 rounded p-3">
-            <p className="text-xs font-bold text-green-700 text-center mb-2 uppercase tracking-widest">Especificaciones</p>
-            <div className="flex items-center gap-2 flex-wrap text-xs">
-              <div className="border border-gray-400 rounded px-2 py-1 min-w-[80px]">
-                <p className="text-gray-500 text-[10px] uppercase">Tipo Prenda</p>
-                <p className="font-semibold">{order.tipo_prenda || "—"}</p>
-              </div>
-              <div className="border border-gray-400 rounded px-2 py-1 min-w-[60px]">
-                <p className="text-gray-500 text-[10px] uppercase">Color</p>
-                <p className="font-semibold">{order.color_prenda || "—"}</p>
-              </div>
-              {TALLAS_KEYS.map((t, i) => (
-                <div key={t} className="border border-gray-400 rounded px-2 py-1 w-10 text-center">
-                  <p className="text-gray-500 text-[10px] uppercase">{TALLAS_LABELS[i]}</p>
-                  <p className="font-bold">{order.tallas?.[t] || ""}</p>
+          {/* Especificaciones — puede haber múltiples */}
+          <div className="border-2 border-green-500 rounded p-3 space-y-3">
+            <p className="text-xs font-bold text-green-700 text-center uppercase tracking-widest">Especificaciones</p>
+            {especificaciones.map((row, idx) => (
+              <div key={idx} className={cn("space-y-1", idx > 0 && "border-t border-green-200 pt-2")}>
+                {especificaciones.length > 1 && (
+                  <p className="text-[10px] font-bold text-green-600 uppercase">Modelo {idx + 1}</p>
+                )}
+                <div className="flex items-center gap-2 flex-wrap text-xs">
+                  <div className="border border-gray-400 rounded px-2 py-1 min-w-[80px]">
+                    <p className="text-gray-500 text-[10px] uppercase">Tipo Prenda</p>
+                    <p className="font-semibold">{row.tipo_prenda || "—"}</p>
+                  </div>
+                  <div className="border border-gray-400 rounded px-2 py-1 min-w-[60px]">
+                    <p className="text-gray-500 text-[10px] uppercase">Color</p>
+                    <p className="font-semibold">{row.color_prenda || "—"}</p>
+                  </div>
+                  {TALLAS_KEYS.map((t, i) => (
+                    <div key={t} className="border border-gray-400 rounded px-2 py-1 w-10 text-center">
+                      <p className="text-gray-500 text-[10px] uppercase">{TALLAS_LABELS[i]}</p>
+                      <p className="font-bold">{row.tallas?.[t] || ""}</p>
+                    </div>
+                  ))}
+                  {row.tallas?.otras && (
+                    <div className="border border-gray-400 rounded px-2 py-1">
+                      <p className="text-gray-500 text-[10px] uppercase">Otras</p>
+                      <p className="font-semibold">{row.tallas.otras}</p>
+                    </div>
+                  )}
+                  <div className="border-2 border-green-500 rounded px-2 py-1 min-w-[60px] text-center ml-auto">
+                    <p className="text-gray-500 text-[10px] uppercase">Total Piezas</p>
+                    <p className="font-black text-base text-green-700">{row.total_piezas || "0"}</p>
+                  </div>
                 </div>
-              ))}
-              {order.tallas?.otras && (
-                <div className="border border-gray-400 rounded px-2 py-1">
-                  <p className="text-gray-500 text-[10px] uppercase">Otras</p>
-                  <p className="font-semibold">{order.tallas.otras}</p>
-                </div>
-              )}
-              <div className="border-2 border-green-500 rounded px-2 py-1 min-w-[60px] text-center ml-auto">
-                <p className="text-gray-500 text-[10px] uppercase">Total Piezas</p>
-                <p className="font-black text-base text-green-700">{order.total_piezas || "0"}</p>
               </div>
-            </div>
+            ))}
           </div>
 
           {/* Posiciones */}
@@ -131,29 +158,37 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
                   <div className="bg-green-100 text-green-800 text-[10px] font-semibold text-center py-0.5 mx-1 rounded border border-green-300">
                     {pos.nombre}
                   </div>
-                  <div className="px-2 pb-2 min-h-[60px]">
+                  {pos.imagen_url && (
+                    <div className="px-1">
+                      <img src={pos.imagen_url} alt={pos.nombre} className="w-[80%] mx-auto object-contain rounded border border-blue-100" />
+                    </div>
+                  )}
+                  <div className="px-2 pb-1 min-h-[40px]">
                     <p className="text-xs text-gray-700 leading-relaxed whitespace-pre-wrap">{pos.descripcion || ""}</p>
                   </div>
+                  {pos.color_hilos?.filter(Boolean).length > 0 && (
+                    <div className="px-2 pb-2 border-t border-blue-100 pt-1">
+                      <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Hilo</p>
+                      {pos.color_hilos.filter(Boolean).map((c, hi) => (
+                        <div key={hi} className="flex items-center gap-1 text-[10px]">
+                          <div className="w-2.5 h-2.5 rounded-sm border border-gray-400 bg-white flex-shrink-0" />
+                          {c}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Footer: hilos + extras + firma */}
+          {/* Footer: bobina + extras + firma */}
           <div className="grid grid-cols-3 gap-4 pt-2">
-            {/* Color hilos */}
+            {/* Bobina */}
             <div className="border-2 border-blue-400 rounded p-3 text-xs space-y-1">
-              <p className="font-bold text-blue-700 uppercase text-[10px]">Color de Hilos</p>
-              {order.color_hilos?.filter(Boolean).map((c, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-sm border border-gray-400 bg-white flex-shrink-0" />
-                  <span>{c}</span>
-                </div>
-              ))}
-              <p className="font-bold text-blue-700 uppercase text-[10px] mt-2">Bobina</p>
+              <p className="font-bold text-blue-700 uppercase text-[10px]">Bobina</p>
               <div className="flex items-center gap-1"><Check checked={!!order.bobina_negra} /> Negra</div>
               <div className="flex items-center gap-1"><Check checked={!!order.bobina_blanca} /> Blanca</div>
-              {order.bobina_color && <p className="text-gray-600">{order.bobina_color}</p>}
             </div>
 
             {/* Extras */}
@@ -185,16 +220,5 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
         }
       `}</style>
     </>
-  );
-}
-
-function Field({ label, value, blue }) {
-  return (
-    <div className="border border-gray-300 rounded">
-      <div className={cn("text-[10px] font-bold px-2 py-0.5 uppercase tracking-wide", blue ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600")}>
-        {label}:
-      </div>
-      <div className="px-2 py-1.5 text-sm font-medium min-h-[28px]">{value || ""}</div>
-    </div>
   );
 }

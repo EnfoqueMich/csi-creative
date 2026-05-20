@@ -8,6 +8,9 @@
     "nombre_cliente": {
       "type": "string"
     },
+    "agente_ventas": {
+      "type": "string"
+    },
     "fecha_orden": {
       "type": "string",
       "format": "date"
@@ -50,46 +53,26 @@
         }
       }
     },
-    "tipo_prenda": {
-      "type": "string"
-    },
-    "color_prenda": {
-      "type": "string"
-    },
-    "tallas": {
-      "type": "object",
-      "properties": {
-        "xs": {
-          "type": "number"
-        },
-        "s": {
-          "type": "number"
-        },
-        "m": {
-          "type": "number"
-        },
-        "l": {
-          "type": "number"
-        },
-        "xl": {
-          "type": "number"
-        },
-        "xxl": {
-          "type": "number"
-        },
-        "xxxl": {
-          "type": "number"
-        },
-        "xxxxl": {
-          "type": "number"
-        },
-        "otras": {
-          "type": "string"
+    "especificaciones": {
+      "type": "array",
+      "description": "Filas de tipo de prenda / tallas (un pedido puede tener m\u00faltiples modelos)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tipo_prenda": {
+            "type": "string"
+          },
+          "color_prenda": {
+            "type": "string"
+          },
+          "tallas": {
+            "type": "object"
+          },
+          "total_piezas": {
+            "type": "number"
+          }
         }
       }
-    },
-    "total_piezas": {
-      "type": "number"
     },
     "posiciones": {
       "type": "array",
@@ -104,18 +87,18 @@
           },
           "descripcion": {
             "type": "string"
+          },
+          "imagen_url": {
+            "type": "string"
+          },
+          "color_hilos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       }
-    },
-    "color_hilos": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "bobina_color": {
-      "type": "string"
     },
     "bobina_negra": {
       "type": "boolean"
