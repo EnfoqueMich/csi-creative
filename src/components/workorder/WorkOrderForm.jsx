@@ -23,6 +23,15 @@ const TIPOS_TRABAJO = [
 
 const TALLAS = ["xs", "s", "m", "l", "xl", "xxl", "xxxl", "xxxxl"];
 
+// Posiciones en la silueta de playera: coordenadas relativas al contenedor (%)
+const SILUETA_ZONAS = {
+  1: { top: "28%", left: "30%", label: "FI" },   // FRENTE IZQUIERDO
+  2: { top: "28%", left: "55%", label: "FD" },   // FRENTE DERECHO
+  3: { top: "28%", left: "72%", label: "MD" },   // MANGA DERECHA
+  4: { top: "28%", left: "12%", label: "MI" },   // MANGA IZQUIERDA
+  5: { top: "28%", left: "50%", label: "ESP" },  // ESPALDA (vista trasera, no se superpone)
+};
+
 function CheckBox({ checked, onChange, label }) {
   return (
     <label className="flex items-center gap-2 cursor-pointer select-none">
@@ -40,16 +49,11 @@ function CheckBox({ checked, onChange, label }) {
   );
 }
 
-// Fila de especificación (tipo prenda + color + tallas + total)
 function EspecRow({ row, onChange, onRemove, canRemove }) {
   return (
     <div className="border border-green-300 rounded-lg p-3 space-y-2 bg-green-50/30 relative">
       {canRemove && (
-        <button
-          type="button"
-          onClick={onRemove}
-          className="absolute top-2 right-2 p-0.5 rounded hover:bg-red-100 text-muted-foreground hover:text-destructive transition-colors"
-        >
+        <button type="button" onClick={onRemove} className="absolute top-2 right-2 p-0.5 rounded hover:bg-red-100 text-muted-foreground hover:text-destructive transition-colors">
           <X className="w-3.5 h-3.5" />
         </button>
       )}
@@ -74,15 +78,6 @@ function EspecRow({ row, onChange, onRemove, canRemove }) {
           </div>
         ))}
         <div className="space-y-1">
-          <label className="text-xs text-muted-foreground font-medium">Otras Tallas</label>
-          <Input
-            value={row.tallas?.otras || ""}
-            onChange={(e) => onChange("tallas", { ...(row.tallas || {}), otras: e.target.value })}
-            placeholder="Ej: 6, 8, 10..."
-            className="w-28"
-          />
-        </div>
-        <div className="space-y-1">
           <label className="text-xs font-bold text-green-700">Total Piezas</label>
           <Input
             type="number" min="0"
@@ -90,6 +85,92 @@ function EspecRow({ row, onChange, onRemove, canRemove }) {
             onChange={(e) => onChange("total_piezas", e.target.value)}
             className="w-24 font-bold text-center border-green-400 border-2"
           />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Silueta de playera con imágenes superpuestas en posiciones (solo frente: 1,2,3,4)
+function TshirtPreview({ posiciones }) {
+  const frente = posiciones.filter(p => p.numero <= 4);
+  const espalda = posiciones.find(p => p.numero === 5);
+
+  return (
+    <div className="flex gap-6 justify-center items-start py-2">
+      {/* Vista Frontal */}
+      <div className="text-center">
+        <p className="text-[10px] font-bold text-blue-600 uppercase mb-1">Vista Frontal</p>
+        <div className="relative inline-block">
+          {/* SVG playera frontal */}
+          <svg viewBox="0 0 200 220" className="w-48 h-52 drop-shadow-sm" xmlns="http://www.w3.org/2000/svg">
+            {/* Cuerpo */}
+            <path d="M60 40 L20 70 L35 80 L35 200 L165 200 L165 80 L180 70 L140 40 Q130 55 100 55 Q70 55 60 40Z" fill="#e2e8f0" stroke="#94a3b8" strokeWidth="1.5"/>
+            {/* Cuello */}
+            <path d="M80 40 Q100 60 120 40" fill="#cbd5e1" stroke="#94a3b8" strokeWidth="1.5"/>
+            {/* Costuras mangas */}
+            <line x1="35" y1="80" x2="55" y2="80" stroke="#94a3b8" strokeWidth="1" strokeDasharray="3,2"/>
+            <line x1="145" y1="80" x2="165" y2="80" stroke="#94a3b8" strokeWidth="1" strokeDasharray="3,2"/>
+          </svg>
+
+          {/* Imágenes en posiciones frente */}
+          {/* FRENTE IZQUIERDO (desde quien mira = derecha del SVG) */}
+          {posiciones.find(p => p.numero === 1)?.imagen_url && (
+            <img
+              src={posiciones.find(p => p.numero === 1).imagen_url}
+              alt="FI"
+              className="absolute object-contain rounded"
+              style={{ top: "35%", left: "52%", width: "28%", height: "28%", pointerEvents: "none" }}
+            />
+          )}
+          {/* FRENTE DERECHO (desde quien mira = izquierda del SVG) */}
+          {posiciones.find(p => p.numero === 2)?.imagen_url && (
+            <img
+              src={posiciones.find(p => p.numero === 2).imagen_url}
+              alt="FD"
+              className="absolute object-contain rounded"
+              style={{ top: "35%", left: "22%", width: "28%", height: "28%", pointerEvents: "none" }}
+            />
+          )}
+          {/* MANGA DERECHA (desde quien mira = izquierda) */}
+          {posiciones.find(p => p.numero === 3)?.imagen_url && (
+            <img
+              src={posiciones.find(p => p.numero === 3).imagen_url}
+              alt="MD"
+              className="absolute object-contain rounded"
+              style={{ top: "28%", left: "4%", width: "22%", height: "22%", pointerEvents: "none" }}
+            />
+          )}
+          {/* MANGA IZQUIERDA (desde quien mira = derecha) */}
+          {posiciones.find(p => p.numero === 4)?.imagen_url && (
+            <img
+              src={posiciones.find(p => p.numero === 4).imagen_url}
+              alt="MI"
+              className="absolute object-contain rounded"
+              style={{ top: "28%", left: "74%", width: "22%", height: "22%", pointerEvents: "none" }}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Vista Trasera (Espalda) */}
+      <div className="text-center">
+        <p className="text-[10px] font-bold text-blue-600 uppercase mb-1">Vista Trasera</p>
+        <div className="relative inline-block">
+          <svg viewBox="0 0 200 220" className="w-48 h-52 drop-shadow-sm" xmlns="http://www.w3.org/2000/svg">
+            <path d="M60 40 L20 70 L35 80 L35 200 L165 200 L165 80 L180 70 L140 40 Q130 55 100 55 Q70 55 60 40Z" fill="#dde3ee" stroke="#94a3b8" strokeWidth="1.5"/>
+            <path d="M80 40 Q100 52 120 40" fill="#c7cedc" stroke="#94a3b8" strokeWidth="1.5"/>
+            <line x1="35" y1="80" x2="55" y2="80" stroke="#94a3b8" strokeWidth="1" strokeDasharray="3,2"/>
+            <line x1="145" y1="80" x2="165" y2="80" stroke="#94a3b8" strokeWidth="1" strokeDasharray="3,2"/>
+          </svg>
+          {espalda?.imagen_url && (
+            <img
+              src={espalda.imagen_url}
+              alt="ESP"
+              className="absolute object-contain rounded"
+              style={{ top: "28%", left: "25%", width: "50%", height: "45%", pointerEvents: "none" }}
+            />
+          )}
         </div>
       </div>
     </div>
@@ -107,10 +188,11 @@ const emptyOrder = () => ({
   observaciones: "",
   tipo_trabajo: {},
   especificaciones: [emptyEspec()],
-  posiciones: POSICIONES_DEFAULT.map((p) => ({ numero: p.numero, nombre: p.nombre, descripcion: "", imagen_url: "", color_hilos: [""] })),
-  bobina_negra: false,
-  bobina_blanca: false,
-  extras: {},
+  posiciones: POSICIONES_DEFAULT.map((p) => ({
+    numero: p.numero, nombre: p.nombre, descripcion: "", imagen_url: "", color_hilos: [""],
+    bobina_negra: false, bobina_blanca: false,
+    extras: {},
+  })),
   estado: "borrador",
 });
 
@@ -127,10 +209,16 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
             ? [{ tipo_prenda: order.tipo_prenda || "", color_prenda: order.color_prenda || "", tallas: order.tallas || {}, total_piezas: order.total_piezas || "" }]
             : [emptyEspec()]),
       posiciones: order.posiciones?.length
-        ? order.posiciones.map((p) => ({ ...p, color_hilos: p.color_hilos?.length ? p.color_hilos : [""], imagen_url: p.imagen_url || "" }))
+        ? order.posiciones.map((p) => ({
+            ...p,
+            color_hilos: p.color_hilos?.length ? p.color_hilos : [""],
+            imagen_url: p.imagen_url || "",
+            bobina_negra: p.bobina_negra ?? order.bobina_negra ?? false,
+            bobina_blanca: p.bobina_blanca ?? order.bobina_blanca ?? false,
+            extras: p.extras || (order.extras && Object.keys(order.extras).length ? order.extras : {}),
+          }))
         : base.posiciones,
       tipo_trabajo: order.tipo_trabajo || {},
-      extras: order.extras || {},
     };
   });
   const [saving, setSaving] = useState(false);
@@ -139,22 +227,26 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
   const set = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
   const setNested = (field, key, value) => setForm((prev) => ({ ...prev, [field]: { ...(prev[field] || {}), [key]: value } }));
 
-  // Especificaciones
   const updateEspec = (idx, field, value) =>
     setForm((prev) => {
       const especificaciones = [...prev.especificaciones];
       especificaciones[idx] = { ...especificaciones[idx], [field]: value };
       return { ...prev, especificaciones };
     });
-
   const addEspec = () => setForm((prev) => ({ ...prev, especificaciones: [...prev.especificaciones, emptyEspec()] }));
   const removeEspec = (idx) => setForm((prev) => ({ ...prev, especificaciones: prev.especificaciones.filter((_, i) => i !== idx) }));
 
-  // Posiciones
   const setPosicion = (idx, field, value) =>
     setForm((prev) => {
       const posiciones = [...prev.posiciones];
       posiciones[idx] = { ...posiciones[idx], [field]: value };
+      return { ...prev, posiciones };
+    });
+
+  const setPosicionNested = (posIdx, field, key, value) =>
+    setForm((prev) => {
+      const posiciones = [...prev.posiciones];
+      posiciones[posIdx] = { ...posiciones[posIdx], [field]: { ...(posiciones[posIdx][field] || {}), [key]: value } };
       return { ...prev, posiciones };
     });
 
@@ -181,6 +273,22 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
       posiciones[posIdx] = { ...posiciones[posIdx], color_hilos: color_hilos.length ? color_hilos : [""] };
       return { ...prev, posiciones };
     });
+
+  const addPosicion = () =>
+    setForm((prev) => {
+      const nums = prev.posiciones.map(p => p.numero);
+      const next = Math.max(...nums) + 1;
+      return {
+        ...prev,
+        posiciones: [...prev.posiciones, {
+          numero: next, nombre: `POSICIÓN ${next}`, descripcion: "", imagen_url: "", color_hilos: [""],
+          bobina_negra: false, bobina_blanca: false, extras: {},
+        }],
+      };
+    });
+
+  const removePosicion = (idx) =>
+    setForm((prev) => ({ ...prev, posiciones: prev.posiciones.filter((_, i) => i !== idx) }));
 
   const handlePosImageUpload = async (e, posIdx) => {
     const file = e.target.files?.[0];
@@ -252,8 +360,6 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
             <Input value={form.articulo_solicitado} onChange={(e) => set("articulo_solicitado", e.target.value)} placeholder="Playera, gorra, uniforme..." />
           </div>
         </div>
-
-        {/* Tipo de trabajo + observaciones */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="rounded-lg border-2 border-green-400 p-4 space-y-2">
             <p className="text-xs font-bold text-green-700 uppercase tracking-wider">Tipo de Trabajo</p>
@@ -270,7 +376,7 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
         </div>
       </div>
 
-      {/* Especificaciones — múltiples filas */}
+      {/* Especificaciones */}
       <div className="rounded-xl border-2 border-green-400 bg-card p-5 space-y-3">
         <div className="flex items-center justify-between">
           <p className="text-sm font-bold text-green-700 uppercase tracking-widest">Especificaciones</p>
@@ -279,38 +385,50 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
           </Button>
         </div>
         {form.especificaciones.map((row, idx) => (
-          <EspecRow
-            key={idx}
-            row={row}
-            onChange={(field, value) => updateEspec(idx, field, value)}
-            onRemove={() => removeEspec(idx)}
-            canRemove={form.especificaciones.length > 1}
-          />
+          <EspecRow key={idx} row={row} onChange={(field, value) => updateEspec(idx, field, value)} onRemove={() => removeEspec(idx)} canRemove={form.especificaciones.length > 1} />
         ))}
+      </div>
+
+      {/* Simulación de playera */}
+      <div className="rounded-xl border-2 border-blue-200 bg-blue-50/30 p-4 space-y-2">
+        <p className="text-sm font-bold text-blue-700 uppercase tracking-wider text-center">Simulación de Prenda</p>
+        <p className="text-xs text-muted-foreground text-center">Las imágenes cargadas en cada posición se visualizan sobre la silueta</p>
+        <TshirtPreview posiciones={form.posiciones} />
       </div>
 
       {/* Posiciones */}
       <div className="rounded-xl border-2 border-blue-300 bg-card p-5 space-y-3">
-        <p className="text-sm font-bold text-blue-700 uppercase tracking-wider text-center">Posiciones de Bordado / Estampado</p>
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-bold text-blue-700 uppercase tracking-wider">Posiciones de Bordado / Estampado</p>
+          <Button type="button" variant="outline" size="sm" onClick={addPosicion} className="gap-1 text-blue-700 border-blue-300 hover:bg-blue-50">
+            <Plus className="w-3.5 h-3.5" /> Agregar posición
+          </Button>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
           {form.posiciones.map((pos, i) => (
-            <div key={i} className="border-2 border-blue-200 rounded-lg p-3 space-y-2">
-              <div className="bg-blue-600 text-white text-xs font-bold rounded px-2 py-1 text-center">
+            <div key={i} className="border-2 border-blue-200 rounded-lg p-3 space-y-2 relative">
+              {/* Quitar posición (solo si hay más de 1) */}
+              {form.posiciones.length > 1 && (
+                <button type="button" onClick={() => removePosicion(i)} className="absolute top-1.5 right-1.5 p-0.5 rounded hover:bg-red-100 text-muted-foreground hover:text-destructive transition-colors">
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+
+              <div className="bg-blue-600 text-white text-xs font-bold rounded px-2 py-1 text-center pr-6">
                 POSICIÓN # {pos.numero}
               </div>
-              <div className="bg-green-100 text-green-800 text-xs font-semibold rounded px-2 py-1 text-center border border-green-300">
-                {pos.nombre}
-              </div>
+              {/* Nombre editable */}
+              <Input
+                value={pos.nombre}
+                onChange={(e) => setPosicion(i, "nombre", e.target.value)}
+                className="text-xs font-semibold text-center bg-green-50 border-green-300 text-green-800 h-7"
+              />
 
-              {/* Imagen de la posición */}
+              {/* Imagen */}
               {pos.imagen_url ? (
                 <div className="relative">
                   <img src={pos.imagen_url} alt="pos" className="w-[80%] mx-auto rounded border border-blue-200 object-contain" />
-                  <button
-                    type="button"
-                    onClick={() => setPosicion(i, "imagen_url", "")}
-                    className="absolute top-1 right-1 bg-black/60 rounded-full p-0.5"
-                  >
+                  <button type="button" onClick={() => setPosicion(i, "imagen_url", "")} className="absolute top-1 right-1 bg-black/60 rounded-full p-0.5">
                     <X className="w-3 h-3 text-white" />
                   </button>
                 </div>
@@ -319,9 +437,7 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
                   "flex flex-col items-center justify-center gap-1 border border-dashed border-blue-300 rounded-lg p-3 cursor-pointer hover:bg-blue-50 transition-colors text-blue-400",
                   uploadingPos === i && "opacity-50 pointer-events-none"
                 )}>
-                  {uploadingPos === i
-                    ? <Loader2 className="w-4 h-4 animate-spin" />
-                    : <ImagePlus className="w-4 h-4" />}
+                  {uploadingPos === i ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImagePlus className="w-4 h-4" />}
                   <span className="text-[10px]">{uploadingPos === i ? "Subiendo..." : "Cargar imagen"}</span>
                   <input type="file" accept="image/*" className="hidden" onChange={(e) => handlePosImageUpload(e, i)} disabled={uploadingPos !== null} />
                 </label>
@@ -335,18 +451,13 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
                 className="text-xs resize-none"
               />
 
-              {/* Color de hilos por posición */}
+              {/* Color de hilos */}
               <div className="space-y-1 border-t border-blue-100 pt-2">
                 <p className="text-[10px] font-bold text-blue-700 uppercase">Color de Hilo</p>
                 {pos.color_hilos.map((c, hi) => (
                   <div key={hi} className="flex items-center gap-1">
                     <div className="w-3 h-3 rounded-sm border border-gray-400 bg-white flex-shrink-0" />
-                    <Input
-                      value={c}
-                      onChange={(e) => setPosicionHilo(i, hi, e.target.value)}
-                      placeholder="Color..."
-                      className="text-xs h-6 flex-1"
-                    />
+                    <Input value={c} onChange={(e) => setPosicionHilo(i, hi, e.target.value)} placeholder="Color..." className="text-xs h-6 flex-1" />
                     {pos.color_hilos.length > 1 && (
                       <button type="button" onClick={() => removeHilo(i, hi)} className="text-muted-foreground hover:text-destructive">
                         <X className="w-3 h-3" />
@@ -354,50 +465,40 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
                     )}
                   </div>
                 ))}
-                <button
-                  type="button"
-                  onClick={() => addHilo(i)}
-                  className="flex items-center gap-1 text-[10px] text-blue-600 hover:underline mt-0.5"
-                >
+                <button type="button" onClick={() => addHilo(i)} className="flex items-center gap-1 text-[10px] text-blue-600 hover:underline mt-0.5">
                   <Plus className="w-3 h-3" /> agregar color
                 </button>
+              </div>
+
+              {/* Bobina por posición */}
+              <div className="space-y-1 border-t border-blue-100 pt-2">
+                <p className="text-[10px] font-bold text-blue-700 uppercase">Bobina</p>
+                <CheckBox label="Negra" checked={!!pos.bobina_negra} onChange={() => setPosicion(i, "bobina_negra", !pos.bobina_negra)} />
+                <CheckBox label="Blanca" checked={!!pos.bobina_blanca} onChange={() => setPosicion(i, "bobina_blanca", !pos.bobina_blanca)} />
+              </div>
+
+              {/* Extras por posición */}
+              <div className="space-y-1 border-t border-orange-100 pt-2">
+                <p className="text-[10px] font-bold text-orange-600 uppercase">Extras</p>
+                {[["foamy","Foamy"],["velcro_macho","Velcro macho"],["velcro_hembra","Velcro hembra"],["adhesivo_termico","Adhesivo térmico"]].map(([key, label]) => (
+                  <CheckBox key={key} label={label} checked={!!pos.extras?.[key]} onChange={() => setPosicionNested(i, "extras", key, !pos.extras?.[key])} />
+                ))}
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Footer: bobina + extras + estado */}
-      <div className="rounded-xl border-2 border-blue-300 bg-card p-5">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Bobina */}
-          <div className="border-2 border-blue-400 rounded-lg p-4 space-y-2">
-            <p className="text-xs font-bold text-blue-700 uppercase">Bobina</p>
-            <CheckBox label="Negra" checked={!!form.bobina_negra} onChange={() => set("bobina_negra", !form.bobina_negra)} />
-            <CheckBox label="Blanca" checked={!!form.bobina_blanca} onChange={() => set("bobina_blanca", !form.bobina_blanca)} />
-          </div>
-
-          {/* Extras */}
-          <div className="border-2 border-orange-300 rounded-lg p-4 space-y-2">
-            <p className="text-xs font-bold text-orange-600 uppercase">Extras</p>
-            {[
-              ["foamy", "Foamy"], ["velcro_macho", "Velcro macho"],
-              ["velcro_hembra", "Velcro hembra"], ["adhesivo_termico", "Adesivo térmico"],
-            ].map(([key, label]) => (
-              <CheckBox key={key} label={label} checked={!!form.extras[key]} onChange={() => setNested("extras", key, !form.extras[key])} />
-            ))}
-          </div>
-
-          {/* Estado */}
-          <div className="border-2 border-gray-200 rounded-lg p-4 space-y-2">
-            <p className="text-xs font-bold text-muted-foreground uppercase">Estado de la Orden</p>
-            {[["borrador","Borrador"],["enviada","Enviada"],["produccion","En Producción"],["completada","Completada"]].map(([val, label]) => (
-              <label key={val} className="flex items-center gap-2 cursor-pointer">
-                <input type="radio" name="estado" value={val} checked={form.estado === val} onChange={() => set("estado", val)} className="accent-blue-600" />
-                <span className="text-sm">{label}</span>
-              </label>
-            ))}
-          </div>
+      {/* Estado */}
+      <div className="rounded-xl border-2 border-gray-200 bg-card p-5">
+        <p className="text-xs font-bold text-muted-foreground uppercase mb-3">Estado de la Orden</p>
+        <div className="flex flex-wrap gap-4">
+          {[["borrador","Borrador"],["enviada","Enviada"],["produccion","En Producción"],["completada","Completada"]].map(([val, label]) => (
+            <label key={val} className="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="estado" value={val} checked={form.estado === val} onChange={() => set("estado", val)} className="accent-blue-600" />
+              <span className="text-sm">{label}</span>
+            </label>
+          ))}
         </div>
       </div>
     </div>

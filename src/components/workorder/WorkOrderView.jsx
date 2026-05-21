@@ -27,19 +27,68 @@ function Field({ label, value, blue }) {
   );
 }
 
+// Silueta de playera para la vista/impresión
+function TshirtPreviewPrint({ posiciones }) {
+  const espalda = posiciones.find(p => p.numero === 5);
+  return (
+    <div className="flex gap-4 justify-center items-start">
+      {/* Frontal */}
+      <div className="text-center">
+        <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Vista Frontal</p>
+        <div className="relative inline-block">
+          <svg viewBox="0 0 200 220" className="w-36 h-40" xmlns="http://www.w3.org/2000/svg">
+            <path d="M60 40 L20 70 L35 80 L35 200 L165 200 L165 80 L180 70 L140 40 Q130 55 100 55 Q70 55 60 40Z" fill="#e2e8f0" stroke="#94a3b8" strokeWidth="1.5"/>
+            <path d="M80 40 Q100 60 120 40" fill="#cbd5e1" stroke="#94a3b8" strokeWidth="1.5"/>
+            <line x1="35" y1="80" x2="55" y2="80" stroke="#94a3b8" strokeWidth="1" strokeDasharray="3,2"/>
+            <line x1="145" y1="80" x2="165" y2="80" stroke="#94a3b8" strokeWidth="1" strokeDasharray="3,2"/>
+          </svg>
+          {posiciones.find(p => p.numero === 1)?.imagen_url && (
+            <img src={posiciones.find(p => p.numero === 1).imagen_url} alt="FI" className="absolute object-contain" style={{ top: "35%", left: "52%", width: "28%", height: "28%", pointerEvents: "none" }} />
+          )}
+          {posiciones.find(p => p.numero === 2)?.imagen_url && (
+            <img src={posiciones.find(p => p.numero === 2).imagen_url} alt="FD" className="absolute object-contain" style={{ top: "35%", left: "22%", width: "28%", height: "28%", pointerEvents: "none" }} />
+          )}
+          {posiciones.find(p => p.numero === 3)?.imagen_url && (
+            <img src={posiciones.find(p => p.numero === 3).imagen_url} alt="MD" className="absolute object-contain" style={{ top: "28%", left: "4%", width: "22%", height: "22%", pointerEvents: "none" }} />
+          )}
+          {posiciones.find(p => p.numero === 4)?.imagen_url && (
+            <img src={posiciones.find(p => p.numero === 4).imagen_url} alt="MI" className="absolute object-contain" style={{ top: "28%", left: "74%", width: "22%", height: "22%", pointerEvents: "none" }} />
+          )}
+        </div>
+      </div>
+      {/* Trasera */}
+      <div className="text-center">
+        <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Vista Trasera</p>
+        <div className="relative inline-block">
+          <svg viewBox="0 0 200 220" className="w-36 h-40" xmlns="http://www.w3.org/2000/svg">
+            <path d="M60 40 L20 70 L35 80 L35 200 L165 200 L165 80 L180 70 L140 40 Q130 55 100 55 Q70 55 60 40Z" fill="#dde3ee" stroke="#94a3b8" strokeWidth="1.5"/>
+            <path d="M80 40 Q100 52 120 40" fill="#c7cedc" stroke="#94a3b8" strokeWidth="1.5"/>
+            <line x1="35" y1="80" x2="55" y2="80" stroke="#94a3b8" strokeWidth="1" strokeDasharray="3,2"/>
+            <line x1="145" y1="80" x2="165" y2="80" stroke="#94a3b8" strokeWidth="1" strokeDasharray="3,2"/>
+          </svg>
+          {espalda?.imagen_url && (
+            <img src={espalda.imagen_url} alt="ESP" className="absolute object-contain" style={{ top: "28%", left: "25%", width: "50%", height: "45%", pointerEvents: "none" }} />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function WorkOrderView({ order, onBack, onEdit }) {
   const handlePrint = () => window.print();
 
-  // Normalizar especificaciones (compatibilidad con formato antiguo)
   const especificaciones = order.especificaciones?.length
     ? order.especificaciones
     : (order.tipo_prenda !== undefined
         ? [{ tipo_prenda: order.tipo_prenda, color_prenda: order.color_prenda, tallas: order.tallas, total_piezas: order.total_piezas }]
         : []);
 
+  const posiciones = order.posiciones || [];
+
   return (
     <>
-      {/* Controles (ocultos en impresión) */}
+      {/* Controles */}
       <div className="flex items-center gap-3 mb-6 print:hidden">
         <button onClick={onBack} className="p-2 rounded-lg border border-border hover:bg-muted transition-colors">
           <ArrowLeft className="w-4 h-4" />
@@ -57,13 +106,11 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
       <div className="bg-white text-black rounded-xl border border-gray-300 shadow-sm max-w-4xl mx-auto print:shadow-none print:border-none print:rounded-none" id="orden-print">
         {/* Encabezado */}
         <div className="flex items-start justify-between px-6 pt-6 pb-3 border-b-2 border-blue-800">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1">
-              <div className="bg-yellow-600 text-white font-black text-xl px-2 py-1 rounded-sm">C</div>
-              <div className="flex flex-col leading-none">
-                <span className="font-black text-sm tracking-widest text-blue-900">CSI</span>
-                <span className="text-xs tracking-widest text-gray-600 font-semibold">CREATIVE</span>
-              </div>
+          <div className="flex items-center gap-1">
+            <div className="bg-yellow-600 text-white font-black text-xl px-2 py-1 rounded-sm">C</div>
+            <div className="flex flex-col leading-none">
+              <span className="font-black text-sm tracking-widest text-blue-900">CSI</span>
+              <span className="text-xs tracking-widest text-gray-600 font-semibold">CREATIVE</span>
             </div>
           </div>
           <div className="text-right">
@@ -74,15 +121,13 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
         </div>
 
         <div className="px-6 py-4 space-y-4">
-          {/* Fila cliente */}
+          {/* Datos cliente */}
           <div className="grid grid-cols-2 gap-3">
             <Field label="NOMBRE CLIENTE" value={order.nombre_cliente} blue />
             <Field label="FECHA DE ORDEN" value={order.fecha_orden} blue />
             <Field label="AGENTE DE VENTAS" value={order.agente_ventas} blue />
             <Field label="TELÉFONO" value={order.telefono} blue />
-            <div className="col-span-2">
-              <Field label="ARTÍCULO SOLICITADO" value={order.articulo_solicitado} blue />
-            </div>
+            <div className="col-span-2"><Field label="ARTÍCULO SOLICITADO" value={order.articulo_solicitado} blue /></div>
           </div>
 
           {/* Tipo trabajo + observaciones */}
@@ -90,16 +135,8 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
             <div className="border-2 border-green-500 rounded p-3">
               <p className="text-xs font-bold text-yellow-600 mb-2 uppercase">Tipo de Trabajo:</p>
               <div className="grid grid-cols-2 gap-1 text-xs">
-                {[
-                  ["bordado","Bordado"],["muestras","Muestras"],
-                  ["estampado","Estampado"],["sublimado","Sublimado"],
-                  ["costura","Costura"],["parche","Parche"],
-                  ["riveteado","Riveteado"],["dtf","DTF"],
-                ].map(([key,label]) => (
-                  <div key={key} className="flex items-center gap-1">
-                    <Check checked={!!order.tipo_trabajo?.[key]} />
-                    {label}
-                  </div>
+                {[["bordado","Bordado"],["muestras","Muestras"],["estampado","Estampado"],["sublimado","Sublimado"],["costura","Costura"],["parche","Parche"],["riveteado","Riveteado"],["dtf","DTF"]].map(([key,label]) => (
+                  <div key={key} className="flex items-center gap-1"><Check checked={!!order.tipo_trabajo?.[key]} />{label}</div>
                 ))}
               </div>
             </div>
@@ -109,14 +146,12 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
             </div>
           </div>
 
-          {/* Especificaciones — puede haber múltiples */}
+          {/* Especificaciones */}
           <div className="border-2 border-green-500 rounded p-3 space-y-3">
             <p className="text-xs font-bold text-green-700 text-center uppercase tracking-widest">Especificaciones</p>
             {especificaciones.map((row, idx) => (
               <div key={idx} className={cn("space-y-1", idx > 0 && "border-t border-green-200 pt-2")}>
-                {especificaciones.length > 1 && (
-                  <p className="text-[10px] font-bold text-green-600 uppercase">Modelo {idx + 1}</p>
-                )}
+                {especificaciones.length > 1 && <p className="text-[10px] font-bold text-green-600 uppercase">Modelo {idx + 1}</p>}
                 <div className="flex items-center gap-2 flex-wrap text-xs">
                   <div className="border border-gray-400 rounded px-2 py-1 min-w-[80px]">
                     <p className="text-gray-500 text-[10px] uppercase">Tipo Prenda</p>
@@ -132,12 +167,6 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
                       <p className="font-bold">{row.tallas?.[t] || ""}</p>
                     </div>
                   ))}
-                  {row.tallas?.otras && (
-                    <div className="border border-gray-400 rounded px-2 py-1">
-                      <p className="text-gray-500 text-[10px] uppercase">Otras</p>
-                      <p className="font-semibold">{row.tallas.otras}</p>
-                    </div>
-                  )}
                   <div className="border-2 border-green-500 rounded px-2 py-1 min-w-[60px] text-center ml-auto">
                     <p className="text-gray-500 text-[10px] uppercase">Total Piezas</p>
                     <p className="font-black text-base text-green-700">{row.total_piezas || "0"}</p>
@@ -147,10 +176,19 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
             ))}
           </div>
 
+          {/* Simulación de prenda */}
+          {posiciones.length > 0 && (
+            <div className="border-2 border-blue-200 rounded p-3 bg-blue-50/20">
+              <p className="text-xs font-bold text-blue-700 text-center uppercase tracking-widest mb-2">Simulación de Prenda</p>
+              <TshirtPreviewPrint posiciones={posiciones} />
+            </div>
+          )}
+
           {/* Posiciones */}
           <div className="border-2 border-blue-300 rounded p-3">
-            <div className="grid grid-cols-5 gap-2">
-              {(order.posiciones || []).map((pos, i) => (
+            <p className="text-xs font-bold text-blue-700 text-center uppercase tracking-widest mb-2">Posiciones de Bordado / Estampado</p>
+            <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(posiciones.length, 5)}, minmax(0, 1fr))` }}>
+              {posiciones.map((pos, i) => (
                 <div key={i} className="border border-blue-200 rounded space-y-1">
                   <div className="bg-blue-700 text-white text-[10px] font-bold text-center py-1 rounded-t">
                     POSICIÓN # {pos.numero}
@@ -163,18 +201,40 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
                       <img src={pos.imagen_url} alt={pos.nombre} className="w-[80%] mx-auto object-contain rounded border border-blue-100" />
                     </div>
                   )}
-                  <div className="px-2 pb-1 min-h-[40px]">
+                  <div className="px-2 pb-1 min-h-[30px]">
                     <p className="text-xs text-gray-700 leading-relaxed whitespace-pre-wrap">{pos.descripcion || ""}</p>
                   </div>
+
+                  {/* Hilos */}
                   {pos.color_hilos?.filter(Boolean).length > 0 && (
-                    <div className="px-2 pb-2 border-t border-blue-100 pt-1">
+                    <div className="px-2 border-t border-blue-100 pt-1 pb-1">
                       <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Hilo</p>
                       {pos.color_hilos.filter(Boolean).map((c, hi) => (
                         <div key={hi} className="flex items-center gap-1 text-[10px]">
-                          <div className="w-2.5 h-2.5 rounded-sm border border-gray-400 bg-white flex-shrink-0" />
-                          {c}
+                          <div className="w-2.5 h-2.5 rounded-sm border border-gray-400 bg-white flex-shrink-0" />{c}
                         </div>
                       ))}
+                    </div>
+                  )}
+
+                  {/* Bobina */}
+                  {(pos.bobina_negra || pos.bobina_blanca) && (
+                    <div className="px-2 border-t border-blue-100 pt-1 pb-1">
+                      <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Bobina</p>
+                      {pos.bobina_negra && <div className="flex items-center gap-1 text-[10px]"><Check checked={true} />Negra</div>}
+                      {pos.bobina_blanca && <div className="flex items-center gap-1 text-[10px]"><Check checked={true} />Blanca</div>}
+                    </div>
+                  )}
+
+                  {/* Extras */}
+                  {pos.extras && Object.values(pos.extras).some(Boolean) && (
+                    <div className="px-2 border-t border-orange-100 pt-1 pb-1">
+                      <p className="text-[9px] font-bold text-orange-500 uppercase mb-0.5">Extras</p>
+                      {[["foamy","Foamy"],["velcro_macho","Velcro m."],["velcro_hembra","Velcro h."],["adhesivo_termico","Adhesivo"]].map(([key,label]) =>
+                        pos.extras[key] ? (
+                          <div key={key} className="flex items-center gap-1 text-[10px]"><Check checked={true} />{label}</div>
+                        ) : null
+                      )}
                     </div>
                   )}
                 </div>
@@ -182,31 +242,23 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
             </div>
           </div>
 
-          {/* Footer: bobina + extras + firma */}
-          <div className="grid grid-cols-3 gap-4 pt-2">
-            {/* Bobina */}
-            <div className="border-2 border-blue-400 rounded p-3 text-xs space-y-1">
-              <p className="font-bold text-blue-700 uppercase text-[10px]">Bobina</p>
-              <div className="flex items-center gap-1"><Check checked={!!order.bobina_negra} /> Negra</div>
-              <div className="flex items-center gap-1"><Check checked={!!order.bobina_blanca} /> Blanca</div>
-            </div>
-
-            {/* Extras */}
-            <div className="border-2 border-orange-300 rounded p-3 text-xs space-y-1">
-              <p className="font-bold text-orange-600 uppercase text-[10px]">Extras</p>
-              {[["foamy","Foamy"],["velcro_macho","Velcro macho"],["velcro_hembra","Velcro hembra"],["adhesivo_termico","Adesivo térmico"]].map(([key,label]) => (
-                <div key={key} className="flex items-center gap-1"><Check checked={!!order.extras?.[key]} /> {label}</div>
-              ))}
-            </div>
-
-            {/* Firma */}
-            <div className="text-xs text-center space-y-2">
-              <p className="font-bold text-blue-900 tracking-widest text-[10px] uppercase">Firma de Autorización</p>
-              <div className="border-b border-gray-400 mt-8 mb-1" />
-              <p className="font-semibold text-gray-700">SILVIA LIRA</p>
-              <p className="text-gray-500 text-[10px]">Atención a Clientes</p>
-              <div className="border-b border-gray-400 mt-6 mb-1" />
-              <p className="text-gray-500 text-[10px]">Firma Cliente</p>
+          {/* Firma del cliente */}
+          <div className="border-2 border-blue-300 rounded p-4 mt-4">
+            <div className="grid grid-cols-2 gap-6 items-end">
+              <div className="space-y-2">
+                <p className="text-xs font-bold text-blue-800 uppercase tracking-wider">Firma del Cliente</p>
+                <p className="text-[10px] text-gray-500 italic leading-relaxed">
+                  Autorizo que se realice el trabajo con las indicaciones anotadas en este documento.
+                </p>
+                <div className="border-b-2 border-gray-400 mt-8 mb-1" />
+                <p className="text-[10px] text-gray-500 text-center">Firma y nombre del cliente</p>
+              </div>
+              <div className="space-y-2 text-center">
+                <p className="text-xs font-bold text-blue-800 uppercase tracking-wider">Firma de Autorización</p>
+                <div className="border-b-2 border-gray-400 mt-8 mb-1" />
+                <p className="text-sm font-semibold text-gray-700">SILVIA LIRA</p>
+                <p className="text-[10px] text-gray-500">Atención a Clientes</p>
+              </div>
             </div>
           </div>
         </div>
