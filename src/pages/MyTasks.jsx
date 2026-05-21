@@ -135,19 +135,24 @@ function TaskCard({ task, userName, onComplete }) {
       </div>
 
       {task.imagenes?.length > 0 && (
-        <div className="flex flex-wrap gap-2 pl-8">
-          {task.imagenes.map((url, i) => (
-            <div
-              key={i}
-              className="relative group cursor-pointer w-20 h-20 rounded-lg overflow-hidden border border-border"
-              onClick={() => setExpandedImg(url)}
-            >
-              <img src={url} alt="" className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <ZoomIn className="w-4 h-4 text-white" />
+        <div className="flex flex-wrap gap-3 pl-8">
+          {task.imagenes.map((img, i) => {
+            const { url, titulo } = typeof img === "string" ? { url: img, titulo: "" } : img;
+            return (
+              <div key={i} className="flex flex-col items-center gap-1">
+                <div
+                  className="relative group cursor-pointer w-20 h-20 rounded-lg overflow-hidden border border-border"
+                  onClick={() => setExpandedImg(url)}
+                >
+                  <img src={url} alt={titulo || ""} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <ZoomIn className="w-4 h-4 text-white" />
+                  </div>
+                </div>
+                {titulo && <span className="text-[10px] text-muted-foreground text-center max-w-[80px] truncate">{titulo}</span>}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

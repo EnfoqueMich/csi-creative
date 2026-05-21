@@ -5,6 +5,10 @@
     "folio": {
       "type": "string"
     },
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo de la tarea"
+    },
     "descripcion": {
       "type": "string"
     },
@@ -17,8 +21,34 @@
     "imagenes": {
       "type": "array",
       "items": {
-        "type": "string"
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "titulo": {
+            "type": "string"
+          }
+        }
       }
+    },
+    "asignado_id": {
+      "type": "string",
+      "description": "ID del trabajador asignado"
+    },
+    "asignado_nombre": {
+      "type": "string",
+      "description": "Nombre del trabajador asignado"
+    },
+    "fecha_asignacion": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha y hora cuando se asign\u00f3 la tarea"
+    },
+    "fecha_completada": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha y hora cuando se complet\u00f3 la tarea"
     }
   },
   "required": [

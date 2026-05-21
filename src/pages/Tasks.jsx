@@ -10,7 +10,22 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
-// ── Reloj en tiempo real desde fecha_asignacion ──────────────────────────────
+// Normaliza una imagen: puede ser string URL (legacy) o {url, titulo}
+function normalizeImg(img) {
+  if (typeof img === "string") return { url: img, titulo: "" };
+  return { url: img.url || "", titulo: img.titulo || "" };
+}
+
+function formatDuration(seconds) {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  if (h > 0) return `${h}h ${m}m ${s}s`;
+  if (m > 0) return `${m}m ${s}s`;
+  return `${s}s`;
+}
+
+// ── Reloj en tiempo real ─────────────────────────────────────────────────────
 function ElapsedTimer({ since }) {
   const [elapsed, setElapsed] = useState("");
 
@@ -39,11 +54,17 @@ function ElapsedTimer({ since }) {
 }
 
 // ── Modal imagen ampliada ────────────────────────────────────────────────────
-function ImageModal({ url, onClose }) {
+function ImageModal({ img, onClose }) {
+  const { url, titulo } = normalizeImg(img);
   return (
     <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={onClose}>
       <div className="relative max-w-3xl max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
-        <img src={url} alt="Tarea" className="max-w-full max-h-[85vh] object-contain rounded-xl" />
+        <img src={url} alt={titulo || "Tarea"} className="max-w-full max-h-[85vh] object-contain rounded-xl" />
+        {titulo && (
+          <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-sm text-center py-2 px-3 rounded-b-xl">
+            {titulo}
+          </div>
+        )}
         <button onClick={onClose} className="absolute -top-3 -right-3 bg-white rounded-full p-1.5 shadow-lg">
           <X className="w-4 h-4" />
         </button>
@@ -58,6 +79,12 @@ function TaskCard({ task, onToggle, onUploadImage, uploadingId, onUrgente, onEdi
   const [editing, setEditing] = useState(false);
   const [editTitulo, setEditTitulo] = useState(task.titulo || "");
   const [editDesc, setEditDesc] = useState(task.descripcion || "");
+
+  const imagenes = (task.imagenes || []).map(normalizeImg);
+
+  const duracion = task.fecha_asignacion && task.fecha_completada
+    ? formatDuration(Math.max(0, Math.floor((new Date(task.fecha_completada) - new Date(task.fecha_asignacion)) / 1000)))
+    : null;
 
   const handleSaveEdit = async () => {
     await onEdit(task, editTitulo.trim(), editDesc.trim());
@@ -74,16 +101,13 @@ function TaskCard({ task, onToggle, onUploadImage, uploadingId, onUrgente, onEdi
           : "border-border"
     )}>
       <div className="flex items-start gap-3">
-        {/* Toggle completada */}
         <button type="button" onClick={() => onToggle(task)} className="mt-0.5 flex-shrink-0">
           {task.completada
             ? <CheckCircle2 className="w-5 h-5 text-status-green" />
             : <Circle className="w-5 h-5 text-muted-foreground hover:text-primary transition-colors" />}
         </button>
 
-        {/* Contenido */}
         <div className="flex-1 min-w-0">
-          {/* Badges */}
           <div className="flex items-center gap-2 mb-1.5 flex-wrap">
             <span className="text-xs font-bold text-primary font-mono">{task.folio}</span>
             {task.urgente && !task.completada && (
@@ -99,37 +123,29 @@ function TaskCard({ task, onToggle, onUploadImage, uploadingId, onUrgente, onEdi
                 <User className="w-3 h-3" /> {task.asignado_nombre}
               </span>
             )}
+            {/* Cronómetro activo (solo si no completada) */}
             {!task.completada && task.fecha_asignacion && (
               <ElapsedTimer since={task.fecha_asignacion} />
             )}
+            {/* Tiempo total al completar */}
+            {task.completada && duracion && (
+              <span className="flex items-center gap-1 text-xs font-mono bg-green-100 text-green-700 border border-green-200 px-2 py-0.5 rounded-full">
+                <Clock className="w-3 h-3" /> {duracion}
+              </span>
+            )}
           </div>
 
-          {/* Edición o visualización */}
           {editing ? (
             <div className="space-y-2">
-              <Input
-                value={editTitulo}
-                onChange={(e) => setEditTitulo(e.target.value)}
-                placeholder="Título..."
-                className="text-sm font-semibold"
-                autoFocus
-              />
-              <Textarea
-                value={editDesc}
-                onChange={(e) => setEditDesc(e.target.value)}
-                rows={3}
-                placeholder="Descripción..."
-                className="text-sm"
-              />
+              <Input value={editTitulo} onChange={(e) => setEditTitulo(e.target.value)} placeholder="Título..." className="text-sm font-semibold" autoFocus />
+              <Textarea value={editDesc} onChange={(e) => setEditDesc(e.target.value)} rows={3} placeholder="Descripción..." className="text-sm" />
               <div className="flex gap-2">
                 <Button size="sm" onClick={handleSaveEdit} className="gap-1">
                   <Check className="w-3.5 h-3.5" /> Guardar
                 </Button>
-                <Button size="sm" variant="ghost" onClick={() => {
-                  setEditing(false);
-                  setEditTitulo(task.titulo || "");
-                  setEditDesc(task.descripcion || "");
-                }}>Cancelar</Button>
+                <Button size="sm" variant="ghost" onClick={() => { setEditing(false); setEditTitulo(task.titulo || ""); setEditDesc(task.descripcion || ""); }}>
+                  Cancelar
+                </Button>
               </div>
             </div>
           ) : (
@@ -179,33 +195,35 @@ function TaskCard({ task, onToggle, onUploadImage, uploadingId, onUrgente, onEdi
               ? "opacity-50 pointer-events-none"
               : "border-border text-muted-foreground hover:border-primary hover:text-primary"
           )}>
-            {uploadingId === task.id
-              ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              : <ImagePlus className="w-3.5 h-3.5" />}
+            {uploadingId === task.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ImagePlus className="w-3.5 h-3.5" />}
             <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => onUploadImage(e, task)} />
           </label>
         </div>
       </div>
 
-      {/* Miniaturas */}
-      {task.imagenes?.length > 0 && (
-        <div className="flex flex-wrap gap-2 pl-8">
-          {task.imagenes.map((url, i) => (
-            <div
-              key={i}
-              className="relative group cursor-pointer w-20 h-20 rounded-lg overflow-hidden border border-border"
-              onClick={() => setExpandedImg(url)}
-            >
-              <img src={url} alt="img" className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <ZoomIn className="w-4 h-4 text-white" />
+      {/* Miniaturas con título */}
+      {imagenes.length > 0 && (
+        <div className="flex flex-wrap gap-3 pl-8">
+          {imagenes.map((img, i) => (
+            <div key={i} className="flex flex-col items-center gap-1">
+              <div
+                className="relative group cursor-pointer w-20 h-20 rounded-lg overflow-hidden border border-border"
+                onClick={() => setExpandedImg(img)}
+              >
+                <img src={img.url} alt={img.titulo || "img"} className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <ZoomIn className="w-4 h-4 text-white" />
+                </div>
               </div>
+              {img.titulo && (
+                <span className="text-[10px] text-muted-foreground text-center max-w-[80px] truncate">{img.titulo}</span>
+              )}
             </div>
           ))}
         </div>
       )}
 
-      {expandedImg && <ImageModal url={expandedImg} onClose={() => setExpandedImg(null)} />}
+      {expandedImg && <ImageModal img={expandedImg} onClose={() => setExpandedImg(null)} />}
     </div>
   );
 }
@@ -220,9 +238,7 @@ function CompletedGroup({ tasks, onToggle, onUploadImage, uploadingId, onUrgente
         onClick={() => setOpen(!open)}
         className="w-full flex items-center gap-3 px-5 py-3 bg-green-50/50 hover:bg-green-50 transition-colors text-left"
       >
-        {open
-          ? <ChevronDown className="w-4 h-4 text-green-600" />
-          : <ChevronRight className="w-4 h-4 text-green-600" />}
+        {open ? <ChevronDown className="w-4 h-4 text-green-600" /> : <ChevronRight className="w-4 h-4 text-green-600" />}
         <CheckCircle2 className="w-4 h-4 text-status-green" />
         <span className="text-sm font-semibold text-green-800 flex-1">Tareas Completadas</span>
         <span className="text-xs text-green-700 font-mono bg-green-100 px-2 py-0.5 rounded-full">{tasks.length}</span>
@@ -230,15 +246,7 @@ function CompletedGroup({ tasks, onToggle, onUploadImage, uploadingId, onUrgente
       {open && (
         <div className="p-3 space-y-2 bg-card">
           {tasks.map((t) => (
-            <TaskCard
-              key={t.id}
-              task={t}
-              onToggle={onToggle}
-              onUrgente={onUrgente}
-              onEdit={onEdit}
-              onUploadImage={onUploadImage}
-              uploadingId={uploadingId}
-            />
+            <TaskCard key={t.id} task={t} onToggle={onToggle} onUrgente={onUrgente} onEdit={onEdit} onUploadImage={onUploadImage} uploadingId={uploadingId} />
           ))}
         </div>
       )}
@@ -253,12 +261,11 @@ export default function Tasks() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
-  // Formulario nueva tarea
   const [titulo, setTitulo] = useState("");
   const [texto, setTexto] = useState("");
   const [nuevaUrgente, setNuevaUrgente] = useState(false);
   const [asignadoId, setAsignadoId] = useState("");
-  const [newImages, setNewImages] = useState([]);
+  const [newImages, setNewImages] = useState([]); // [{url, titulo}]
   const [uploadingNew, setUploadingNew] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploadingId, setUploadingId] = useState(null);
@@ -274,17 +281,21 @@ export default function Tasks() {
     });
   }, []);
 
-  const generateFolio = () => `TAREA-${String(tasks.length + 1).padStart(4, "0")}`;
+  const generateFolio = (currentCount) => `TAREA-${String(currentCount + 1).padStart(4, "0")}`;
 
   const handleNewImageUpload = async (e) => {
     const files = Array.from(e.target.files);
     if (!files.length) return;
     setUploadingNew(true);
-    const urls = await Promise.all(
-      files.map((file) => base44.integrations.Core.UploadFile({ file }).then((r) => r.file_url))
+    const uploaded = await Promise.all(
+      files.map((file) => base44.integrations.Core.UploadFile({ file }).then((r) => ({ url: r.file_url, titulo: "" })))
     );
-    setNewImages((prev) => [...prev, ...urls]);
+    setNewImages((prev) => [...prev, ...uploaded]);
     setUploadingNew(false);
+  };
+
+  const setNewImageTitulo = (idx, titulo) => {
+    setNewImages((prev) => prev.map((img, i) => i === idx ? { ...img, titulo } : img));
   };
 
   const handleCreate = async () => {
@@ -292,7 +303,7 @@ export default function Tasks() {
     setSaving(true);
     const worker = workers.find((w) => w.id === asignadoId);
     const nueva = await base44.entities.Task.create({
-      folio: generateFolio(),
+      folio: generateFolio(tasks.length),
       titulo: titulo.trim() || undefined,
       descripcion: texto.trim(),
       completada: false,
@@ -313,20 +324,19 @@ export default function Tasks() {
 
   const handleToggle = async (task) => {
     const completada = !task.completada;
-    const updated = { ...task, completada, fecha_completada: completada ? new Date().toISOString() : undefined };
-    setTasks((prev) => prev.map((t) => t.id === task.id ? updated : t));
-    await base44.entities.Task.update(task.id, { completada, fecha_completada: updated.fecha_completada });
+    const fecha_completada = completada ? new Date().toISOString() : undefined;
+    setTasks((prev) => prev.map((t) => t.id === task.id ? { ...t, completada, fecha_completada } : t));
+    await base44.entities.Task.update(task.id, { completada, fecha_completada });
   };
 
   const handleUrgente = async (task) => {
-    const updated = { ...task, urgente: !task.urgente };
-    setTasks((prev) => prev.map((t) => t.id === task.id ? updated : t));
-    await base44.entities.Task.update(task.id, { urgente: updated.urgente });
+    const urgente = !task.urgente;
+    setTasks((prev) => prev.map((t) => t.id === task.id ? { ...t, urgente } : t));
+    await base44.entities.Task.update(task.id, { urgente });
   };
 
   const handleEdit = async (task, newTitulo, newDesc) => {
-    const updated = { ...task, titulo: newTitulo, descripcion: newDesc };
-    setTasks((prev) => prev.map((t) => t.id === task.id ? updated : t));
+    setTasks((prev) => prev.map((t) => t.id === task.id ? { ...t, titulo: newTitulo, descripcion: newDesc } : t));
     await base44.entities.Task.update(task.id, { titulo: newTitulo, descripcion: newDesc });
   };
 
@@ -334,16 +344,16 @@ export default function Tasks() {
     const files = Array.from(e.target.files);
     if (!files.length) return;
     setUploadingId(task.id);
-    const urls = await Promise.all(
-      files.map((file) => base44.integrations.Core.UploadFile({ file }).then((r) => r.file_url))
+    const uploaded = await Promise.all(
+      files.map((file) => base44.integrations.Core.UploadFile({ file }).then((r) => ({ url: r.file_url, titulo: "" })))
     );
-    const imagenes = [...(task.imagenes || []), ...urls];
+    const existingNorm = (task.imagenes || []).map(normalizeImg);
+    const imagenes = [...existingNorm, ...uploaded];
     await base44.entities.Task.update(task.id, { imagenes });
     setTasks((prev) => prev.map((t) => t.id === task.id ? { ...t, imagenes } : t));
     setUploadingId(null);
   };
 
-  // Filtrado por búsqueda
   const filtered = tasks.filter((t) => {
     if (!search) return true;
     const q = search.toLowerCase();
@@ -354,10 +364,7 @@ export default function Tasks() {
     );
   });
 
-  const pendientes = filtered
-    .filter((t) => !t.completada)
-    .sort((a, b) => (b.urgente ? 1 : 0) - (a.urgente ? 1 : 0));
-
+  const pendientes = filtered.filter((t) => !t.completada).sort((a, b) => (b.urgente ? 1 : 0) - (a.urgente ? 1 : 0));
   const completadas = filtered.filter((t) => t.completada);
 
   const urgentesCount = tasks.filter((t) => t.urgente && !t.completada).length;
@@ -390,24 +397,14 @@ export default function Tasks() {
       {/* Buscador */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input
-          placeholder="Buscar por título, descripción o folio..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-10"
-        />
+        <Input placeholder="Buscar por título, descripción o folio..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" />
       </div>
 
       {/* Formulario nueva tarea */}
       <div className="rounded-xl border border-border bg-card p-5 space-y-3">
         <p className="text-sm font-semibold">Nueva Tarea</p>
 
-        <Input
-          placeholder="Título de la tarea..."
-          value={titulo}
-          onChange={(e) => setTitulo(e.target.value)}
-          className="font-medium"
-        />
+        <Input placeholder="Título de la tarea..." value={titulo} onChange={(e) => setTitulo(e.target.value)} className="font-medium" />
 
         <Textarea
           placeholder="Descripción de la tarea..."
@@ -432,14 +429,12 @@ export default function Tasks() {
           </select>
         </div>
 
-        {/* Subir imágenes en la creación */}
+        {/* Subir imágenes */}
         <div className="space-y-2">
           <label className="text-xs text-muted-foreground font-medium">Imágenes adjuntas</label>
           <label className={cn(
             "inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed cursor-pointer text-sm transition-all",
-            uploadingNew
-              ? "opacity-50 pointer-events-none"
-              : "border-border text-muted-foreground hover:border-primary hover:text-primary"
+            uploadingNew ? "opacity-50 pointer-events-none" : "border-border text-muted-foreground hover:border-primary hover:text-primary"
           )}>
             {uploadingNew ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImagePlus className="w-4 h-4" />}
             {uploadingNew ? "Subiendo..." : "Agregar imágenes"}
@@ -447,17 +442,25 @@ export default function Tasks() {
           </label>
 
           {newImages.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {newImages.map((url, i) => (
-                <div key={i} className="relative group w-20 h-20 rounded-lg overflow-hidden border border-border">
-                  <img src={url} alt="preview" className="w-full h-full object-cover" />
-                  <button
-                    type="button"
-                    onClick={() => setNewImages((prev) => prev.filter((_, idx) => idx !== i))}
-                    className="absolute top-1 right-1 bg-black/60 rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <X className="w-3 h-3 text-white" />
-                  </button>
+            <div className="flex flex-wrap gap-3">
+              {newImages.map((img, i) => (
+                <div key={i} className="flex flex-col gap-1 w-24">
+                  <div className="relative group w-24 h-24 rounded-lg overflow-hidden border border-border">
+                    <img src={img.url} alt="preview" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setNewImages((prev) => prev.filter((_, idx) => idx !== i))}
+                      className="absolute top-1 right-1 bg-black/60 rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="w-3 h-3 text-white" />
+                    </button>
+                  </div>
+                  <Input
+                    value={img.titulo}
+                    onChange={(e) => setNewImageTitulo(i, e.target.value)}
+                    placeholder="Título foto..."
+                    className="text-xs h-7 px-2"
+                  />
                 </div>
               ))}
             </div>
@@ -493,24 +496,9 @@ export default function Tasks() {
             <p className="text-center text-muted-foreground text-sm py-10">No hay tareas aún.</p>
           )}
           {pendientes.map((t) => (
-            <TaskCard
-              key={t.id}
-              task={t}
-              onToggle={handleToggle}
-              onUrgente={handleUrgente}
-              onEdit={handleEdit}
-              onUploadImage={handleUploadImage}
-              uploadingId={uploadingId}
-            />
+            <TaskCard key={t.id} task={t} onToggle={handleToggle} onUrgente={handleUrgente} onEdit={handleEdit} onUploadImage={handleUploadImage} uploadingId={uploadingId} />
           ))}
-          <CompletedGroup
-            tasks={completadas}
-            onToggle={handleToggle}
-            onUrgente={handleUrgente}
-            onEdit={handleEdit}
-            onUploadImage={handleUploadImage}
-            uploadingId={uploadingId}
-          />
+          <CompletedGroup tasks={completadas} onToggle={handleToggle} onUrgente={handleUrgente} onEdit={handleEdit} onUploadImage={handleUploadImage} uploadingId={uploadingId} />
         </div>
       )}
     </div>
