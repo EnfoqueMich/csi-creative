@@ -5,6 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Save, ArrowLeft, Loader2, Plus, X, ImagePlus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import TshirtPreviewInteractive, { DEFAULT_LAYOUT } from "./TshirtPreviewInteractive";
+
+// TshirtPreview removido — ahora en TshirtPreviewInteractive.jsx
 
 const POSICIONES_DEFAULT = [
   { numero: 1, nombre: "FRENTE IZQUIERDO" },
@@ -23,14 +26,7 @@ const TIPOS_TRABAJO = [
 
 const TALLAS = ["xs", "s", "m", "l", "xl", "xxl", "xxxl", "xxxxl"];
 
-// Posiciones en la silueta de playera: coordenadas relativas al contenedor (%)
-const SILUETA_ZONAS = {
-  1: { top: "28%", left: "30%", label: "FI" },   // FRENTE IZQUIERDO
-  2: { top: "28%", left: "55%", label: "FD" },   // FRENTE DERECHO
-  3: { top: "28%", left: "72%", label: "MD" },   // MANGA DERECHA
-  4: { top: "28%", left: "12%", label: "MI" },   // MANGA IZQUIERDA
-  5: { top: "28%", left: "50%", label: "ESP" },  // ESPALDA (vista trasera, no se superpone)
-};
+
 
 function CheckBox({ checked, onChange, label }) {
   return (
@@ -91,48 +87,7 @@ function EspecRow({ row, onChange, onRemove, canRemove }) {
   );
 }
 
-// Silueta de playera con imágenes superpuestas en posiciones (solo frente: 1,2,3,4)
-const FRENTE_URL = "https://media.base44.com/images/public/69d2f43e55d64f6bbfa30f2c/6b6aec754_frente.png";
-const ESPALDA_URL = "https://media.base44.com/images/public/69d2f43e55d64f6bbfa30f2c/173365721_espalda.png";
 
-function TshirtPreview({ posiciones }) {
-  const espalda = posiciones.find(p => p.numero === 5);
-
-  return (
-    <div className="flex gap-10 justify-center items-start py-2">
-      {/* Vista Frontal */}
-      <div className="text-center flex-1 max-w-sm">
-        <p className="text-xs font-bold text-blue-600 uppercase mb-1 tracking-wider">Vista Frontal</p>
-        <div className="relative inline-block w-full">
-          <img src={FRENTE_URL} alt="Frente" className="w-full object-contain" />
-          {posiciones.find(p => p.numero === 1)?.imagen_url && (
-            <img src={posiciones.find(p => p.numero === 1).imagen_url} alt="FI" className="absolute object-contain rounded" style={{ top: "32%", left: "50%", width: "26%", height: "26%", pointerEvents: "none" }} />
-          )}
-          {posiciones.find(p => p.numero === 2)?.imagen_url && (
-            <img src={posiciones.find(p => p.numero === 2).imagen_url} alt="FD" className="absolute object-contain rounded" style={{ top: "32%", left: "24%", width: "26%", height: "26%", pointerEvents: "none" }} />
-          )}
-          {posiciones.find(p => p.numero === 3)?.imagen_url && (
-            <img src={posiciones.find(p => p.numero === 3).imagen_url} alt="MD" className="absolute object-contain rounded" style={{ top: "30%", left: "3%", width: "20%", height: "20%", pointerEvents: "none" }} />
-          )}
-          {posiciones.find(p => p.numero === 4)?.imagen_url && (
-            <img src={posiciones.find(p => p.numero === 4).imagen_url} alt="MI" className="absolute object-contain rounded" style={{ top: "30%", left: "77%", width: "20%", height: "20%", pointerEvents: "none" }} />
-          )}
-        </div>
-      </div>
-
-      {/* Vista Trasera */}
-      <div className="text-center flex-1 max-w-sm">
-        <p className="text-xs font-bold text-blue-600 uppercase mb-1 tracking-wider">Vista Trasera</p>
-        <div className="relative inline-block w-full">
-          <img src={ESPALDA_URL} alt="Espalda" className="w-full object-contain" />
-          {espalda?.imagen_url && (
-            <img src={espalda.imagen_url} alt="ESP" className="absolute object-contain rounded" style={{ top: "22%", left: "22%", width: "56%", height: "50%", pointerEvents: "none" }} />
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 const emptyEspec = () => ({ tipo_prenda: "", color_prenda: "", tallas: {}, total_piezas: "" });
 
@@ -180,6 +135,10 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
   });
   const [saving, setSaving] = useState(false);
   const [uploadingPos, setUploadingPos] = useState(null);
+  const [previewLayout, setPreviewLayout] = useState(() => ({
+    ...DEFAULT_LAYOUT,
+    ...(order?.preview_layout || {}),
+  }));
 
   const set = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
   const setNested = (field, key, value) => setForm((prev) => ({ ...prev, [field]: { ...(prev[field] || {}), [key]: value } }));
@@ -348,7 +307,11 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
 
       {/* Simulación de playera */}
       <div className="rounded-xl border-2 border-blue-200 bg-blue-50/30 px-6 pt-3 pb-4">
-        <TshirtPreview posiciones={form.posiciones} />
+        <TshirtPreviewInteractive
+          posiciones={form.posiciones}
+          layout={previewLayout}
+          onLayoutChange={setPreviewLayout}
+        />
       </div>
 
       {/* Posiciones */}
