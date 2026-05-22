@@ -92,57 +92,41 @@ function EspecRow({ row, onChange, onRemove, canRemove }) {
 }
 
 // Silueta de playera con imágenes superpuestas en posiciones (solo frente: 1,2,3,4)
+const FRENTE_URL = "https://media.base44.com/images/public/69d2f43e55d64f6bbfa30f2c/6b6aec754_frente.png";
+const ESPALDA_URL = "https://media.base44.com/images/public/69d2f43e55d64f6bbfa30f2c/173365721_espalda.png";
+
 function TshirtPreview({ posiciones }) {
   const espalda = posiciones.find(p => p.numero === 5);
 
   return (
-    <div className="flex gap-10 justify-center items-start py-4">
+    <div className="flex gap-10 justify-center items-start py-2">
       {/* Vista Frontal */}
       <div className="text-center flex-1 max-w-sm">
-        <p className="text-xs font-bold text-blue-600 uppercase mb-2 tracking-wider">Vista Frontal</p>
+        <p className="text-xs font-bold text-blue-600 uppercase mb-1 tracking-wider">Vista Frontal</p>
         <div className="relative inline-block w-full">
-          <svg viewBox="0 0 200 220" className="w-full drop-shadow-md" xmlns="http://www.w3.org/2000/svg">
-            <path d="M60 40 L20 70 L35 80 L35 200 L165 200 L165 80 L180 70 L140 40 Q130 55 100 55 Q70 55 60 40Z" fill="#e2e8f0" stroke="#94a3b8" strokeWidth="1.5"/>
-            <path d="M80 40 Q100 60 120 40" fill="#cbd5e1" stroke="#94a3b8" strokeWidth="1.5"/>
-            <line x1="35" y1="80" x2="55" y2="80" stroke="#94a3b8" strokeWidth="1" strokeDasharray="3,2"/>
-            <line x1="145" y1="80" x2="165" y2="80" stroke="#94a3b8" strokeWidth="1" strokeDasharray="3,2"/>
-            {/* Etiquetas de zona */}
-            <text x="100" y="130" textAnchor="middle" fontSize="8" fill="#94a3b8">FRENTE</text>
-            <text x="35" y="105" textAnchor="middle" fontSize="7" fill="#94a3b8">M.IZQ</text>
-            <text x="165" y="105" textAnchor="middle" fontSize="7" fill="#94a3b8">M.DER</text>
-          </svg>
-          {/* FRENTE IZQUIERDO */}
+          <img src={FRENTE_URL} alt="Frente" className="w-full object-contain" />
           {posiciones.find(p => p.numero === 1)?.imagen_url && (
-            <img src={posiciones.find(p => p.numero === 1).imagen_url} alt="FI" className="absolute object-contain rounded" style={{ top: "33%", left: "51%", width: "27%", height: "27%", pointerEvents: "none" }} />
+            <img src={posiciones.find(p => p.numero === 1).imagen_url} alt="FI" className="absolute object-contain rounded" style={{ top: "32%", left: "50%", width: "26%", height: "26%", pointerEvents: "none" }} />
           )}
-          {/* FRENTE DERECHO */}
           {posiciones.find(p => p.numero === 2)?.imagen_url && (
-            <img src={posiciones.find(p => p.numero === 2).imagen_url} alt="FD" className="absolute object-contain rounded" style={{ top: "33%", left: "22%", width: "27%", height: "27%", pointerEvents: "none" }} />
+            <img src={posiciones.find(p => p.numero === 2).imagen_url} alt="FD" className="absolute object-contain rounded" style={{ top: "32%", left: "24%", width: "26%", height: "26%", pointerEvents: "none" }} />
           )}
-          {/* MANGA DERECHA (mira izquierda) */}
           {posiciones.find(p => p.numero === 3)?.imagen_url && (
-            <img src={posiciones.find(p => p.numero === 3).imagen_url} alt="MD" className="absolute object-contain rounded" style={{ top: "27%", left: "2%", width: "20%", height: "20%", pointerEvents: "none" }} />
+            <img src={posiciones.find(p => p.numero === 3).imagen_url} alt="MD" className="absolute object-contain rounded" style={{ top: "30%", left: "3%", width: "20%", height: "20%", pointerEvents: "none" }} />
           )}
-          {/* MANGA IZQUIERDA (mira derecha) */}
           {posiciones.find(p => p.numero === 4)?.imagen_url && (
-            <img src={posiciones.find(p => p.numero === 4).imagen_url} alt="MI" className="absolute object-contain rounded" style={{ top: "27%", left: "78%", width: "20%", height: "20%", pointerEvents: "none" }} />
+            <img src={posiciones.find(p => p.numero === 4).imagen_url} alt="MI" className="absolute object-contain rounded" style={{ top: "30%", left: "77%", width: "20%", height: "20%", pointerEvents: "none" }} />
           )}
         </div>
       </div>
 
       {/* Vista Trasera */}
       <div className="text-center flex-1 max-w-sm">
-        <p className="text-xs font-bold text-blue-600 uppercase mb-2 tracking-wider">Vista Trasera</p>
+        <p className="text-xs font-bold text-blue-600 uppercase mb-1 tracking-wider">Vista Trasera</p>
         <div className="relative inline-block w-full">
-          <svg viewBox="0 0 200 220" className="w-full drop-shadow-md" xmlns="http://www.w3.org/2000/svg">
-            <path d="M60 40 L20 70 L35 80 L35 200 L165 200 L165 80 L180 70 L140 40 Q130 55 100 55 Q70 55 60 40Z" fill="#dde3ee" stroke="#94a3b8" strokeWidth="1.5"/>
-            <path d="M80 40 Q100 52 120 40" fill="#c7cedc" stroke="#94a3b8" strokeWidth="1.5"/>
-            <line x1="35" y1="80" x2="55" y2="80" stroke="#94a3b8" strokeWidth="1" strokeDasharray="3,2"/>
-            <line x1="145" y1="80" x2="165" y2="80" stroke="#94a3b8" strokeWidth="1" strokeDasharray="3,2"/>
-            <text x="100" y="130" textAnchor="middle" fontSize="8" fill="#94a3b8">ESPALDA</text>
-          </svg>
+          <img src={ESPALDA_URL} alt="Espalda" className="w-full object-contain" />
           {espalda?.imagen_url && (
-            <img src={espalda.imagen_url} alt="ESP" className="absolute object-contain rounded" style={{ top: "26%", left: "24%", width: "52%", height: "46%", pointerEvents: "none" }} />
+            <img src={espalda.imagen_url} alt="ESP" className="absolute object-contain rounded" style={{ top: "22%", left: "22%", width: "56%", height: "50%", pointerEvents: "none" }} />
           )}
         </div>
       </div>
@@ -363,9 +347,7 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
       </div>
 
       {/* Simulación de playera */}
-      <div className="rounded-xl border-2 border-blue-200 bg-blue-50/30 p-6 space-y-3">
-        <p className="text-sm font-bold text-blue-700 uppercase tracking-wider text-center">Simulación de Prenda</p>
-        <p className="text-xs text-muted-foreground text-center">Las imágenes cargadas en cada posición se visualizan sobre la silueta</p>
+      <div className="rounded-xl border-2 border-blue-200 bg-blue-50/30 px-6 pt-3 pb-4">
         <TshirtPreview posiciones={form.posiciones} />
       </div>
 
