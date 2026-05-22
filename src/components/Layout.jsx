@@ -35,17 +35,21 @@ export default function Layout() {
     async function detectRole() {
       try {
         const user = await base44.auth.me();
-        if (user?.role === "worker") { setNavRole("worker"); return; }
+        // Admin siempre ve todo
         if (user?.role === "admin") { setNavRole("admin"); return; }
-        // Check puesto in Worker entity
+        // Cualquier usuario no-admin: buscar en Worker por nombre
         const workers = await base44.entities.Worker.list("nombre");
         const match = workers.find(
           (w) => w.nombre?.trim().toLowerCase() === user?.full_name?.trim().toLowerCase()
         );
         const puesto = match?.puesto;
-        if (puesto === "LIDER" || puesto === "GERENTE") setNavRole("lider");
-        else setNavRole("admin");
-      } catch { setNavRole("admin"); }
+        if (puesto === "LIDER" || puesto === "GERENTE") {
+          setNavRole("lider");
+        } else {
+          // DISEÑADOR, sin match, o role "worker" → vista de trabajador
+          setNavRole("worker");
+        }
+      } catch { setNavRole("worker"); }
     }
     detectRole();
   }, []);
