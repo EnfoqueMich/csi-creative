@@ -6,6 +6,14 @@
       "type": "string",
       "description": "Nombre de la prenda (ej: Playera, Chamarra, Gorra)"
     },
+    "modelo": {
+      "type": "string",
+      "description": "Modelo de la prenda"
+    },
+    "marca": {
+      "type": "string",
+      "description": "Marca de la prenda"
+    },
     "frente_url": {
       "type": "string",
       "description": "URL de la imagen frontal de la prenda"
@@ -13,6 +21,18 @@
     "espalda_url": {
       "type": "string",
       "description": "URL de la imagen trasera de la prenda"
+    },
+    "lateral_izq_url": {
+      "type": "string",
+      "description": "URL de la imagen lateral izquierda (solo gorras)"
+    },
+    "lateral_der_url": {
+      "type": "string",
+      "description": "URL de la imagen lateral derecha (solo gorras)"
+    },
+    "es_gorra": {
+      "type": "boolean",
+      "description": "Indica si esta prenda es una gorra (4 vistas)"
     }
   },
   "required": [

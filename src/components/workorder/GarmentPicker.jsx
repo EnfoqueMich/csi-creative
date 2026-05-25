@@ -37,6 +37,8 @@ function ImgUploadField({ label, url, uploading, onUpload, onClear }) {
 
 function GarmentForm({ garment, onSaved, onCancel }) {
   const [titulo, setTitulo] = useState(garment?.titulo || "");
+  const [modelo, setModelo] = useState(garment?.modelo || "");
+  const [marca, setMarca] = useState(garment?.marca || "");
   const [esGorra, setEsGorra] = useState(garment?.es_gorra || false);
   const [urls, setUrls] = useState({
     frente: garment?.frente_url || "",
@@ -63,6 +65,8 @@ function GarmentForm({ garment, onSaved, onCancel }) {
     setSaving(true);
     const data = {
       titulo: titulo.trim(),
+      modelo: modelo.trim(),
+      marca: marca.trim(),
       es_gorra: esGorra,
       frente_url: urls.frente || DEFAULT_FRENTE,
       espalda_url: urls.espalda || DEFAULT_ESPALDA,
@@ -83,7 +87,11 @@ function GarmentForm({ garment, onSaved, onCancel }) {
   return (
     <div className="border-2 border-blue-300 rounded-lg p-3 space-y-3 bg-blue-50/40">
       <p className="text-xs font-bold text-blue-700 uppercase">{garment ? "Editar prenda" : "Nueva prenda"}</p>
-      <Input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Nombre (ej: Chamarra, Gorra...)" className="text-sm" />
+      <Input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Nombre (ej: Playera, Chamarra...)" className="text-sm" />
+      <div className="grid grid-cols-2 gap-2">
+        <Input value={modelo} onChange={(e) => setModelo(e.target.value)} placeholder="Modelo" className="text-sm" />
+        <Input value={marca} onChange={(e) => setMarca(e.target.value)} placeholder="Marca" className="text-sm" />
+      </div>
 
       {/* Toggle es gorra */}
       <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-blue-700">
@@ -206,7 +214,13 @@ export default function GarmentPicker({ selectedId, onSelect }) {
           </button>
           )}
 
-          {garments.filter(g => !search || g.titulo.toLowerCase().includes(search.toLowerCase())).map((g) => (
+          {garments.filter(g => {
+           if (!search) return true;
+           const searchLower = search.toLowerCase();
+           return (g.titulo?.toLowerCase().includes(searchLower) ||
+                   g.modelo?.toLowerCase().includes(searchLower) ||
+                   g.marca?.toLowerCase().includes(searchLower));
+          }).map((g) => (
             <button
               key={g.id}
               type="button"
