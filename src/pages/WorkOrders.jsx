@@ -49,14 +49,14 @@ export default function WorkOrders() {
     return <WorkOrderForm onSave={handleSave} onCancel={() => setView("list")} />;
   }
   if (view === "edit" && selected) {
-    return <WorkOrderForm order={selected} onSave={handleSave} onCancel={() => { setView("list"); setSelected(null); }} />;
+    return <WorkOrderForm key={selected.id} order={selected} onSave={handleSave} onCancel={() => { setView("view"); }} />;
   }
   if (view === "view" && selected) {
     return (
       <WorkOrderView
         order={selected}
         onBack={() => { setView("list"); setSelected(null); }}
-        onEdit={() => setView("edit")}
+        onEdit={() => { setSelected(selected); setView("edit"); }}
       />
     );
   }
