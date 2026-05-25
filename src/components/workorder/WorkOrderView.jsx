@@ -195,24 +195,12 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
 
         <div className="px-6 py-4 space-y-4">
 
-          {/* Datos cliente — una sola fila */}
-          <div className="flex gap-2 text-[10px]">
-            <div className="flex-[2] border border-gray-300 rounded">
-              <div className="bg-blue-600 text-white font-bold px-2 py-0.5 uppercase tracking-wide">Nombre Cliente:</div>
-              <div className="px-2 py-1 font-medium">{order.nombre_cliente || ""}</div>
-            </div>
-            <div className="flex-1 border border-gray-300 rounded">
-              <div className="bg-blue-600 text-white font-bold px-2 py-0.5 uppercase tracking-wide">Teléfono:</div>
-              <div className="px-2 py-1 font-medium">{order.telefono || ""}</div>
-            </div>
-            <div className="flex-[2] border border-gray-300 rounded">
-              <div className="bg-blue-600 text-white font-bold px-2 py-0.5 uppercase tracking-wide">Agente de Ventas:</div>
-              <div className="px-2 py-1 font-medium">{order.agente_ventas || ""}</div>
-            </div>
-            <div className="flex-1 border border-gray-300 rounded">
-              <div className="bg-blue-600 text-white font-bold px-2 py-0.5 uppercase tracking-wide">Fecha de Orden:</div>
-              <div className="px-2 py-1 font-medium">{order.fecha_orden || ""}</div>
-            </div>
+          {/* Datos cliente — una sola línea inline */}
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm border-b border-gray-200 pb-2">
+            <span><span className="text-gray-500 font-semibold uppercase text-[10px] mr-1">Nombre Cliente:</span><span className="text-black font-medium">{order.nombre_cliente || ""}</span></span>
+            <span><span className="text-gray-500 font-semibold uppercase text-[10px] mr-1">Teléfono:</span><span className="text-black font-medium">{order.telefono || ""}</span></span>
+            <span><span className="text-gray-500 font-semibold uppercase text-[10px] mr-1">Agente:</span><span className="text-black font-medium">{order.agente_ventas || ""}</span></span>
+            <span><span className="text-gray-500 font-semibold uppercase text-[10px] mr-1">Fecha Ingreso:</span><span className="text-black font-medium">{order.fecha_orden || ""}</span></span>
           </div>
 
           {/* Vista de prenda */}
@@ -231,13 +219,13 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
             );
             if (posConInfo.length === 0) return null;
             return (
-              <div className="border rounded p-2" style={{ borderColor: pdfCfg?.color_posiciones || "#1d4ed8" }}>
-                <p className="text-[10px] font-bold text-center uppercase tracking-widest mb-2" style={{ color: pdfCfg?.color_posiciones || "#1d4ed8" }}>Posiciones de Bordado / Estampado</p>
-                <div className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${Math.min(posConInfo.length, pdfCfg?.columnas_posiciones || 5)}, minmax(0, 1fr))` }}>
+              <div className="border-2 rounded p-3" style={{ borderColor: pdfCfg?.color_posiciones || "#1d4ed8" }}>
+                <p className="text-xs font-bold text-center uppercase tracking-widest mb-2" style={{ color: pdfCfg?.color_posiciones || "#1d4ed8" }}>Posiciones de Bordado / Estampado</p>
+                <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(posConInfo.length, pdfCfg?.columnas_posiciones || 5)}, minmax(0, 1fr))` }}>
                   {posConInfo.map((pos, i) => (
-                    <div key={i} className="border border-blue-200 rounded">
-                      <div className="text-white text-[10px] font-bold text-center py-0.5 rounded-t" style={{ backgroundColor: pdfCfg?.color_posiciones || "#1d4ed8" }}>POSICIÓN # {pos.numero}</div>
-                      <div className="bg-green-50 text-green-800 text-[10px] font-semibold text-center py-0.5 mx-1 rounded border border-green-200 mt-0.5">{pos.nombre}</div>
+                    <div key={i} className="border border-blue-200 rounded space-y-1">
+                      <div className="text-white text-[10px] font-bold text-center py-1 rounded-t" style={{ backgroundColor: pdfCfg?.color_posiciones || "#1d4ed8" }}>POSICIÓN # {pos.numero}</div>
+                      <div className="bg-green-100 text-green-800 text-[10px] font-semibold text-center py-0.5 mx-1 rounded border border-green-300">{pos.nombre}</div>
                       {pos.imagen_url && (
                         <div className="px-1 mt-0.5">
                           <img src={pos.imagen_url} alt={pos.nombre} className="w-[80%] mx-auto object-contain rounded border border-blue-100" />
