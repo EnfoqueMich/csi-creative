@@ -325,33 +325,6 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
             <Input type="date" value={form.fecha_orden} onChange={(e) => set("fecha_orden", e.target.value)} className="h-8 text-xs" />
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="rounded-lg border-2 border-green-400 p-4 space-y-2">
-            <p className="text-xs font-bold text-green-700 uppercase tracking-wider">Tipo de Trabajo</p>
-            <div className="grid grid-cols-2 gap-2">
-              {TIPOS_TRABAJO.map(([key, label]) => (
-                <CheckBox key={key} label={label} checked={!!form.tipo_trabajo[key]} onChange={() => setNested("tipo_trabajo", key, !form.tipo_trabajo[key])} />
-              ))}
-            </div>
-          </div>
-          <div className="rounded-lg border border-blue-200 p-4 space-y-1">
-            <p className="text-xs font-bold text-blue-700 uppercase tracking-wider">Observaciones</p>
-            <Textarea value={form.observaciones} onChange={(e) => set("observaciones", e.target.value)} rows={5} placeholder="Observaciones adicionales..." className="resize-none text-sm" />
-          </div>
-        </div>
-      </div>
-
-      {/* Especificaciones */}
-      <div className="rounded-xl border-2 border-green-400 bg-card p-5 space-y-3">
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-bold text-green-700 uppercase tracking-widest">Especificaciones</p>
-          <Button type="button" variant="outline" size="sm" onClick={addEspec} className="gap-1 text-green-700 border-green-400 hover:bg-green-50">
-            <Plus className="w-3.5 h-3.5" /> Agregar modelo
-          </Button>
-        </div>
-        {form.especificaciones.map((row, idx) => (
-          <EspecRow key={idx} row={row} onChange={(field, value) => updateEspec(idx, field, value)} onRemove={() => removeEspec(idx)} canRemove={form.especificaciones.length > 1} />
-        ))}
       </div>
 
       {/* Selector de prenda + Vista previa */}
@@ -474,6 +447,35 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Tipo de Trabajo + Observaciones */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="rounded-xl border-2 border-green-400 bg-card p-4 space-y-2">
+          <p className="text-xs font-bold text-green-700 uppercase tracking-wider">Tipo de Trabajo</p>
+          <div className="grid grid-cols-2 gap-2">
+            {TIPOS_TRABAJO.map(([key, label]) => (
+              <CheckBox key={key} label={label} checked={!!form.tipo_trabajo[key]} onChange={() => setNested("tipo_trabajo", key, !form.tipo_trabajo[key])} />
+            ))}
+          </div>
+        </div>
+        <div className="rounded-xl border border-blue-200 bg-card p-4 space-y-1">
+          <p className="text-xs font-bold text-blue-700 uppercase tracking-wider">Observaciones</p>
+          <Textarea value={form.observaciones} onChange={(e) => set("observaciones", e.target.value)} rows={5} placeholder="Observaciones adicionales..." className="resize-none text-sm" />
+        </div>
+      </div>
+
+      {/* Especificaciones */}
+      <div className="rounded-xl border-2 border-green-400 bg-card p-5 space-y-3">
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-bold text-green-700 uppercase tracking-widest">Especificaciones</p>
+          <Button type="button" variant="outline" size="sm" onClick={addEspec} className="gap-1 text-green-700 border-green-400 hover:bg-green-50">
+            <Plus className="w-3.5 h-3.5" /> Agregar modelo
+          </Button>
+        </div>
+        {form.especificaciones.map((row, idx) => (
+          <EspecRow key={idx} row={row} onChange={(field, value) => updateEspec(idx, field, value)} onRemove={() => removeEspec(idx)} canRemove={form.especificaciones.length > 1} />
+        ))}
       </div>
 
     </div>

@@ -203,58 +203,6 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
             <Field label="TELÉFONO" value={order.telefono} blue />
           </div>
 
-          {/* Tipo trabajo + observaciones */}
-          {(pdfCfg?.mostrar_tipo_trabajo !== false) && (
-            <div className="grid grid-cols-2 gap-3">
-              <div className="border-2 rounded p-3" style={{ borderColor: pdfCfg?.color_tipo_trabajo || "#22c55e" }}>
-                <p className="text-xs font-bold text-yellow-600 mb-2 uppercase">Tipo de Trabajo:</p>
-                <div className="grid grid-cols-2 gap-1 text-xs">
-                  {[["bordado","Bordado"],["muestras","Muestras"],["estampado","Estampado"],["sublimado","Sublimado"],["costura","Costura"],["parche","Parche"],["riveteado","Riveteado"],["dtf","DTF"]].map(([key,label]) => (
-                    <div key={key} className="flex items-center gap-1"><Check checked={!!order.tipo_trabajo?.[key]} />{label}</div>
-                  ))}
-                </div>
-              </div>
-              {(pdfCfg?.mostrar_observaciones !== false) && (
-                <div className="border border-blue-300 rounded p-3">
-                  <p className="text-xs font-bold text-blue-700 mb-1 uppercase">Observaciones:</p>
-                  <p className="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed min-h-[60px]">{order.observaciones || ""}</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Especificaciones */}
-          {(pdfCfg?.mostrar_especificaciones !== false) && (
-            <div className="border-2 border-green-500 rounded p-3 space-y-3">
-              <p className="text-xs font-bold text-green-700 text-center uppercase tracking-widest">Especificaciones</p>
-              {especificaciones.map((row, idx) => (
-                <div key={idx} className={cn("space-y-1", idx > 0 && "border-t border-green-200 pt-2")}>
-                  {especificaciones.length > 1 && <p className="text-[10px] font-bold text-green-600 uppercase">Modelo {idx + 1}</p>}
-                  <div className="flex items-center gap-2 flex-wrap text-xs">
-                    <div className="border border-gray-400 rounded px-2 py-1 min-w-[80px]">
-                      <p className="text-gray-500 text-[10px] uppercase">Tipo Prenda</p>
-                      <p className="font-semibold">{row.tipo_prenda || "—"}</p>
-                    </div>
-                    <div className="border border-gray-400 rounded px-2 py-1 min-w-[60px]">
-                      <p className="text-gray-500 text-[10px] uppercase">Color</p>
-                      <p className="font-semibold">{row.color_prenda || "—"}</p>
-                    </div>
-                    {TALLAS_KEYS.map((t, i) => (
-                      <div key={t} className="border border-gray-400 rounded px-2 py-1 w-10 text-center">
-                        <p className="text-gray-500 text-[10px] uppercase">{TALLAS_LABELS[i]}</p>
-                        <p className="font-bold">{row.tallas?.[t] || ""}</p>
-                      </div>
-                    ))}
-                    <div className="border-2 border-green-500 rounded px-2 py-1 min-w-[60px] text-center ml-auto">
-                      <p className="text-gray-500 text-[10px] uppercase">Total Piezas</p>
-                      <p className="font-black text-base text-green-700">{row.total_piezas || "0"}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
           {/* Vista de prenda */}
           {(pdfCfg?.mostrar_vista_prenda !== false) && posiciones.length > 0 && (
             <div className="border-2 border-blue-200 rounded px-3 pt-2 pb-3 bg-blue-50/20">
@@ -323,6 +271,58 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Tipo trabajo + observaciones */}
+          {(pdfCfg?.mostrar_tipo_trabajo !== false) && (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="border-2 rounded p-3" style={{ borderColor: pdfCfg?.color_tipo_trabajo || "#22c55e" }}>
+                <p className="text-xs font-bold text-green-700 mb-2 uppercase">Tipo de Trabajo:</p>
+                <div className="grid grid-cols-2 gap-1 text-xs">
+                  {[["bordado","Bordado"],["muestras","Muestras"],["estampado","Estampado"],["sublimado","Sublimado"],["costura","Costura"],["parche","Parche"],["riveteado","Riveteado"],["dtf","DTF"]].map(([key,label]) => (
+                    <div key={key} className="flex items-center gap-1"><Check checked={!!order.tipo_trabajo?.[key]} />{label}</div>
+                  ))}
+                </div>
+              </div>
+              {(pdfCfg?.mostrar_observaciones !== false) && (
+                <div className="border border-blue-300 rounded p-3">
+                  <p className="text-xs font-bold text-blue-700 mb-1 uppercase">Observaciones:</p>
+                  <p className="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed min-h-[60px]">{order.observaciones || ""}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Especificaciones */}
+          {(pdfCfg?.mostrar_especificaciones !== false) && (
+            <div className="border-2 border-green-500 rounded p-3 space-y-3">
+              <p className="text-xs font-bold text-green-700 text-center uppercase tracking-widest">Especificaciones</p>
+              {especificaciones.map((row, idx) => (
+                <div key={idx} className={cn("space-y-1", idx > 0 && "border-t border-green-200 pt-2")}>
+                  {especificaciones.length > 1 && <p className="text-[10px] font-bold text-green-600 uppercase">Modelo {idx + 1}</p>}
+                  <div className="flex items-center gap-2 flex-wrap text-xs">
+                    <div className="border border-gray-400 rounded px-2 py-1 min-w-[80px]">
+                      <p className="text-gray-500 text-[10px] uppercase">Tipo Prenda</p>
+                      <p className="font-semibold">{row.tipo_prenda || ""}</p>
+                    </div>
+                    <div className="border border-gray-400 rounded px-2 py-1 min-w-[60px]">
+                      <p className="text-gray-500 text-[10px] uppercase">Color</p>
+                      <p className="font-semibold">{row.color_prenda || ""}</p>
+                    </div>
+                    {TALLAS_KEYS.map((t, i) => (
+                      <div key={t} className="border border-gray-400 rounded px-2 py-1 w-10 text-center">
+                        <p className="text-gray-500 text-[10px] uppercase">{TALLAS_LABELS[i]}</p>
+                        <p className="font-bold min-h-[16px]">{row.tallas?.[t] || ""}</p>
+                      </div>
+                    ))}
+                    <div className="border-2 border-green-500 rounded px-2 py-1 min-w-[60px] text-center ml-auto">
+                      <p className="text-gray-500 text-[10px] uppercase">Total Piezas</p>
+                      <p className="font-black text-base text-green-700 min-h-[20px]">{row.total_piezas || ""}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 
