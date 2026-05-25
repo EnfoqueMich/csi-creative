@@ -88,10 +88,39 @@
           "imagen_url": {
             "type": "string"
           },
+          "alto_cm": {
+            "type": "number"
+          },
+          "ancho_cm": {
+            "type": "number"
+          },
           "color_hilos": {
             "type": "array",
             "items": {
               "type": "string"
+            }
+          },
+          "bobina_negra": {
+            "type": "boolean"
+          },
+          "bobina_blanca": {
+            "type": "boolean"
+          },
+          "extras": {
+            "type": "object",
+            "properties": {
+              "foamy": {
+                "type": "boolean"
+              },
+              "velcro_macho": {
+                "type": "boolean"
+              },
+              "velcro_hembra": {
+                "type": "boolean"
+              },
+              "adhesivo_termico": {
+                "type": "boolean"
+              }
             }
           }
         }
