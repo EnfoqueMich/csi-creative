@@ -80,7 +80,7 @@ function EspecRow({ row, onChange, onRemove, canRemove }) {
           <Input
             type="number" min="0"
             value={row.total_piezas || ""}
-            onChange={(e) => onChange("total_piezas", e.target.value)}
+            onChange={(e) => onChange("total_piezas", Number(e.target.value) || 0)}
             className="w-24 font-bold text-center border-green-400 border-2"
           />
         </div>
@@ -196,7 +196,7 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
   const updateEspec = (idx, field, value) =>
     setForm((prev) => {
       const especificaciones = [...prev.especificaciones];
-      const updated = { ...especificaciones[idx], [field]: value };
+      const updated = { ...especificaciones[idx], [field]: field === "total_piezas" ? Number(value) || 0 : value };
       // Auto-calcular total_piezas al cambiar tallas
       if (field === "tallas") {
         updated.total_piezas = Object.values(value).reduce((sum, v) => sum + (Number(v) || 0), 0);
