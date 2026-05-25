@@ -160,7 +160,7 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
       </div>
 
       {/* Documento */}
-      <div className="bg-white text-black rounded-xl border border-gray-300 shadow-sm max-w-4xl mx-auto print:shadow-none print:border-none print:rounded-none" id="orden-print" style={{ fontSize: pdfCfg?.fuente_tamanio || "11px" }}>
+      <div className="bg-white text-black rounded-xl border border-gray-300 shadow-sm w-full mx-auto print:shadow-none print:border-none print:rounded-none print:w-full" id="orden-print" style={{ fontSize: pdfCfg?.fuente_tamanio || "11px" }}>
 
         {/* Encabezado */}
         {(pdfCfg?.mostrar_encabezado !== false) && (
@@ -378,7 +378,7 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
           @page { size: letter portrait; margin: 10mm; }
           body * { visibility: hidden; }
           #orden-print, #orden-print * { visibility: visible; }
-          #orden-print { position: absolute; left: 0; top: 0; width: 100%; font-size: 11px; }
+          #orden-print { position: absolute; left: 0; top: 0; width: 100%; max-width: 100%; font-size: 11px; }
         }
       `}</style>
     </>
