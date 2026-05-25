@@ -1,9 +1,36 @@
+import { useEffect, useState } from "react";
+import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Pencil, Printer } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const TALLAS_LABELS = ["XS","S","M","L","XL","2XL","3XL","4XL"];
 const TALLAS_KEYS =   ["xs","s","m","l","xl","xxl","xxxl","xxxxl"];
+
+const DEFAULT_FRENTE = "https://media.base44.com/images/public/69d2f43e55d64f6bbfa30f2c/6b6aec754_frente.png";
+const DEFAULT_ESPALDA = "https://media.base44.com/images/public/69d2f43e55d64f6bbfa30f2c/173365721_espalda.png";
+
+const DEFAULT_SETTINGS = {
+  logo_url: "",
+  empresa_nombre: "CSI CREATIVE",
+  empresa_telefono: "",
+  empresa_direccion: "",
+  empresa_redes: "",
+  atencion_nombre: "SILVIA LIRA",
+  atencion_puesto: "Atención a Clientes",
+  leyenda_autorizacion: "Autorizo que se realice el trabajo con las indicaciones anotadas en este documento.",
+  texto_firma_cliente: "Firma y nombre del cliente",
+};
+
+const DEFAULT_LAYOUT = {
+  1: { x: 50, y: 32, w: 22 },
+  2: { x: 24, y: 32, w: 22 },
+  3: { x: 5,  y: 28, w: 17 },
+  4: { x: 76, y: 28, w: 17 },
+  5: { x: 22, y: 20, w: 56 },
+  6: { x: 22, y: 20, w: 56 },
+  7: { x: 22, y: 20, w: 56 },
+};
 
 function Check({ checked }) {
   return (
@@ -27,73 +54,84 @@ function Field({ label, value, blue }) {
   );
 }
 
-// Silueta de playera para la vista/impresión
-const DEFAULT_FRENTE = "https://media.base44.com/images/public/69d2f43e55d64f6bbfa30f2c/6b6aec754_frente.png";
-const DEFAULT_ESPALDA = "https://media.base44.com/images/public/69d2f43e55d64f6bbfa30f2c/173365721_espalda.png";
-
-const DEFAULT_LAYOUT = {
-  1: { x: 50, y: 32, w: 22 },
-  2: { x: 24, y: 32, w: 22 },
-  3: { x: 5,  y: 28, w: 17 },
-  4: { x: 76, y: 28, w: 17 },
-  5: { x: 22, y: 20, w: 56 },
-};
-
-function TshirtPreviewPrint({ posiciones, layout, frenteUrl, espaldaUrl }) {
+function GarmentPreviewPrint({ posiciones, layout, order }) {
   const resolvedLayout = layout || DEFAULT_LAYOUT;
-  const frontPos = [1, 2, 3, 4];
-  const backPos = [5];
+  const esGorra = order.garment_es_gorra;
 
-  const renderImages = (nums) =>
-    nums.map((num) => {
-      const pos = posiciones.find(p => p.numero === num);
-      if (!pos?.imagen_url) return null;
-      const l = resolvedLayout[num] || DEFAULT_LAYOUT[num] || { x: 20, y: 20, w: 25 };
-      return (
-        <img
-          key={num}
-          src={pos.imagen_url}
-          alt={pos.nombre}
-          style={{
-            position: "absolute",
-            left: `${l.x}%`,
-            top: `${l.y}%`,
-            width: `${l.w}%`,
-            objectFit: "contain",
-            pointerEvents: "none",
-          }}
-        />
-      );
-    });
+  const renderImages = (nums, bgUrl) => (
+    <div className="text-center flex-1">
+      <div className="relative inline-block w-full">
+        <img src={bgUrl} alt="" className="w-full object-contain" />
+        {nums.map((num) => {
+          const pos = posiciones.find(p => p.numero === num);
+          if (!pos?.imagen_url) return null;
+          const l = resolvedLayout[num] || DEFAULT_LAYOUT[num] || { x: 20, y: 20, w: 25 };
+          return (
+            <img
+              key={num}
+              src={pos.imagen_url}
+              alt={pos.nombre}
+              style={{ position: "absolute", left: `${l.x}%`, top: `${l.y}%`, width: `${l.w}%`, objectFit: "contain", pointerEvents: "none" }}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  if (esGorra) {
+    return (
+      <div className="space-y-1">
+        <div className="flex gap-3 justify-center items-start">
+          <div className="text-center flex-1">
+            <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Vista Frontal</p>
+            {renderImages([1], order.garment_frente_url || DEFAULT_FRENTE)}
+          </div>
+          <div className="text-center flex-1">
+            <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Lateral Izquierda</p>
+            {renderImages([6], order.garment_lateral_izq_url || order.garment_frente_url || DEFAULT_FRENTE)}
+          </div>
+          <div className="text-center flex-1">
+            <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Lateral Derecha</p>
+            {renderImages([7], order.garment_lateral_der_url || order.garment_frente_url || DEFAULT_FRENTE)}
+          </div>
+          <div className="text-center flex-1">
+            <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Vista Trasera</p>
+            {renderImages([5], order.garment_espalda_url || DEFAULT_ESPALDA)}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex gap-6 justify-center items-start">
       <div className="text-center flex-1 max-w-xs">
         <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Vista Frontal</p>
-        <div className="relative inline-block w-full">
-          <img src={frenteUrl || DEFAULT_FRENTE} alt="Frente" className="w-full object-contain" />
-          {renderImages(frontPos)}
-        </div>
+        {renderImages([1, 2, 3, 4], order.garment_frente_url || DEFAULT_FRENTE)}
       </div>
       <div className="text-center flex-1 max-w-xs">
         <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Vista Trasera</p>
-        <div className="relative inline-block w-full">
-          <img src={espaldaUrl || DEFAULT_ESPALDA} alt="Espalda" className="w-full object-contain" />
-          {renderImages(backPos)}
-        </div>
+        {renderImages([5], order.garment_espalda_url || DEFAULT_ESPALDA)}
       </div>
     </div>
   );
 }
 
 export default function WorkOrderView({ order, onBack, onEdit }) {
+  const [cfg, setCfg] = useState(DEFAULT_SETTINGS);
+
+  useEffect(() => {
+    base44.entities.OrderSettings.list().then((list) => {
+      if (list.length > 0) setCfg({ ...DEFAULT_SETTINGS, ...list[0] });
+    });
+  }, []);
+
   const handlePrint = () => window.print();
 
   const especificaciones = order.especificaciones?.length
     ? order.especificaciones
-    : (order.tipo_prenda !== undefined
-        ? [{ tipo_prenda: order.tipo_prenda, color_prenda: order.color_prenda, tallas: order.tallas, total_piezas: order.total_piezas }]
-        : []);
+    : [{ tipo_prenda: order.tipo_prenda, color_prenda: order.color_prenda, tallas: order.tallas, total_piezas: order.total_piezas }];
 
   const posiciones = order.posiciones || [];
 
@@ -115,14 +153,29 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
 
       {/* Documento */}
       <div className="bg-white text-black rounded-xl border border-gray-300 shadow-sm max-w-4xl mx-auto print:shadow-none print:border-none print:rounded-none" id="orden-print">
+
         {/* Encabezado */}
         <div className="flex items-start justify-between px-6 pt-6 pb-3 border-b-2 border-blue-800">
-          <div className="flex items-center gap-1">
-            <div className="bg-yellow-600 text-white font-black text-xl px-2 py-1 rounded-sm">C</div>
-            <div className="flex flex-col leading-none">
-              <span className="font-black text-sm tracking-widest text-blue-900">CSI</span>
-              <span className="text-xs tracking-widest text-gray-600 font-semibold">CREATIVE</span>
-            </div>
+          <div className="flex items-center gap-2">
+            {cfg.logo_url ? (
+              <img src={cfg.logo_url} alt="Logo" className="h-12 object-contain" />
+            ) : (
+              <div className="flex items-center gap-1">
+                <div className="bg-yellow-600 text-white font-black text-xl px-2 py-1 rounded-sm">C</div>
+                <div className="flex flex-col leading-none">
+                  <span className="font-black text-sm tracking-widest text-blue-900">CSI</span>
+                  <span className="text-xs tracking-widest text-gray-600 font-semibold">CREATIVE</span>
+                </div>
+              </div>
+            )}
+            {/* Info empresa */}
+            {(cfg.empresa_telefono || cfg.empresa_direccion || cfg.empresa_redes) && (
+              <div className="ml-2 text-[9px] text-gray-500 space-y-0.5 leading-tight">
+                {cfg.empresa_telefono && <p>📞 {cfg.empresa_telefono}</p>}
+                {cfg.empresa_direccion && <p>📍 {cfg.empresa_direccion}</p>}
+                {cfg.empresa_redes && <p>🌐 {cfg.empresa_redes}</p>}
+              </div>
+            )}
           </div>
           <div className="text-right">
             <p className="text-2xl font-black text-yellow-600 tracking-wider">ORDEN DE TRABAJO</p>
@@ -132,13 +185,13 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
         </div>
 
         <div className="px-6 py-4 space-y-4">
+
           {/* Datos cliente */}
           <div className="grid grid-cols-2 gap-3">
             <Field label="NOMBRE CLIENTE" value={order.nombre_cliente} blue />
             <Field label="FECHA DE ORDEN" value={order.fecha_orden} blue />
             <Field label="AGENTE DE VENTAS" value={order.agente_ventas} blue />
             <Field label="TELÉFONO" value={order.telefono} blue />
-
           </div>
 
           {/* Tipo trabajo + observaciones */}
@@ -187,15 +240,10 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
             ))}
           </div>
 
-          {/* Simulación de prenda */}
+          {/* Vista de prenda */}
           {posiciones.length > 0 && (
             <div className="border-2 border-blue-200 rounded px-3 pt-2 pb-3 bg-blue-50/20">
-              <TshirtPreviewPrint
-                posiciones={posiciones}
-                layout={order.preview_layout}
-                frenteUrl={order.garment_frente_url}
-                espaldaUrl={order.garment_espalda_url}
-              />
+              <GarmentPreviewPrint posiciones={posiciones} layout={order.preview_layout} order={order} />
             </div>
           )}
 
@@ -205,12 +253,8 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
             <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(posiciones.length, 5)}, minmax(0, 1fr))` }}>
               {posiciones.map((pos, i) => (
                 <div key={i} className="border border-blue-200 rounded space-y-1">
-                  <div className="bg-blue-700 text-white text-[10px] font-bold text-center py-1 rounded-t">
-                    POSICIÓN # {pos.numero}
-                  </div>
-                  <div className="bg-green-100 text-green-800 text-[10px] font-semibold text-center py-0.5 mx-1 rounded border border-green-300">
-                    {pos.nombre}
-                  </div>
+                  <div className="bg-blue-700 text-white text-[10px] font-bold text-center py-1 rounded-t">POSICIÓN # {pos.numero}</div>
+                  <div className="bg-green-100 text-green-800 text-[10px] font-semibold text-center py-0.5 mx-1 rounded border border-green-300">{pos.nombre}</div>
                   {pos.imagen_url && (
                     <div className="px-1">
                       <img src={pos.imagen_url} alt={pos.nombre} className="w-[80%] mx-auto object-contain rounded border border-blue-100" />
@@ -219,8 +263,6 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
                   <div className="px-2 pb-1 min-h-[30px]">
                     <p className="text-xs text-gray-700 leading-relaxed whitespace-pre-wrap">{pos.descripcion || ""}</p>
                   </div>
-
-                  {/* Hilos */}
                   {pos.color_hilos?.filter(Boolean).length > 0 && (
                     <div className="px-2 border-t border-blue-100 pt-1 pb-1">
                       <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Hilo</p>
@@ -231,8 +273,6 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
                       ))}
                     </div>
                   )}
-
-                  {/* Bobina */}
                   {(pos.bobina_negra || pos.bobina_blanca) && (
                     <div className="px-2 border-t border-blue-100 pt-1 pb-1">
                       <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Bobina</p>
@@ -240,15 +280,11 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
                       {pos.bobina_blanca && <div className="flex items-center gap-1 text-[10px]"><Check checked={true} />Blanca</div>}
                     </div>
                   )}
-
-                  {/* Extras */}
                   {pos.extras && Object.values(pos.extras).some(Boolean) && (
                     <div className="px-2 border-t border-orange-100 pt-1 pb-1">
                       <p className="text-[9px] font-bold text-orange-500 uppercase mb-0.5">Extras</p>
                       {[["foamy","Foamy"],["velcro_macho","Velcro m."],["velcro_hembra","Velcro h."],["adhesivo_termico","Adhesivo"]].map(([key,label]) =>
-                        pos.extras[key] ? (
-                          <div key={key} className="flex items-center gap-1 text-[10px]"><Check checked={true} />{label}</div>
-                        ) : null
+                        pos.extras[key] ? <div key={key} className="flex items-center gap-1 text-[10px]"><Check checked={true} />{label}</div> : null
                       )}
                     </div>
                   )}
@@ -260,39 +296,29 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
           {/* Firma del cliente */}
           <div className="border-2 border-blue-300 rounded p-5 mt-2">
             <p className="text-xs font-bold text-blue-800 uppercase tracking-widest text-center mb-4">Firma del Cliente</p>
-            <p className="text-[10px] text-gray-500 italic text-center mb-6">
-              Autorizo que se realice el trabajo con las indicaciones anotadas en este documento.
-            </p>
+            <p className="text-[10px] text-gray-500 italic text-center mb-6">{cfg.leyenda_autorizacion}</p>
             <div className="grid grid-cols-2 gap-10 items-end">
               <div className="text-center">
                 <div className="border-b-2 border-gray-400 mb-1 mx-4" />
-                <p className="text-[10px] text-gray-500">Firma y nombre del cliente</p>
+                <p className="text-[10px] text-gray-500">{cfg.texto_firma_cliente}</p>
               </div>
               <div className="text-center">
                 <div className="border-b-2 border-gray-400 mb-1 mx-4" />
-                <p className="text-sm font-semibold text-gray-700">SILVIA LIRA</p>
-                <p className="text-[10px] text-gray-500">Atención a Clientes</p>
+                <p className="text-sm font-semibold text-gray-700">{cfg.atencion_nombre}</p>
+                <p className="text-[10px] text-gray-500">{cfg.atencion_puesto}</p>
               </div>
             </div>
           </div>
+
         </div>
       </div>
 
       <style>{`
         @media print {
-          @page {
-            size: letter portrait;
-            margin: 10mm;
-          }
+          @page { size: letter portrait; margin: 10mm; }
           body * { visibility: hidden; }
           #orden-print, #orden-print * { visibility: visible; }
-          #orden-print {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            font-size: 11px;
-          }
+          #orden-print { position: absolute; left: 0; top: 0; width: 100%; font-size: 11px; }
         }
       `}</style>
     </>

@@ -102,16 +102,23 @@
       "description": "Layout guardado de posiciones de logotipos en la vista de playera"
     },
     "garment_frente_url": {
-      "type": "string",
-      "description": "URL imagen frontal de la prenda"
+      "type": "string"
     },
     "garment_espalda_url": {
-      "type": "string",
-      "description": "URL imagen trasera de la prenda"
+      "type": "string"
     },
     "garment_titulo": {
-      "type": "string",
-      "description": "Nombre de la prenda seleccionada"
+      "type": "string"
+    },
+    "garment_es_gorra": {
+      "type": "boolean",
+      "description": "Si la prenda es una gorra (4 vistas)"
+    },
+    "garment_lateral_izq_url": {
+      "type": "string"
+    },
+    "garment_lateral_der_url": {
+      "type": "string"
     },
     "bobina_negra": {
       "type": "boolean"

@@ -142,7 +142,14 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
   }));
   const [selectedGarment, setSelectedGarment] = useState(() =>
     order?.garment_frente_url
-      ? { frente_url: order.garment_frente_url, espalda_url: order.garment_espalda_url, titulo: order.garment_titulo }
+      ? {
+          frente_url: order.garment_frente_url,
+          espalda_url: order.garment_espalda_url,
+          titulo: order.garment_titulo,
+          es_gorra: order.garment_es_gorra || false,
+          lateral_izq_url: order.garment_lateral_izq_url || "",
+          lateral_der_url: order.garment_lateral_der_url || "",
+        }
       : null
   );
 
@@ -242,6 +249,9 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
       garment_frente_url: selectedGarment?.frente_url || form.garment_frente_url || "",
       garment_espalda_url: selectedGarment?.espalda_url || form.garment_espalda_url || "",
       garment_titulo: selectedGarment?.titulo || form.garment_titulo || "",
+      garment_es_gorra: selectedGarment?.es_gorra || false,
+      garment_lateral_izq_url: selectedGarment?.lateral_izq_url || "",
+      garment_lateral_der_url: selectedGarment?.lateral_der_url || "",
     };
     let saved;
     if (order?.id) {
@@ -332,6 +342,9 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
           onLayoutChange={setPreviewLayout}
           frenteUrl={selectedGarment?.frente_url || form.garment_frente_url}
           espaldaUrl={selectedGarment?.espalda_url || form.garment_espalda_url}
+          latIzqUrl={selectedGarment?.lateral_izq_url || form.garment_lateral_izq_url}
+          latDerUrl={selectedGarment?.lateral_der_url || form.garment_lateral_der_url}
+          esGorra={selectedGarment?.es_gorra || false}
         />
       </div>
 
