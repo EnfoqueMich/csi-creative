@@ -30,12 +30,13 @@ export default function WorkOrders() {
     });
   }, []);
 
-  const handleSave = (order) => {
+  const handleSave = (savedOrder) => {
     setOrders((prev) => {
-      const exists = prev.find((o) => o.id === order.id);
-      return exists ? prev.map((o) => o.id === order.id ? order : o) : [order, ...prev];
+      const exists = prev.find((o) => o.id === savedOrder.id);
+      return exists ? prev.map((o) => o.id === savedOrder.id ? savedOrder : o) : [savedOrder, ...prev];
     });
-    setView("list");
+    setSelected(savedOrder);
+    setView("view");
   };
 
   const handleDelete = async (order) => {
