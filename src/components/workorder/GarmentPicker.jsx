@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, X, Loader2, ImagePlus, Check, Shirt } from "lucide-react";
+import { Plus, X, Loader2, ImagePlus, Check, Shirt, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const DEFAULT_FRENTE = "https://media.base44.com/images/public/69d2f43e55d64f6bbfa30f2c/6b6aec754_frente.png";
@@ -108,6 +108,7 @@ export default function GarmentPicker({ selectedId, onSelect }) {
   const [garments, setGarments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     base44.entities.GarmentTemplate.list("titulo").then((g) => {
@@ -142,16 +143,36 @@ export default function GarmentPicker({ selectedId, onSelect }) {
 
       {showForm && <NewGarmentForm onSaved={handleSaved} onCancel={() => setShowForm(false)} />}
 
+      {/* Buscador */}
+      {!loading && garments.length > 0 && (
+        <div className="relative">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar por título o código..."
+            className="w-full pl-8 pr-3 py-1.5 text-xs border border-blue-200 rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-blue-400"
+          />
+          {search && (
+            <button type="button" onClick={() => setSearch("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+              <X className="w-3 h-3" />
+            </button>
+          )}
+        </div>
+      )}
+
       {loading ? (
         <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-blue-400" /></div>
       ) : (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 max-h-52 overflow-y-auto pr-1">
           {/* Opción: Playera default */}
+          {(!search || "playera default".includes(search.toLowerCase())) && (
           <button
             type="button"
             onClick={() => onSelect(null)}
             className={cn(
-              "relative flex flex-col items-center gap-1 border-2 rounded-lg p-2 w-24 transition-all",
+              "relative flex flex-col items-center gap-1 border-2 rounded-lg p-2 w-24 transition-all flex-shrink-0",
               !selectedId ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-blue-300"
             )}
           >
@@ -159,14 +180,15 @@ export default function GarmentPicker({ selectedId, onSelect }) {
             <span className="text-[10px] font-semibold text-center leading-tight">Playera<br/>Default</span>
             {!selectedId && <div className="absolute top-1 right-1 w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center"><Check className="w-2 h-2 text-white" /></div>}
           </button>
+          )}
 
-          {garments.map((g) => (
+          {garments.filter(g => !search || g.titulo.toLowerCase().includes(search.toLowerCase())).map((g) => (
             <button
               key={g.id}
               type="button"
               onClick={() => onSelect(g)}
               className={cn(
-                "relative flex flex-col items-center gap-1 border-2 rounded-lg p-2 w-24 transition-all group",
+                "relative flex flex-col items-center gap-1 border-2 rounded-lg p-2 w-24 transition-all group flex-shrink-0",
                 selectedId === g.id ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-blue-300"
               )}
             >
