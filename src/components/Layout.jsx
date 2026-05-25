@@ -36,7 +36,7 @@ export default function Layout() {
       try {
         const user = await base44.auth.me();
         // Admin siempre ve todo
-        if (user?.role === "admin") { setNavRole("admin"); return; }
+        if (!user || user?.role === "admin") { setNavRole("admin"); return; }
         // Cualquier usuario no-admin: buscar en Worker por nombre
         const workers = await base44.entities.Worker.list("nombre");
         const match = workers.find(
@@ -49,7 +49,10 @@ export default function Layout() {
           // DISEÑADOR, sin match, o role "worker" → vista de trabajador
           setNavRole("worker");
         }
-      } catch { setNavRole("worker"); }
+      } catch {
+        // En caso de error, asumir admin para no bloquear acceso
+        setNavRole("admin");
+      }
     }
     detectRole();
   }, []);
