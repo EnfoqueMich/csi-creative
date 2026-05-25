@@ -195,29 +195,32 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
 
         <div className="px-6 py-4 space-y-4">
 
-          {/* Datos cliente — una sola línea inline */}
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm border-b border-gray-200 pb-2">
-            <span><span className="text-gray-500 font-semibold uppercase text-[10px] mr-1">Nombre Cliente:</span><span className="text-black font-medium">{order.nombre_cliente || ""}</span></span>
-            <span><span className="text-gray-500 font-semibold uppercase text-[10px] mr-1">Teléfono:</span><span className="text-black font-medium">{order.telefono || ""}</span></span>
-            <span><span className="text-gray-500 font-semibold uppercase text-[10px] mr-1">Agente:</span><span className="text-black font-medium">{order.agente_ventas || ""}</span></span>
-            <span><span className="text-gray-500 font-semibold uppercase text-[10px] mr-1">Fecha Ingreso:</span><span className="text-black font-medium">{order.fecha_orden || ""}</span></span>
+          {/* Datos cliente — recuadros delgados en una fila */}
+          <div className="flex gap-2">
+            {[
+              { label: "Nombre Cliente", value: order.nombre_cliente },
+              { label: "Teléfono", value: order.telefono },
+              { label: "Agente", value: order.agente_ventas },
+              { label: "Fecha Ingreso", value: order.fecha_orden },
+            ].map(({ label, value }) => (
+              <div key={label} className="flex-1 border border-gray-300 rounded px-2 py-1">
+                <p className="text-[9px] font-semibold text-gray-500 uppercase leading-none mb-0.5">{label}:</p>
+                <p className="text-[11px] font-medium text-black">{value || ""}</p>
+              </div>
+            ))}
           </div>
 
-          {/* Vista de prenda */}
-          {(pdfCfg?.mostrar_vista_prenda !== false) && posiciones.length > 0 && (
-            <div className="border-2 border-blue-200 rounded px-3 pt-2 pb-3 bg-blue-50/20">
-              <GarmentPreviewPrint posiciones={posiciones} layout={order.preview_layout} order={order} />
-            </div>
-          )}
-
-          {/* Posiciones */}
-          {(pdfCfg?.mostrar_posiciones !== false) && posiciones.length > 0 && (() => {
-            const posConInfo = posiciones;
-            return (
-              <div className="border-2 rounded p-3" style={{ borderColor: pdfCfg?.color_posiciones || "#1d4ed8" }}>
-                <p className="text-xs font-bold text-center uppercase tracking-widest mb-2" style={{ color: pdfCfg?.color_posiciones || "#1d4ed8" }}>Posiciones de Bordado / Estampado</p>
-                <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(posConInfo.length, pdfCfg?.columnas_posiciones || 5)}, minmax(0, 1fr))` }}>
-                  {posConInfo.map((pos, i) => (
+          {/* Vista de prenda + Posiciones juntas */}
+          {posiciones.length > 0 && (
+            <div className="border-2 border-blue-200 rounded px-3 pt-2 pb-3 bg-blue-50/20 space-y-3">
+              {(pdfCfg?.mostrar_vista_prenda !== false) && (
+                <GarmentPreviewPrint posiciones={posiciones} layout={order.preview_layout} order={order} />
+              )}
+              {(pdfCfg?.mostrar_posiciones !== false) && (
+                <div>
+                  <p className="text-xs font-bold text-center uppercase tracking-widest mb-2" style={{ color: pdfCfg?.color_posiciones || "#1d4ed8" }}>Posiciones de Bordado / Estampado</p>
+                  <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(posiciones.length, pdfCfg?.columnas_posiciones || 5)}, minmax(0, 1fr))` }}>
+                    {posiciones.map((pos, i) => (
                     <div key={i} className="border border-blue-200 rounded space-y-1">
                       <div className="text-white text-[10px] font-bold text-center py-1 rounded-t" style={{ backgroundColor: pdfCfg?.color_posiciones || "#1d4ed8" }}>POSICIÓN # {pos.numero}</div>
                       <div className="bg-green-100 text-green-800 text-[10px] font-semibold text-center py-0.5 mx-1 rounded border border-green-300">{pos.nombre}</div>
@@ -270,27 +273,30 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
                         </div>
                       )}
                     </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            );
-          })()}
+              )}
+            </div>
+          )}
 
           {/* Tipo trabajo + observaciones */}
           {(pdfCfg?.mostrar_tipo_trabajo !== false) && (
             <div className="grid grid-cols-2 gap-3">
-              <div className="border-2 rounded p-3" style={{ borderColor: pdfCfg?.color_tipo_trabajo || "#22c55e" }}>
-                <p className="text-xs font-bold text-green-700 mb-2 uppercase">Tipo de Trabajo:</p>
-                <div className="grid grid-cols-2 gap-1 text-xs">
-                  {[["bordado","Bordado"],["muestras","Muestras"],["estampado","Estampado"],["sublimado","Sublimado"],["costura","Costura"],["parche","Parche"],["riveteado","Riveteado"],["dtf","DTF"]].map(([key,label]) => (
-                    <div key={key} className="flex items-center gap-1"><Check checked={!!order.tipo_trabajo?.[key]} />{label}</div>
-                  ))}
+              <div className="border rounded p-3" style={{ borderColor: pdfCfg?.color_tipo_trabajo || "#22c55e" }}>
+                <p className="text-[10px] font-bold text-green-700 mb-1.5 uppercase">Tipo de Trabajo:</p>
+                <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px]">
+                  {[["bordado","Bordado"],["muestras","Muestras"],["estampado","Estampado"],["sublimado","Sublimado"],["costura","Costura"],["parche","Parche"],["riveteado","Riveteado"],["dtf","DTF"]]
+                    .filter(([key]) => !!order.tipo_trabajo?.[key])
+                    .map(([key,label]) => (
+                      <span key={key} className="font-semibold text-black">{label}</span>
+                    ))}
                 </div>
               </div>
               {(pdfCfg?.mostrar_observaciones !== false) && (
                 <div className="border border-blue-300 rounded p-3">
-                  <p className="text-xs font-bold text-blue-700 mb-1 uppercase">Observaciones:</p>
-                  <p className="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed min-h-[60px]">{order.observaciones || ""}</p>
+                  <p className="text-[10px] font-bold text-blue-700 mb-1 uppercase">Observaciones:</p>
+                  <p className="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed min-h-[40px]">{order.observaciones || ""}</p>
                 </div>
               )}
             </div>
@@ -330,16 +336,19 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
 
           {/* Firmas */}
           {(pdfCfg?.mostrar_firma !== false) && (
-            <div className="border rounded p-4 mt-2" style={{ borderColor: pdfCfg?.color_firma || "#1d4ed8" }}>
-              <div className="grid grid-cols-2 gap-10 items-end mb-3">
-                <div className="text-center">
-                  <div className="border-b border-gray-400 mb-1 mx-4" />
-                  <p className="text-[10px] text-gray-500">{cfg.texto_firma_cliente}</p>
+            <div className="space-y-2 mt-2">
+              <div className="grid grid-cols-2 gap-4">
+                {/* Firma cliente */}
+                <div className="border border-gray-300 rounded p-3 text-center">
+                  <div className="border-b border-gray-400 mb-1 mx-4 mt-6" />
+                  <p className="text-[10px] font-semibold text-gray-600 uppercase">Firma del Cliente</p>
+                  <p className="text-[9px] text-gray-400">{cfg.texto_firma_cliente}</p>
                 </div>
-                <div className="text-center">
-                  <div className="border-b border-gray-400 mb-1 mx-4" />
+                {/* Firma atención */}
+                <div className="border border-gray-300 rounded p-3 text-center">
+                  <div className="border-b border-gray-400 mb-1 mx-4 mt-6" />
                   <p className="text-[10px] font-semibold text-gray-700">{cfg.atencion_nombre}</p>
-                  <p className="text-[10px] text-gray-500">{cfg.atencion_puesto}</p>
+                  <p className="text-[9px] text-gray-500">{cfg.atencion_puesto}</p>
                 </div>
               </div>
               <p className="text-[9px] text-gray-400 italic text-center">{cfg.leyenda_autorizacion}</p>
