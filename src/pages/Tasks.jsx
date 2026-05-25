@@ -322,22 +322,25 @@ export default function Tasks() {
     setSaving(false);
   };
 
+  // Sanitiza imagenes legacy (strings → objetos) antes de cualquier update
+  const sanitizedImagenes = (task) => (task.imagenes || []).map(normalizeImg);
+
   const handleToggle = async (task) => {
     const completada = !task.completada;
     const fecha_completada = completada ? new Date().toISOString() : undefined;
     setTasks((prev) => prev.map((t) => t.id === task.id ? { ...t, completada, fecha_completada } : t));
-    await base44.entities.Task.update(task.id, { completada, fecha_completada });
+    await base44.entities.Task.update(task.id, { completada, fecha_completada, imagenes: sanitizedImagenes(task) });
   };
 
   const handleUrgente = async (task) => {
     const urgente = !task.urgente;
     setTasks((prev) => prev.map((t) => t.id === task.id ? { ...t, urgente } : t));
-    await base44.entities.Task.update(task.id, { urgente });
+    await base44.entities.Task.update(task.id, { urgente, imagenes: sanitizedImagenes(task) });
   };
 
   const handleEdit = async (task, newTitulo, newDesc) => {
     setTasks((prev) => prev.map((t) => t.id === task.id ? { ...t, titulo: newTitulo, descripcion: newDesc } : t));
-    await base44.entities.Task.update(task.id, { titulo: newTitulo, descripcion: newDesc });
+    await base44.entities.Task.update(task.id, { titulo: newTitulo, descripcion: newDesc, imagenes: sanitizedImagenes(task) });
   };
 
   const handleUploadImage = async (e, task) => {
