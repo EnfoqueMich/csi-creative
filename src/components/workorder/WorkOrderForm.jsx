@@ -115,7 +115,7 @@ function ExtrasCollapsible({ extras, onChange }) {
   );
 }
 
-const emptyEspec = () => ({ tipo_prenda: "", color_prenda: "", tallas: {}, total_piezas: "" });
+const emptyEspec = () => ({ tipo_prenda: "", color_prenda: "", tallas: {}, total_piezas: 0 });
 
 const emptyOrder = () => ({
   nombre_cliente: "",
@@ -288,6 +288,11 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
       ...form,
       folio: form.folio || await generateFolio(),
       preview_layout: finalLayout,
+      // Sanitiza especificaciones: convierte total_piezas a número
+      especificaciones: form.especificaciones.map(e => ({
+        ...e,
+        total_piezas: Number(e.total_piezas) || 0,
+      })),
       posiciones: form.posiciones.length > 0 ? form.posiciones : POSICIONES_DEFAULT.map(p => ({
         ...p,
         descripcion: "",
