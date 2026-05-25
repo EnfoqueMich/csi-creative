@@ -132,7 +132,21 @@ const emptyOrder = () => ({
 
 export default function WorkOrderForm({ order, onSave, onCancel }) {
   const [form, setForm] = useState(() => {
-    const base = emptyOrder();
+    const base = {
+      ...emptyOrder(),
+      // Si es nueva orden, inicializa con posiciones por defecto
+      posiciones: POSICIONES_DEFAULT.map(p => ({
+        ...p,
+        descripcion: "",
+        imagen_url: "",
+        color_hilos: [""],
+        bobina_negra: false,
+        bobina_blanca: false,
+        extras: {},
+        alto_cm: 0,
+        ancho_cm: 0,
+      })),
+    };
     if (!order) return base;
     return {
       ...base,
@@ -150,6 +164,8 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
             bobina_negra: p.bobina_negra ?? order.bobina_negra ?? false,
             bobina_blanca: p.bobina_blanca ?? order.bobina_blanca ?? false,
             extras: p.extras || (order.extras && Object.keys(order.extras).length ? order.extras : {}),
+            alto_cm: p.alto_cm ?? 0,
+            ancho_cm: p.ancho_cm ?? 0,
           }))
         : base.posiciones,
       tipo_trabajo: order.tipo_trabajo || {},
@@ -232,12 +248,15 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
   const addPosicion = () =>
     setForm((prev) => {
       const nums = prev.posiciones.map(p => p.numero);
-      const next = Math.max(...nums) + 1;
+      const next = Math.max(...(nums.length ? nums : [0])) + 1;
+      // Usa nombres de POSICIONES_DEFAULT si existen, sino genera
+      const defaultName = POSICIONES_DEFAULT.find(p => p.numero === next)?.nombre || `POSICIÓN ${next}`;
       return {
         ...prev,
         posiciones: [...prev.posiciones, {
-          numero: next, nombre: `POSICIÓN ${next}`, descripcion: "", imagen_url: "", color_hilos: [""],
+          numero: next, nombre: defaultName, descripcion: "", imagen_url: "", color_hilos: [""],
           bobina_negra: false, bobina_blanca: false, extras: {},
+          alto_cm: 0, ancho_cm: 0,
         }],
       };
     });
@@ -263,10 +282,23 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
 
   const handleSave = async () => {
     setSaving(true);
+    // Asegura que preview_layout tenga valores por defecto si está vacío
+    const finalLayout = Object.keys(previewLayout).length > 0 ? previewLayout : DEFAULT_LAYOUT;
     const data = {
       ...form,
       folio: form.folio || await generateFolio(),
-      preview_layout: previewLayout,
+      preview_layout: finalLayout,
+      posiciones: form.posiciones.length > 0 ? form.posiciones : POSICIONES_DEFAULT.map(p => ({
+        ...p,
+        descripcion: "",
+        imagen_url: "",
+        color_hilos: [""],
+        bobina_negra: false,
+        bobina_blanca: false,
+        extras: {},
+        alto_cm: 0,
+        ancho_cm: 0,
+      })),
       garment_frente_url: selectedGarment?.frente_url || form.garment_frente_url || "",
       garment_espalda_url: selectedGarment?.espalda_url || form.garment_espalda_url || "",
       garment_titulo: selectedGarment?.titulo || form.garment_titulo || "",
