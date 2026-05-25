@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Plus, Loader2, FileText, Trash2, Eye, Printer } from "lucide-react";
+import { Plus, Loader2, FileText, Trash2, Eye, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import WorkOrderForm from "../components/workorder/WorkOrderForm";
 import WorkOrderView from "../components/workorder/WorkOrderView";
+import OrderSettingsPanel from "../components/workorder/OrderSettingsPanel";
 
 const estadoConfig = {
   borrador: { label: "Borrador", cls: "bg-muted text-muted-foreground" },
@@ -16,8 +17,9 @@ const estadoConfig = {
 export default function WorkOrders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState("list"); // 'list' | 'new' | 'edit' | 'view'
+  const [view, setView] = useState("list");
   const [selected, setSelected] = useState(null);
+  const [tab, setTab] = useState("ordenes"); // 'ordenes' | 'configuracion'
 
   useEffect(() => {
     base44.entities.WorkOrder.list("-created_date", 200).then((data) => {
@@ -58,17 +60,47 @@ export default function WorkOrders() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-xl font-bold">Órdenes de Trabajo</h1>
           <p className="text-sm text-muted-foreground">{orders.length} orden(es) registradas</p>
         </div>
-        <Button onClick={() => setView("new")} className="gap-2">
-          <Plus className="w-4 h-4" /> Nueva Orden
-        </Button>
+        {tab === "ordenes" && (
+          <Button onClick={() => setView("new")} className="gap-2">
+            <Plus className="w-4 h-4" /> Nueva Orden
+          </Button>
+        )}
       </div>
 
-      {loading ? (
+      {/* Tabs */}
+      <div className="flex gap-1 border-b border-border">
+        <button
+          onClick={() => setTab("ordenes")}
+          className={cn(
+            "px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors",
+            tab === "ordenes" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <FileText className="w-3.5 h-3.5 inline mr-1.5" />
+          Órdenes
+        </button>
+        <button
+          onClick={() => setTab("configuracion")}
+          className={cn(
+            "px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors",
+            tab === "configuracion" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <Settings className="w-3.5 h-3.5 inline mr-1.5" />
+          Configuración
+        </button>
+      </div>
+
+      {/* Contenido según tab */}
+      {tab === "configuracion" ? (
+        <OrderSettingsPanel />
+      ) : loading ? (
         <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-muted-foreground" /></div>
       ) : orders.length === 0 ? (
         <div className="flex flex-col items-center py-20 text-muted-foreground">
@@ -89,9 +121,8 @@ export default function WorkOrders() {
                   </div>
                   <p className="text-sm font-semibold truncate">{order.nombre_cliente || "Sin cliente"}</p>
                   <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground flex-wrap">
-                    {order.articulo_solicitado && <span>{order.articulo_solicitado}</span>}
                     {order.fecha_orden && <span>{order.fecha_orden}</span>}
-                    {order.total_piezas > 0 && <span>{order.total_piezas} pzas</span>}
+                    {order.garment_titulo && <span className="text-blue-600">{order.garment_titulo}</span>}
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
