@@ -195,12 +195,24 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
 
         <div className="px-6 py-4 space-y-4">
 
-          {/* Datos cliente */}
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="NOMBRE CLIENTE" value={order.nombre_cliente} blue />
-            <Field label="FECHA DE ORDEN" value={order.fecha_orden} blue />
-            <Field label="AGENTE DE VENTAS" value={order.agente_ventas} blue />
-            <Field label="TELÉFONO" value={order.telefono} blue />
+          {/* Datos cliente — una sola fila */}
+          <div className="flex gap-2 text-[10px]">
+            <div className="flex-[2] border border-gray-300 rounded">
+              <div className="bg-blue-600 text-white font-bold px-2 py-0.5 uppercase tracking-wide">Nombre Cliente:</div>
+              <div className="px-2 py-1 font-medium">{order.nombre_cliente || ""}</div>
+            </div>
+            <div className="flex-1 border border-gray-300 rounded">
+              <div className="bg-blue-600 text-white font-bold px-2 py-0.5 uppercase tracking-wide">Teléfono:</div>
+              <div className="px-2 py-1 font-medium">{order.telefono || ""}</div>
+            </div>
+            <div className="flex-[2] border border-gray-300 rounded">
+              <div className="bg-blue-600 text-white font-bold px-2 py-0.5 uppercase tracking-wide">Agente de Ventas:</div>
+              <div className="px-2 py-1 font-medium">{order.agente_ventas || ""}</div>
+            </div>
+            <div className="flex-1 border border-gray-300 rounded">
+              <div className="bg-blue-600 text-white font-bold px-2 py-0.5 uppercase tracking-wide">Fecha de Orden:</div>
+              <div className="px-2 py-1 font-medium">{order.fecha_orden || ""}</div>
+            </div>
           </div>
 
           {/* Vista de prenda */}
@@ -210,69 +222,76 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
             </div>
           )}
 
-          {/* Posiciones */}
-          {(pdfCfg?.mostrar_posiciones !== false) && (
-            <div className="border-2 rounded p-3" style={{ borderColor: pdfCfg?.color_posiciones || "#1d4ed8" }}>
-              <p className="text-xs font-bold text-center uppercase tracking-widest mb-2" style={{ color: pdfCfg?.color_posiciones || "#1d4ed8" }}>Posiciones de Bordado / Estampado</p>
-              <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(posiciones.length, pdfCfg?.columnas_posiciones || 5)}, minmax(0, 1fr))` }}>
-                {posiciones.map((pos, i) => (
-                  <div key={i} className="border border-blue-200 rounded space-y-1">
-                    <div className="text-white text-[10px] font-bold text-center py-1 rounded-t" style={{ backgroundColor: pdfCfg?.color_posiciones || "#1d4ed8" }}>POSICIÓN # {pos.numero}</div>
-                    <div className="bg-green-100 text-green-800 text-[10px] font-semibold text-center py-0.5 mx-1 rounded border border-green-300">{pos.nombre}</div>
-                    {pos.imagen_url && (
-                      <div className="px-1">
-                        <img src={pos.imagen_url} alt={pos.nombre} className="w-[80%] mx-auto object-contain rounded border border-blue-100" />
-                      </div>
-                    )}
-                    {(pos.alto_cm || pos.ancho_cm) && (
-                      <div className="px-2 pt-1 space-y-0.5 text-[10px]">
-                        {pos.alto_cm && <div><span className="font-bold text-blue-600 uppercase">Alto:</span> {pos.alto_cm} cm</div>}
-                        {pos.ancho_cm && <div><span className="font-bold text-blue-600 uppercase">Ancho:</span> {pos.ancho_cm} cm</div>}
-                      </div>
-                    )}
-                    <div className="px-2 pb-1 min-h-[30px]">
-                      <p className="text-xs text-gray-700 leading-relaxed whitespace-pre-wrap">{pos.descripcion || ""}</p>
-                    </div>
-                    {pos.color_hilos?.filter(Boolean).length > 0 && (
-                      <div className="px-2 border-t border-blue-100 pt-1 pb-1">
-                        <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Hilo</p>
-                        {pos.color_hilos.filter(Boolean).map((c, hi) => {
-                          const match = hiloMap[c];
-                          return (
-                            <div key={hi} className="flex items-center gap-1 text-[10px] mb-0.5">
-                              <div
-                                className="w-3.5 h-3.5 rounded-sm border border-gray-400 flex-shrink-0"
-                                style={{ backgroundColor: match?.hex || "#ffffff" }}
-                              />
-                              <span className="font-mono font-semibold text-blue-700">{c}</span>
-                              {match && <span className="text-gray-500 truncate">{match.nombre}</span>}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                    {(pos.bobina_negra || pos.bobina_blanca) && (
-                      <div className="px-2 border-t border-blue-100 pt-1 pb-1">
-                        <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Bobina</p>
-                        <div className="flex items-center gap-2 text-[10px]">
-                          {pos.bobina_negra && <div className="flex items-center gap-0.5"><Check checked={true} />Negra</div>}
-                          {pos.bobina_blanca && <div className="flex items-center gap-0.5"><Check checked={true} />Blanca</div>}
+          {/* Posiciones — solo las que tienen info */}
+          {(pdfCfg?.mostrar_posiciones !== false) && (() => {
+            const posConInfo = posiciones.filter(pos =>
+              pos.imagen_url || pos.descripcion || pos.alto_cm || pos.ancho_cm ||
+              pos.color_hilos?.filter(Boolean).length > 0 || pos.bobina_negra || pos.bobina_blanca ||
+              (pos.extras && Object.values(pos.extras).some(Boolean))
+            );
+            if (posConInfo.length === 0) return null;
+            return (
+              <div className="border rounded p-2" style={{ borderColor: pdfCfg?.color_posiciones || "#1d4ed8" }}>
+                <p className="text-[10px] font-bold text-center uppercase tracking-widest mb-2" style={{ color: pdfCfg?.color_posiciones || "#1d4ed8" }}>Posiciones de Bordado / Estampado</p>
+                <div className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${Math.min(posConInfo.length, pdfCfg?.columnas_posiciones || 5)}, minmax(0, 1fr))` }}>
+                  {posConInfo.map((pos, i) => (
+                    <div key={i} className="border border-blue-200 rounded">
+                      <div className="text-white text-[10px] font-bold text-center py-0.5 rounded-t" style={{ backgroundColor: pdfCfg?.color_posiciones || "#1d4ed8" }}>POSICIÓN # {pos.numero}</div>
+                      <div className="bg-green-50 text-green-800 text-[10px] font-semibold text-center py-0.5 mx-1 rounded border border-green-200 mt-0.5">{pos.nombre}</div>
+                      {pos.imagen_url && (
+                        <div className="px-1 mt-0.5">
+                          <img src={pos.imagen_url} alt={pos.nombre} className="w-[80%] mx-auto object-contain rounded border border-blue-100" />
                         </div>
-                      </div>
-                    )}
-                    {pos.extras && Object.values(pos.extras).some(Boolean) && (
-                      <div className="px-2 border-t border-orange-100 pt-1 pb-1">
-                        <p className="text-[9px] font-bold text-orange-500 uppercase mb-0.5">Extras</p>
-                        {[["foamy","Foamy"],["velcro_macho","Velcro m."],["velcro_hembra","Velcro h."],["adhesivo_termico","Adhesivo"]].map(([key,label]) =>
-                          pos.extras[key] ? <div key={key} className="flex items-center gap-1 text-[10px]"><Check checked={true} />{label}</div> : null
-                        )}
-                      </div>
-                    )}
-                  </div>
-                ))}
+                      )}
+                      {(pos.alto_cm || pos.ancho_cm) && (
+                        <div className="px-2 pt-1 space-y-0.5 text-[10px]">
+                          {pos.alto_cm && <div><span className="font-bold text-blue-600 uppercase">Alto:</span> {pos.alto_cm} cm</div>}
+                          {pos.ancho_cm && <div><span className="font-bold text-blue-600 uppercase">Ancho:</span> {pos.ancho_cm} cm</div>}
+                        </div>
+                      )}
+                      {pos.descripcion && (
+                        <div className="px-2 py-1">
+                          <p className="text-[10px] text-gray-700 leading-relaxed whitespace-pre-wrap">{pos.descripcion}</p>
+                        </div>
+                      )}
+                      {pos.color_hilos?.filter(Boolean).length > 0 && (
+                        <div className="px-2 border-t border-blue-100 pt-1 pb-1">
+                          <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Hilo</p>
+                          {pos.color_hilos.filter(Boolean).map((c, hi) => {
+                            const match = hiloMap[c];
+                            return (
+                              <div key={hi} className="flex items-center gap-1 text-[10px] mb-0.5">
+                                <div className="w-3 h-3 rounded-sm border border-gray-300 flex-shrink-0" style={{ backgroundColor: match?.hex || "#ffffff" }} />
+                                <span className="font-mono font-semibold text-blue-700">{c}</span>
+                                {match && <span className="text-gray-500 truncate">{match.nombre}</span>}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                      {(pos.bobina_negra || pos.bobina_blanca) && (
+                        <div className="px-2 border-t border-blue-100 pt-1 pb-1">
+                          <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Bobina</p>
+                          <div className="flex items-center gap-2 text-[10px]">
+                            {pos.bobina_negra && <div className="flex items-center gap-0.5"><Check checked={true} />Negra</div>}
+                            {pos.bobina_blanca && <div className="flex items-center gap-0.5"><Check checked={true} />Blanca</div>}
+                          </div>
+                        </div>
+                      )}
+                      {pos.extras && Object.values(pos.extras).some(Boolean) && (
+                        <div className="px-2 border-t border-orange-100 pt-1 pb-1">
+                          <p className="text-[9px] font-bold text-orange-500 uppercase mb-0.5">Extras</p>
+                          {[["foamy","Foamy"],["velcro_macho","Velcro m."],["velcro_hembra","Velcro h."],["adhesivo_termico","Adhesivo"]].map(([key,label]) =>
+                            pos.extras[key] ? <div key={key} className="flex items-center gap-1 text-[10px]"><Check checked={true} />{label}</div> : null
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Tipo trabajo + observaciones */}
           {(pdfCfg?.mostrar_tipo_trabajo !== false) && (
@@ -326,22 +345,21 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
             </div>
           )}
 
-          {/* Firma del cliente */}
+          {/* Firmas */}
           {(pdfCfg?.mostrar_firma !== false) && (
-            <div className="border-2 rounded p-5 mt-2" style={{ borderColor: pdfCfg?.color_firma || "#1d4ed8" }}>
-              <p className="text-xs font-bold uppercase tracking-widest text-center mb-4" style={{ color: pdfCfg?.color_firma || "#1d4ed8" }}>Firma del Cliente</p>
-              <p className="text-[10px] text-gray-500 italic text-center mb-6">{cfg.leyenda_autorizacion}</p>
-              <div className="grid grid-cols-2 gap-10 items-end">
+            <div className="border rounded p-4 mt-2" style={{ borderColor: pdfCfg?.color_firma || "#1d4ed8" }}>
+              <div className="grid grid-cols-2 gap-10 items-end mb-3">
                 <div className="text-center">
-                  <div className="border-b-2 border-gray-400 mb-1 mx-4" />
+                  <div className="border-b border-gray-400 mb-1 mx-4" />
                   <p className="text-[10px] text-gray-500">{cfg.texto_firma_cliente}</p>
                 </div>
                 <div className="text-center">
-                  <div className="border-b-2 border-gray-400 mb-1 mx-4" />
-                  <p className="text-sm font-semibold text-gray-700">{cfg.atencion_nombre}</p>
+                  <div className="border-b border-gray-400 mb-1 mx-4" />
+                  <p className="text-[10px] font-semibold text-gray-700">{cfg.atencion_nombre}</p>
                   <p className="text-[10px] text-gray-500">{cfg.atencion_puesto}</p>
                 </div>
               </div>
+              <p className="text-[9px] text-gray-400 italic text-center">{cfg.leyenda_autorizacion}</p>
             </div>
           )}
 
