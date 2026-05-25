@@ -7,6 +7,7 @@ import WorkOrderForm from "../components/workorder/WorkOrderForm";
 import WorkOrderView from "../components/workorder/WorkOrderView";
 import OrderSettingsPanel from "../components/workorder/OrderSettingsPanel";
 import PdfLayoutEditor from "../components/workorder/PdfLayoutEditor";
+import HiloColorManager from "../components/workorder/HiloColorManager";
 
 const estadoConfig = {
   borrador: { label: "Borrador", cls: "bg-muted text-muted-foreground" },
@@ -112,7 +113,12 @@ export default function WorkOrders() {
       {tab === "pdf" ? (
         <PdfLayoutEditor />
       ) : tab === "configuracion" ? (
-        <OrderSettingsPanel />
+        <div className="space-y-8">
+          <OrderSettingsPanel />
+          <div className="border-t border-border pt-6">
+            <HiloColorManager />
+          </div>
+        </div>
       ) : loading ? (
         <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-muted-foreground" /></div>
       ) : orders.length === 0 ? (

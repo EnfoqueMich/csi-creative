@@ -7,6 +7,7 @@ import { Save, ArrowLeft, Loader2, Plus, X, ImagePlus, ChevronDown } from "lucid
 import { cn } from "@/lib/utils";
 import TshirtPreviewInteractive, { DEFAULT_LAYOUT } from "./TshirtPreviewInteractive";
 import GarmentPicker from "./GarmentPicker";
+import HiloColorPicker from "./HiloColorPicker";
 
 // TshirtPreview removido — ahora en TshirtPreviewInteractive.jsx
 
@@ -439,8 +440,11 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
                 <p className="text-[10px] font-bold text-blue-700 uppercase">Color de Hilo</p>
                 {pos.color_hilos.map((c, hi) => (
                   <div key={hi} className="flex items-center gap-1">
-                    <div className="w-3 h-3 rounded-sm border border-gray-400 bg-white flex-shrink-0" />
-                    <Input value={c} onChange={(e) => setPosicionHilo(i, hi, e.target.value)} placeholder="Color..." className="text-xs h-6 flex-1" />
+                    <HiloColorPicker
+                      value={c}
+                      onChange={(val) => setPosicionHilo(i, hi, val)}
+                      placeholder="Código o nombre..."
+                    />
                     {pos.color_hilos.length > 1 && (
                       <button type="button" onClick={() => removeHilo(i, hi)} className="text-muted-foreground hover:text-destructive">
                         <X className="w-3 h-3" />

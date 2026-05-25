@@ -120,8 +120,8 @@ function GarmentPreviewPrint({ posiciones, layout, order }) {
 
 export default function WorkOrderView({ order, onBack, onEdit }) {
   const [cfg, setCfg] = useState(DEFAULT_SETTINGS);
-
   const [pdfCfg, setPdfCfg] = useState(null);
+  const [hiloColores, setHiloColores] = useState([]);
 
   useEffect(() => {
     base44.entities.OrderSettings.list().then((list) => {
@@ -130,7 +130,10 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
         if (list[0].pdf_config) setPdfCfg(list[0].pdf_config);
       }
     });
+    base44.entities.HiloColor.list("codigo").then(setHiloColores);
   }, []);
+
+  const hiloMap = Object.fromEntries(hiloColores.map(c => [c.codigo, c]));
 
   const handlePrint = () => window.print();
 
@@ -285,11 +288,19 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
                     {pos.color_hilos?.filter(Boolean).length > 0 && (
                       <div className="px-2 border-t border-blue-100 pt-1 pb-1">
                         <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Hilo</p>
-                        {pos.color_hilos.filter(Boolean).map((c, hi) => (
-                          <div key={hi} className="flex items-center gap-1 text-[10px]">
-                            <div className="w-2.5 h-2.5 rounded-sm border border-gray-400 bg-white flex-shrink-0" />{c}
-                          </div>
-                        ))}
+                        {pos.color_hilos.filter(Boolean).map((c, hi) => {
+                          const match = hiloMap[c];
+                          return (
+                            <div key={hi} className="flex items-center gap-1 text-[10px] mb-0.5">
+                              <div
+                                className="w-3.5 h-3.5 rounded-sm border border-gray-400 flex-shrink-0"
+                                style={{ backgroundColor: match?.hex || "#ffffff" }}
+                              />
+                              <span className="font-mono font-semibold text-blue-700">{c}</span>
+                              {match && <span className="text-gray-500 truncate">{match.nombre}</span>}
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                     {(pos.bobina_negra || pos.bobina_blanca) && (
