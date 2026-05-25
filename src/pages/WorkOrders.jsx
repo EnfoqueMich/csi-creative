@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Plus, Loader2, FileText, Trash2, Eye, Settings } from "lucide-react";
+import { Plus, Loader2, FileText, Trash2, Eye, Settings, Layout } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import WorkOrderForm from "../components/workorder/WorkOrderForm";
 import WorkOrderView from "../components/workorder/WorkOrderView";
 import OrderSettingsPanel from "../components/workorder/OrderSettingsPanel";
+import PdfLayoutEditor from "../components/workorder/PdfLayoutEditor";
 
 const estadoConfig = {
   borrador: { label: "Borrador", cls: "bg-muted text-muted-foreground" },
@@ -19,7 +20,7 @@ export default function WorkOrders() {
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState("list");
   const [selected, setSelected] = useState(null);
-  const [tab, setTab] = useState("ordenes"); // 'ordenes' | 'configuracion'
+  const [tab, setTab] = useState("ordenes"); // 'ordenes' | 'configuracion' | 'pdf'
 
   useEffect(() => {
     base44.entities.WorkOrder.list("-created_date", 200).then((data) => {
@@ -95,10 +96,22 @@ export default function WorkOrders() {
           <Settings className="w-3.5 h-3.5 inline mr-1.5" />
           Configuración
         </button>
+        <button
+          onClick={() => setTab("pdf")}
+          className={cn(
+            "px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors",
+            tab === "pdf" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <Layout className="w-3.5 h-3.5 inline mr-1.5" />
+          Diseño PDF
+        </button>
       </div>
 
       {/* Contenido según tab */}
-      {tab === "configuracion" ? (
+      {tab === "pdf" ? (
+        <PdfLayoutEditor />
+      ) : tab === "configuracion" ? (
         <OrderSettingsPanel />
       ) : loading ? (
         <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-muted-foreground" /></div>

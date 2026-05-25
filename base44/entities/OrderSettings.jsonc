@@ -1,0 +1,47 @@
+{
+  "name": "OrderSettings",
+  "type": "object",
+  "properties": {
+    "logo_url": {
+      "type": "string",
+      "description": "URL del logo de la empresa en el encabezado"
+    },
+    "empresa_nombre": {
+      "type": "string",
+      "description": "Nombre de la empresa"
+    },
+    "empresa_telefono": {
+      "type": "string"
+    },
+    "empresa_direccion": {
+      "type": "string"
+    },
+    "empresa_redes": {
+      "type": "string",
+      "description": "Redes sociales (Instagram, Facebook, etc.)"
+    },
+    "atencion_nombre": {
+      "type": "string",
+      "description": "Nombre que aparece en la firma de atenci\u00f3n al cliente",
+      "default": "SILVIA LIRA"
+    },
+    "atencion_puesto": {
+      "type": "string",
+      "description": "Puesto del responsable de atenci\u00f3n",
+      "default": "Atenci\u00f3n a Clientes"
+    },
+    "leyenda_autorizacion": {
+      "type": "string",
+      "description": "Texto de la leyenda de autorizaci\u00f3n bajo la firma del cliente"
+    },
+    "texto_firma_cliente": {
+      "type": "string",
+      "description": "Etiqueta bajo la l\u00ednea de firma del cliente"
+    },
+    "pdf_config": {
+      "type": "object",
+      "description": "Configuraci\u00f3n visual del PDF (secciones, colores, tipograf\u00eda)"
+    }
+  },
+  "required": []
+}

@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Save, ArrowLeft, Loader2, Plus, X, ImagePlus } from "lucide-react";
+import { Save, ArrowLeft, Loader2, Plus, X, ImagePlus, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import TshirtPreviewInteractive, { DEFAULT_LAYOUT } from "./TshirtPreviewInteractive";
 import GarmentPicker from "./GarmentPicker";
@@ -89,6 +89,30 @@ function EspecRow({ row, onChange, onRemove, canRemove }) {
 }
 
 
+
+const EXTRAS_LIST = [["foamy","Foamy"],["velcro_macho","Velcro macho"],["velcro_hembra","Velcro hembra"],["adhesivo_termico","Adhesivo térmico"]];
+
+function ExtrasCollapsible({ extras, onChange }) {
+  const [open, setOpen] = useState(false);
+  const activeCount = EXTRAS_LIST.filter(([key]) => !!extras?.[key]).length;
+  return (
+    <div className="border-t border-orange-100 pt-2">
+      <button type="button" onClick={() => setOpen(o => !o)} className="flex items-center gap-1 w-full text-left">
+        <p className="text-[10px] font-bold text-orange-600 uppercase flex-1">
+          Extras {activeCount > 0 && <span className="bg-orange-500 text-white rounded-full px-1 ml-1">{activeCount}</span>}
+        </p>
+        <ChevronDown className={cn("w-3 h-3 text-orange-400 transition-transform", open && "rotate-180")} />
+      </button>
+      {open && (
+        <div className="mt-1 space-y-1">
+          {EXTRAS_LIST.map(([key, label]) => (
+            <CheckBox key={key} label={label} checked={!!extras?.[key]} onChange={() => onChange(key, !extras?.[key])} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 const emptyEspec = () => ({ tipo_prenda: "", color_prenda: "", tallas: {}, total_piezas: "" });
 
@@ -281,25 +305,24 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
       </div>
 
       {/* Encabezado cliente */}
-      <div className="rounded-xl border-2 border-blue-300 bg-card p-5 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-blue-700 uppercase tracking-wider">Nombre Cliente</label>
-            <Input value={form.nombre_cliente} onChange={(e) => set("nombre_cliente", e.target.value)} placeholder="Nombre del cliente..." />
+      <div className="rounded-xl border-2 border-blue-300 bg-card p-4 space-y-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="space-y-0.5">
+            <label className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">Nombre Cliente</label>
+            <Input value={form.nombre_cliente} onChange={(e) => set("nombre_cliente", e.target.value)} placeholder="Nombre del cliente..." className="h-8 text-xs" />
           </div>
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-blue-700 uppercase tracking-wider">Fecha de Orden</label>
-            <Input type="date" value={form.fecha_orden} onChange={(e) => set("fecha_orden", e.target.value)} />
+          <div className="space-y-0.5">
+            <label className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">Teléfono</label>
+            <Input value={form.telefono} onChange={(e) => set("telefono", e.target.value)} placeholder="Teléfono..." className="h-8 text-xs" />
           </div>
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-blue-700 uppercase tracking-wider">Agente de Ventas</label>
-            <Input value={form.agente_ventas || ""} onChange={(e) => set("agente_ventas", e.target.value)} placeholder="Nombre del agente..." />
+          <div className="space-y-0.5">
+            <label className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">Agente de Ventas</label>
+            <Input value={form.agente_ventas || ""} onChange={(e) => set("agente_ventas", e.target.value)} placeholder="Nombre del agente..." className="h-8 text-xs" />
           </div>
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-blue-700 uppercase tracking-wider">Teléfono</label>
-            <Input value={form.telefono} onChange={(e) => set("telefono", e.target.value)} placeholder="Teléfono..." />
+          <div className="space-y-0.5">
+            <label className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">Fecha de Orden</label>
+            <Input type="date" value={form.fecha_orden} onChange={(e) => set("fecha_orden", e.target.value)} className="h-8 text-xs" />
           </div>
-
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="rounded-lg border-2 border-green-400 p-4 space-y-2">
@@ -423,36 +446,24 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
               </div>
 
               {/* Bobina por posición */}
-              <div className="space-y-1 border-t border-blue-100 pt-2">
-                <p className="text-[10px] font-bold text-blue-700 uppercase">Bobina</p>
-                <CheckBox label="Negra" checked={!!pos.bobina_negra} onChange={() => setPosicion(i, "bobina_negra", !pos.bobina_negra)} />
-                <CheckBox label="Blanca" checked={!!pos.bobina_blanca} onChange={() => setPosicion(i, "bobina_blanca", !pos.bobina_blanca)} />
+              <div className="border-t border-blue-100 pt-2">
+                <p className="text-[10px] font-bold text-blue-700 uppercase mb-1">Bobina</p>
+                <div className="flex items-center gap-3">
+                  <CheckBox label="Negra" checked={!!pos.bobina_negra} onChange={() => setPosicion(i, "bobina_negra", !pos.bobina_negra)} />
+                  <CheckBox label="Blanca" checked={!!pos.bobina_blanca} onChange={() => setPosicion(i, "bobina_blanca", !pos.bobina_blanca)} />
+                </div>
               </div>
 
-              {/* Extras por posición */}
-              <div className="space-y-1 border-t border-orange-100 pt-2">
-                <p className="text-[10px] font-bold text-orange-600 uppercase">Extras</p>
-                {[["foamy","Foamy"],["velcro_macho","Velcro macho"],["velcro_hembra","Velcro hembra"],["adhesivo_termico","Adhesivo térmico"]].map(([key, label]) => (
-                  <CheckBox key={key} label={label} checked={!!pos.extras?.[key]} onChange={() => setPosicionNested(i, "extras", key, !pos.extras?.[key])} />
-                ))}
-              </div>
+              {/* Extras por posición — colapsable */}
+              <ExtrasCollapsible
+                extras={pos.extras || {}}
+                onChange={(key, val) => setPosicionNested(i, "extras", key, val)}
+              />
             </div>
           ))}
         </div>
       </div>
 
-      {/* Estado */}
-      <div className="rounded-xl border-2 border-gray-200 bg-card p-5">
-        <p className="text-xs font-bold text-muted-foreground uppercase mb-3">Estado de la Orden</p>
-        <div className="flex flex-wrap gap-4">
-          {[["borrador","Borrador"],["enviada","Enviada"],["produccion","En Producción"],["completada","Completada"]].map(([val, label]) => (
-            <label key={val} className="flex items-center gap-2 cursor-pointer">
-              <input type="radio" name="estado" value={val} checked={form.estado === val} onChange={() => set("estado", val)} className="accent-blue-600" />
-              <span className="text-sm">{label}</span>
-            </label>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
