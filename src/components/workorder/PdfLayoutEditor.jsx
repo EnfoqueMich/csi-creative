@@ -21,6 +21,10 @@ const DEFAULT_PDF_CONFIG = {
   columnas_posiciones: 5,           // cuántas columnas en posiciones
   mostrar_folio: true,
   numero_documento: "CR-FTW-003-V01",
+  // Tamaños de tipografía específicos
+  fuente_datos_cliente: "11px",
+  fuente_firma: "10px",
+  fuente_leyenda: "9px",
 };
 
 const SECCIONES = [
@@ -181,6 +185,45 @@ export default function PdfLayoutEditor() {
               <option value="11px">Normal (11px)</option>
               <option value="12px">Grande (12px)</option>
               <option value="13px">Extra grande (13px)</option>
+            </select>
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-semibold">Tamaño de fuente - Datos cliente (Nombre, Teléfono...)</label>
+            <select
+              value={cfg.fuente_datos_cliente}
+              onChange={(e) => set("fuente_datos_cliente", e.target.value)}
+              className="w-full border border-input rounded-md px-3 py-1.5 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-ring"
+            >
+              <option value="9px">Pequeña (9px)</option>
+              <option value="10px">Compacta (10px)</option>
+              <option value="11px">Normal (11px)</option>
+              <option value="12px">Grande (12px)</option>
+            </select>
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-semibold">Tamaño de fuente - Firma del cliente</label>
+            <select
+              value={cfg.fuente_firma}
+              onChange={(e) => set("fuente_firma", e.target.value)}
+              className="w-full border border-input rounded-md px-3 py-1.5 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-ring"
+            >
+              <option value="8px">Muy pequeña (8px)</option>
+              <option value="9px">Pequeña (9px)</option>
+              <option value="10px">Compacta (10px)</option>
+              <option value="11px">Normal (11px)</option>
+            </select>
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-semibold">Tamaño de fuente - Leyenda y atención al cliente</label>
+            <select
+              value={cfg.fuente_leyenda}
+              onChange={(e) => set("fuente_leyenda", e.target.value)}
+              className="w-full border border-input rounded-md px-3 py-1.5 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-ring"
+            >
+              <option value="7px">Muy pequeña (7px)</option>
+              <option value="8px">Extra pequeña (8px)</option>
+              <option value="9px">Pequeña (9px)</option>
+              <option value="10px">Compacta (10px)</option>
             </select>
           </div>
           <div className="space-y-1">

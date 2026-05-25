@@ -196,15 +196,15 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
         <div className="px-6 py-4 space-y-4">
 
           {/* Datos cliente — una sola línea dentro de un recuadro */}
-          <div className="border border-gray-300 rounded px-3 py-1.5 flex flex-wrap items-center gap-x-5 gap-y-0.5">
+          <div className="border border-gray-300 rounded px-3 py-1.5 flex flex-wrap items-center gap-x-5 gap-y-0.5" style={{ fontSize: pdfCfg?.fuente_datos_cliente || "11px" }}>
             {[
               { label: "Nombre Cliente", value: order.nombre_cliente },
               { label: "Teléfono", value: order.telefono },
               { label: "Agente", value: order.agente_ventas },
               { label: "Fecha Ingreso", value: order.fecha_orden },
             ].map(({ label, value }) => (
-              <span key={label} className="whitespace-nowrap text-[11px]">
-                <span className="text-gray-500 font-semibold uppercase text-[9px] mr-1">{label}:</span>
+              <span key={label} className="whitespace-nowrap">
+                <span className="text-gray-500 font-semibold uppercase mr-1" style={{ fontSize: "0.75em" }}>{label}:</span>
                 <span className="font-medium text-black">{value || ""}</span>
               </span>
             ))}
@@ -356,15 +356,15 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
                 {/* Firma cliente */}
                 <div className="border border-gray-300 rounded p-3 text-center">
                   <div className="border-b border-gray-400 mb-1 mx-4 mt-6" />
-                  <p className="text-[10px] font-semibold text-gray-600 uppercase">Firma del Cliente</p>
-                  <p className="text-[9px] text-gray-400">{cfg.texto_firma_cliente}</p>
-                  <p className="text-[8px] text-gray-400 italic mt-1 px-2">{cfg.leyenda_autorizacion}</p>
+                  <p className="font-semibold text-gray-600 uppercase" style={{ fontSize: pdfCfg?.fuente_firma || "10px" }}>Firma del Cliente</p>
+                  <p style={{ fontSize: pdfCfg?.fuente_leyenda || "9px" }} className="text-gray-400">{cfg.texto_firma_cliente}</p>
+                  <p style={{ fontSize: pdfCfg?.fuente_leyenda || "9px" }} className="text-gray-400 italic mt-1 px-2">{cfg.leyenda_autorizacion}</p>
                 </div>
                 {/* Firma atención */}
                 <div className="border border-gray-300 rounded p-3 text-center">
                   <div className="border-b border-gray-400 mb-1 mx-4 mt-6" />
-                  <p className="text-[10px] font-semibold text-gray-700">{cfg.atencion_nombre}</p>
-                  <p className="text-[9px] text-gray-500">{cfg.atencion_puesto}</p>
+                  <p className="font-semibold text-gray-700" style={{ fontSize: pdfCfg?.fuente_firma || "10px" }}>{cfg.atencion_nombre}</p>
+                  <p style={{ fontSize: pdfCfg?.fuente_leyenda || "9px" }} className="text-gray-500">{cfg.atencion_puesto}</p>
                 </div>
               </div>
             </div>
