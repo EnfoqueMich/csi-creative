@@ -221,57 +221,70 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
                   <p className="text-xs font-bold text-center uppercase tracking-widest mb-2" style={{ color: pdfCfg?.color_posiciones || "#1d4ed8" }}>Posiciones de Bordado / Estampado</p>
                   <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(posiciones.length, pdfCfg?.columnas_posiciones || 5)}, minmax(0, 1fr))` }}>
                     {posiciones.map((pos, i) => (
-                    <div key={i} className="border border-blue-200 rounded space-y-1">
-                      <div className="text-white text-[10px] font-bold text-center py-1 rounded-t" style={{ backgroundColor: pdfCfg?.color_posiciones || "#1d4ed8" }}>POSICIÓN # {pos.numero}</div>
-                      <div className="bg-green-100 text-green-800 text-[10px] font-semibold text-center py-0.5 mx-1 rounded border border-green-300">{pos.nombre}</div>
-                      {pos.imagen_url && (
-                        <div className="px-1 mt-0.5">
+                    <div key={i} className="border border-blue-200 rounded text-[10px]">
+                      {/* Header posición */}
+                      <div className="text-white font-bold text-center py-1 rounded-t" style={{ backgroundColor: pdfCfg?.color_posiciones || "#1d4ed8" }}>POSICIÓN # {pos.numero}</div>
+                      <div className="bg-green-100 text-green-800 font-semibold text-center py-0.5 mx-1 mt-1 rounded border border-green-300">{pos.nombre}</div>
+
+                      <div className="px-2 pb-2 space-y-1 mt-1">
+                        {/* Imagen */}
+                        {pos.imagen_url && (
                           <img src={pos.imagen_url} alt={pos.nombre} className="w-[80%] mx-auto object-contain rounded border border-blue-100" />
-                        </div>
-                      )}
-                      {(pos.alto_cm || pos.ancho_cm) && (
-                        <div className="px-2 pt-1 space-y-0.5 text-[10px]">
-                          {pos.alto_cm && <div><span className="font-bold text-blue-600 uppercase">Alto:</span> {pos.alto_cm} cm</div>}
-                          {pos.ancho_cm && <div><span className="font-bold text-blue-600 uppercase">Ancho:</span> {pos.ancho_cm} cm</div>}
-                        </div>
-                      )}
-                      {pos.descripcion && (
-                        <div className="px-2 py-1">
-                          <p className="text-[10px] text-gray-700 leading-relaxed whitespace-pre-wrap">{pos.descripcion}</p>
-                        </div>
-                      )}
-                      {pos.color_hilos?.filter(Boolean).length > 0 && (
-                        <div className="px-2 border-t border-blue-100 pt-1 pb-1">
-                          <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Hilo</p>
-                          {pos.color_hilos.filter(Boolean).map((c, hi) => {
-                            const match = hiloMap[c];
-                            return (
-                              <div key={hi} className="flex items-center gap-1 text-[10px] mb-0.5">
-                                <div className="w-3 h-3 rounded-sm border border-gray-300 flex-shrink-0" style={{ backgroundColor: match?.hex || "#ffffff" }} />
-                                <span className="font-mono font-semibold text-blue-700">{c}</span>
-                                {match && <span className="text-gray-500 truncate">{match.nombre}</span>}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                      {(pos.bobina_negra || pos.bobina_blanca) && (
-                        <div className="px-2 border-t border-blue-100 pt-1 pb-1">
-                          <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Bobina</p>
-                          <div className="flex items-center gap-2 text-[10px]">
-                            {pos.bobina_negra && <div className="flex items-center gap-0.5"><Check checked={true} />Negra</div>}
-                            {pos.bobina_blanca && <div className="flex items-center gap-0.5"><Check checked={true} />Blanca</div>}
+                        )}
+
+                        {/* Medidas */}
+                        {(pos.alto_cm || pos.ancho_cm) && (
+                          <div className="flex gap-3 border-t border-blue-100 pt-1">
+                            {pos.alto_cm && <span><span className="font-bold text-blue-600 uppercase">Alto:</span> {pos.alto_cm} cm</span>}
+                            {pos.ancho_cm && <span><span className="font-bold text-blue-600 uppercase">Ancho:</span> {pos.ancho_cm} cm</span>}
                           </div>
-                        </div>
-                      )}
-                      {pos.extras && Object.values(pos.extras).some(Boolean) && (
-                        <div className="px-2 border-t border-orange-100 pt-1 pb-1">
-                          <p className="text-[9px] font-bold text-orange-500 uppercase mb-0.5">Extras</p>
-                          {[["foamy","Foamy"],["velcro_macho","Velcro m."],["velcro_hembra","Velcro h."],["adhesivo_termico","Adhesivo"]].map(([key,label]) =>
-                            pos.extras[key] ? <div key={key} className="flex items-center gap-1 text-[10px]"><Check checked={true} />{label}</div> : null
-                          )}
-                        </div>
-                      )}
+                        )}
+
+                        {/* Descripción */}
+                        {pos.descripcion && (
+                          <div className="border-t border-blue-100 pt-1">
+                            <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{pos.descripcion}</p>
+                          </div>
+                        )}
+
+                        {/* Hilos */}
+                        {pos.color_hilos?.filter(Boolean).length > 0 && (
+                          <div className="border-t border-blue-100 pt-1">
+                            <p className="font-bold text-blue-600 uppercase mb-0.5">Hilo</p>
+                            {pos.color_hilos.filter(Boolean).map((c, hi) => {
+                              const match = hiloMap[c];
+                              return (
+                                <div key={hi} className="flex items-center gap-1 mb-0.5">
+                                  <div className="w-3 h-3 rounded-sm border border-gray-300 flex-shrink-0" style={{ backgroundColor: match?.hex || "#ffffff" }} />
+                                  <span className="font-mono font-semibold text-blue-700">{c}</span>
+                                  {match && <span className="text-gray-500 truncate">{match.nombre}</span>}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {/* Bobina */}
+                        {(pos.bobina_negra || pos.bobina_blanca) && (
+                          <div className="border-t border-blue-100 pt-1">
+                            <p className="font-bold text-blue-600 uppercase mb-0.5">Bobina</p>
+                            <div className="flex items-center gap-2">
+                              {pos.bobina_negra && <span className="flex items-center gap-0.5"><Check checked={true} />Negra</span>}
+                              {pos.bobina_blanca && <span className="flex items-center gap-0.5"><Check checked={true} />Blanca</span>}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Extras */}
+                        {pos.extras && Object.values(pos.extras).some(Boolean) && (
+                          <div className="border-t border-orange-100 pt-1">
+                            <p className="font-bold text-orange-500 uppercase mb-0.5">Extras</p>
+                            {[["foamy","Foamy"],["velcro_macho","Velcro m."],["velcro_hembra","Velcro h."],["adhesivo_termico","Adhesivo"]].map(([key,label]) =>
+                              pos.extras[key] ? <div key={key} className="flex items-center gap-1"><Check checked={true} />{label}</div> : null
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                     ))}
                   </div>
