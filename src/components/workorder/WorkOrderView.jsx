@@ -195,18 +195,18 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
 
         <div className="px-6 py-4 space-y-4">
 
-          {/* Datos cliente — recuadros delgados en una fila */}
-          <div className="flex gap-2">
+          {/* Datos cliente — una sola línea dentro de un recuadro */}
+          <div className="border border-gray-300 rounded px-3 py-1.5 flex flex-wrap items-center gap-x-5 gap-y-0.5">
             {[
               { label: "Nombre Cliente", value: order.nombre_cliente },
               { label: "Teléfono", value: order.telefono },
               { label: "Agente", value: order.agente_ventas },
               { label: "Fecha Ingreso", value: order.fecha_orden },
             ].map(({ label, value }) => (
-              <div key={label} className="flex-1 border border-gray-300 rounded px-2 py-1">
-                <p className="text-[9px] font-semibold text-gray-500 uppercase leading-none mb-0.5">{label}:</p>
-                <p className="text-[11px] font-medium text-black">{value || ""}</p>
-              </div>
+              <span key={label} className="whitespace-nowrap text-[11px]">
+                <span className="text-gray-500 font-semibold uppercase text-[9px] mr-1">{label}:</span>
+                <span className="font-medium text-black">{value || ""}</span>
+              </span>
             ))}
           </div>
 
@@ -285,11 +285,13 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
             <div className="grid grid-cols-2 gap-3">
               <div className="border rounded p-3" style={{ borderColor: pdfCfg?.color_tipo_trabajo || "#22c55e" }}>
                 <p className="text-[10px] font-bold text-green-700 mb-1.5 uppercase">Tipo de Trabajo:</p>
-                <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px]">
+                <div className="flex flex-wrap gap-2">
                   {[["bordado","Bordado"],["muestras","Muestras"],["estampado","Estampado"],["sublimado","Sublimado"],["costura","Costura"],["parche","Parche"],["riveteado","Riveteado"],["dtf","DTF"]]
                     .filter(([key]) => !!order.tipo_trabajo?.[key])
                     .map(([key,label]) => (
-                      <span key={key} className="font-semibold text-black">{label}</span>
+                      <span key={key} className="inline-flex items-center gap-1 border border-green-500 rounded px-2 py-0.5 text-[10px] font-bold text-green-800 bg-green-50">
+                        <span className="text-green-600 text-[11px]">✓</span>{label}
+                      </span>
                     ))}
                 </div>
               </div>
@@ -305,7 +307,7 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
           {/* Especificaciones */}
           {(pdfCfg?.mostrar_especificaciones !== false) && (
             <div className="border-2 border-green-500 rounded p-3 space-y-3">
-              <p className="text-xs font-bold text-green-700 text-center uppercase tracking-widest">Especificaciones</p>
+              <p className="text-xs font-bold text-green-700 text-center uppercase tracking-widest">Prendas que Ingresaron</p>
               {especificaciones.map((row, idx) => (
                 <div key={idx} className={cn("space-y-1", idx > 0 && "border-t border-green-200 pt-2")}>
                   {especificaciones.length > 1 && <p className="text-[10px] font-bold text-green-600 uppercase">Modelo {idx + 1}</p>}
@@ -343,6 +345,7 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
                   <div className="border-b border-gray-400 mb-1 mx-4 mt-6" />
                   <p className="text-[10px] font-semibold text-gray-600 uppercase">Firma del Cliente</p>
                   <p className="text-[9px] text-gray-400">{cfg.texto_firma_cliente}</p>
+                  <p className="text-[8px] text-gray-400 italic mt-1 px-2">{cfg.leyenda_autorizacion}</p>
                 </div>
                 {/* Firma atención */}
                 <div className="border border-gray-300 rounded p-3 text-center">
@@ -351,7 +354,6 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
                   <p className="text-[9px] text-gray-500">{cfg.atencion_puesto}</p>
                 </div>
               </div>
-              <p className="text-[9px] text-gray-400 italic text-center">{cfg.leyenda_autorizacion}</p>
             </div>
           )}
 
