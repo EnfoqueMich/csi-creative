@@ -82,7 +82,7 @@ function GarmentPreviewPrint({ posiciones, layout, order }) {
   if (esGorra) {
     return (
       <div className="space-y-1">
-        <div className="flex gap-3 justify-center items-start">
+        <div className="flex gap-3 justify-center items-start" style={{ width: "90%", margin: "0 auto" }}>
           <div className="text-center flex-1">
             <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Vista Frontal</p>
             {renderImages([1], order.garment_frente_url || DEFAULT_FRENTE)}
@@ -105,12 +105,12 @@ function GarmentPreviewPrint({ posiciones, layout, order }) {
   }
 
   return (
-    <div className="flex gap-6 justify-center items-start">
-      <div className="text-center flex-1 max-w-xs">
+    <div className="flex gap-6 justify-center items-start" style={{ width: "90%", margin: "0 auto" }}>
+      <div className="text-center flex-1">
         <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Vista Frontal</p>
         {renderImages([1, 2, 3, 4], order.garment_frente_url || DEFAULT_FRENTE)}
       </div>
-      <div className="text-center flex-1 max-w-xs">
+      <div className="text-center flex-1">
         <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Vista Trasera</p>
         {renderImages([5], order.garment_espalda_url || DEFAULT_ESPALDA)}
       </div>
