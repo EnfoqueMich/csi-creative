@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, X, Loader2, ImagePlus, Check, Shirt, Search } from "lucide-react";
+import { Plus, X, Loader2, ImagePlus, Check, Shirt, Search, Edit2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const DEFAULT_FRENTE = "https://media.base44.com/images/public/69d2f43e55d64f6bbfa30f2c/6b6aec754_frente.png";
@@ -35,10 +35,15 @@ function ImgUploadField({ label, url, uploading, onUpload, onClear }) {
   );
 }
 
-function NewGarmentForm({ onSaved, onCancel }) {
-  const [titulo, setTitulo] = useState("");
-  const [esGorra, setEsGorra] = useState(false);
-  const [urls, setUrls] = useState({ frente: "", espalda: "", lat_izq: "", lat_der: "" });
+function GarmentForm({ garment, onSaved, onCancel }) {
+  const [titulo, setTitulo] = useState(garment?.titulo || "");
+  const [esGorra, setEsGorra] = useState(garment?.es_gorra || false);
+  const [urls, setUrls] = useState({
+    frente: garment?.frente_url || "",
+    espalda: garment?.espalda_url || "",
+    lat_izq: garment?.lateral_izq_url || "",
+    lat_der: garment?.lateral_der_url || "",
+  });
   const [uploading, setUploading] = useState({ frente: false, espalda: false, lat_izq: false, lat_der: false });
   const [saving, setSaving] = useState(false);
 
@@ -56,21 +61,28 @@ function NewGarmentForm({ onSaved, onCancel }) {
   const handleSave = async () => {
     if (!titulo.trim()) return;
     setSaving(true);
-    const saved = await base44.entities.GarmentTemplate.create({
+    const data = {
       titulo: titulo.trim(),
       es_gorra: esGorra,
       frente_url: urls.frente || DEFAULT_FRENTE,
       espalda_url: urls.espalda || DEFAULT_ESPALDA,
       lateral_izq_url: urls.lat_izq || "",
       lateral_der_url: urls.lat_der || "",
-    });
+    };
+    if (garment?.id) {
+      await base44.entities.GarmentTemplate.update(garment.id, data);
+    } else {
+      const saved = await base44.entities.GarmentTemplate.create(data);
+      onSaved(saved);
+      return;
+    }
     setSaving(false);
-    onSaved(saved);
+    onSaved({ ...garment, ...data });
   };
 
   return (
     <div className="border-2 border-blue-300 rounded-lg p-3 space-y-3 bg-blue-50/40">
-      <p className="text-xs font-bold text-blue-700 uppercase">Nueva prenda</p>
+      <p className="text-xs font-bold text-blue-700 uppercase">{garment ? "Editar prenda" : "Nueva prenda"}</p>
       <Input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Nombre (ej: Chamarra, Gorra...)" className="text-sm" />
 
       {/* Toggle es gorra */}
@@ -108,6 +120,7 @@ export default function GarmentPicker({ selectedId, onSelect }) {
   const [garments, setGarments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [search, setSearch] = useState("");
 
   useEffect(() => {
@@ -124,10 +137,15 @@ export default function GarmentPicker({ selectedId, onSelect }) {
     if (selectedId === id) onSelect(null);
   };
 
-  const handleSaved = (newGarment) => {
-    setGarments((prev) => [...prev, newGarment]);
+  const handleSaved = (updated) => {
+    if (editingId) {
+      setGarments((prev) => prev.map((g) => g.id === editingId ? updated : g));
+      setEditingId(null);
+    } else {
+      setGarments((prev) => [...prev, updated]);
+    }
     setShowForm(false);
-    onSelect(newGarment);
+    onSelect(updated);
   };
 
   return (
@@ -141,7 +159,13 @@ export default function GarmentPicker({ selectedId, onSelect }) {
         </Button>
       </div>
 
-      {showForm && <NewGarmentForm onSaved={handleSaved} onCancel={() => setShowForm(false)} />}
+      {showForm && (
+        <GarmentForm
+          garment={editingId ? garments.find((g) => g.id === editingId) : null}
+          onSaved={handleSaved}
+          onCancel={() => { setShowForm(false); setEditingId(null); }}
+        />
+      )}
 
       {/* Buscador */}
       {!loading && garments.length > 0 && (
@@ -195,13 +219,24 @@ export default function GarmentPicker({ selectedId, onSelect }) {
               <img src={g.frente_url || DEFAULT_FRENTE} alt={g.titulo} className="w-12 h-12 object-contain" />
               <span className="text-[10px] font-semibold text-center leading-tight">{g.titulo}</span>
               {selectedId === g.id && <div className="absolute top-1 right-1 w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center"><Check className="w-2 h-2 text-white" /></div>}
-              <button
-                type="button"
-                onClick={(e) => handleDelete(e, g.id)}
-                className="absolute top-1 left-1 w-4 h-4 bg-red-500 rounded-full items-center justify-center hidden group-hover:flex"
-              >
-                <X className="w-2.5 h-2.5 text-white" />
-              </button>
+              <div className="absolute top-1 left-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setEditingId(g.id); setShowForm(true); }}
+                  className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center"
+                  title="Editar"
+                >
+                  <Edit2 className="w-2.5 h-2.5 text-white" />
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => handleDelete(e, g.id)}
+                  className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center"
+                  title="Eliminar"
+                >
+                  <X className="w-2.5 h-2.5 text-white" />
+                </button>
+              </div>
             </button>
           ))}
         </div>
