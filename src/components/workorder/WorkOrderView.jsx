@@ -195,17 +195,16 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
 
         <div className="px-6 py-4 space-y-4">
 
-          {/* Datos cliente — cada uno en su propio rectángulo en una sola línea */}
-          <div className="flex flex-nowrap gap-2 items-center overflow-x-auto" style={{ fontSize: pdfCfg?.fuente_datos_cliente || "11px" }}>
+          {/* Datos cliente — cada uno en su propio rectángulo naranja en una sola línea */}
+          <div className="flex flex-nowrap gap-2 items-center" style={{ fontSize: pdfCfg?.fuente_datos_cliente || "11px" }}>
             {[
-              { label: "Nombre Cliente", value: order.nombre_cliente },
-              { label: "Teléfono", value: order.telefono },
-              { label: "Agente", value: order.agente_ventas },
-              { label: "Fecha Ingreso", value: order.fecha_orden },
+              { label: "NOMBRE CLIENTE", value: order.nombre_cliente },
+              { label: "TELÉFONO", value: order.telefono },
+              { label: "AGENTE", value: order.agente_ventas },
+              { label: "FECHA INGRESO", value: order.fecha_orden },
             ].map(({ label, value }) => (
-              <div key={label} className="border border-gray-300 rounded px-2 py-1 flex-shrink-0 whitespace-nowrap">
-                <p className="text-gray-500 font-semibold uppercase" style={{ fontSize: "0.75em" }}>{label}:</p>
-                <p className="font-medium text-black">{value || ""}</p>
+              <div key={label} className="border-2 rounded-lg px-3 py-1.5 flex-shrink-0 whitespace-nowrap text-center" style={{ borderColor: "#FFA500" }}>
+                <p className="font-bold text-black"><span className="font-semibold uppercase">{label}:</span> {value || ""}</p>
               </div>
             ))}
           </div>
