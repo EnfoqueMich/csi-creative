@@ -276,7 +276,7 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
 
           {/* Tipo trabajo + observaciones */}
           {(pdfCfg?.mostrar_tipo_trabajo !== false) && (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3">
               <div className="border-2 rounded p-3" style={{ borderColor: pdfCfg?.color_tipo_trabajo || "#22c55e" }}>
                 <p className="text-xs font-bold text-green-700 mb-2 uppercase">Tipo de Trabajo:</p>
                 <div className="grid grid-cols-2 gap-1 text-xs">
