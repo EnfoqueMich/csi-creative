@@ -273,6 +273,12 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
                         <img src={pos.imagen_url} alt={pos.nombre} className="w-[80%] mx-auto object-contain rounded border border-blue-100" />
                       </div>
                     )}
+                    {(pos.alto_cm || pos.ancho_cm) && (
+                      <div className="px-2 pt-1 flex items-center gap-3 text-[10px]">
+                        {pos.alto_cm && <span><span className="font-bold text-blue-600 uppercase">Alto:</span> {pos.alto_cm} cm</span>}
+                        {pos.ancho_cm && <span><span className="font-bold text-blue-600 uppercase">Ancho:</span> {pos.ancho_cm} cm</span>}
+                      </div>
+                    )}
                     <div className="px-2 pb-1 min-h-[30px]">
                       <p className="text-xs text-gray-700 leading-relaxed whitespace-pre-wrap">{pos.descripcion || ""}</p>
                     </div>
