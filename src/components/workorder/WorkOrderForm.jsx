@@ -64,6 +64,14 @@ function EspecRow({ row, onChange, onRemove, canRemove }) {
           <label className="text-xs text-muted-foreground font-medium">Color</label>
           <Input value={row.color_prenda || ""} onChange={(e) => onChange("color_prenda", e.target.value)} placeholder="Negro..." className="w-28" />
         </div>
+        <div className="space-y-1">
+          <label className="text-xs text-muted-foreground font-medium">Modelo</label>
+          <Input value={row.modelo || ""} onChange={(e) => onChange("modelo", e.target.value)} placeholder="Modelo..." className="w-28" />
+        </div>
+        <div className="space-y-1">
+          <label className="text-xs text-muted-foreground font-medium">Marca</label>
+          <Input value={row.marca || ""} onChange={(e) => onChange("marca", e.target.value)} placeholder="Marca..." className="w-28" />
+        </div>
         {TALLAS.map((t) => (
           <div key={t} className="space-y-1">
             <label className="text-xs text-muted-foreground font-medium uppercase">{t}</label>
@@ -115,7 +123,7 @@ function ExtrasCollapsible({ extras, onChange }) {
   );
 }
 
-const emptyEspec = () => ({ tipo_prenda: "", color_prenda: "", tallas: {}, total_piezas: 0 });
+const emptyEspec = () => ({ tipo_prenda: "", color_prenda: "", modelo: "", marca: "", tallas: {}, total_piezas: 0 });
 
 const emptyOrder = () => ({
   nombre_cliente: "",

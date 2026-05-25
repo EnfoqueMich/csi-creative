@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Plus, Loader2, FileText, Trash2, Eye, Settings, Layout } from "lucide-react";
+import { Plus, Loader2, FileText, Trash2, Eye, Settings, Layout, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import WorkOrderForm from "../components/workorder/WorkOrderForm";
@@ -8,6 +8,7 @@ import WorkOrderView from "../components/workorder/WorkOrderView";
 import OrderSettingsPanel from "../components/workorder/OrderSettingsPanel";
 import PdfLayoutEditor from "../components/workorder/PdfLayoutEditor";
 import HiloColorManager from "../components/workorder/HiloColorManager";
+import GarmentCatalogManager from "../components/workorder/GarmentCatalogManager";
 
 const estadoConfig = {
   borrador: { label: "Borrador", cls: "bg-muted text-muted-foreground" },
@@ -21,7 +22,7 @@ export default function WorkOrders() {
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState("list");
   const [selected, setSelected] = useState(null);
-  const [tab, setTab] = useState("ordenes"); // 'ordenes' | 'configuracion' | 'pdf'
+  const [tab, setTab] = useState("ordenes"); // 'ordenes' | 'configuracion' | 'catalogo' | 'pdf'
 
   useEffect(() => {
     base44.entities.WorkOrder.list("-created_date", 200).then((data) => {
@@ -77,11 +78,11 @@ export default function WorkOrders() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-border">
+      <div className="flex gap-1 border-b border-border overflow-x-auto">
         <button
           onClick={() => setTab("ordenes")}
           className={cn(
-            "px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors",
+            "px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap",
             tab === "ordenes" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
           )}
         >
@@ -91,7 +92,7 @@ export default function WorkOrders() {
         <button
           onClick={() => setTab("configuracion")}
           className={cn(
-            "px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors",
+            "px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap",
             tab === "configuracion" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
           )}
         >
@@ -99,9 +100,19 @@ export default function WorkOrders() {
           Configuración
         </button>
         <button
+          onClick={() => setTab("catalogo")}
+          className={cn(
+            "px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap",
+            tab === "catalogo" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <Package className="w-3.5 h-3.5 inline mr-1.5" />
+          Catálogo de Prendas
+        </button>
+        <button
           onClick={() => setTab("pdf")}
           className={cn(
-            "px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors",
+            "px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap",
             tab === "pdf" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
           )}
         >
@@ -113,6 +124,8 @@ export default function WorkOrders() {
       {/* Contenido según tab */}
       {tab === "pdf" ? (
         <PdfLayoutEditor />
+      ) : tab === "catalogo" ? (
+        <GarmentCatalogManager />
       ) : tab === "configuracion" ? (
         <div className="space-y-8">
           <OrderSettingsPanel />

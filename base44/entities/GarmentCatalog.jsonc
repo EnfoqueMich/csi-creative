@@ -1,0 +1,33 @@
+{
+  "name": "GarmentCatalog",
+  "type": "object",
+  "properties": {
+    "marca": {
+      "type": "string",
+      "description": "Marca de la prenda"
+    },
+    "modelo": {
+      "type": "string",
+      "description": "Modelo de la prenda"
+    },
+    "talla": {
+      "type": "string",
+      "description": "Talla disponible"
+    },
+    "precio": {
+      "type": "number",
+      "description": "Precio unitario"
+    },
+    "stock": {
+      "type": "number",
+      "description": "Cantidad en almac\u00e9n",
+      "default": 0
+    }
+  },
+  "required": [
+    "marca",
+    "modelo",
+    "talla",
+    "precio"
+  ]
+}
