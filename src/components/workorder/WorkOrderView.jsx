@@ -31,35 +31,55 @@ function Field({ label, value, blue }) {
 const FRENTE_URL = "https://media.base44.com/images/public/69d2f43e55d64f6bbfa30f2c/6b6aec754_frente.png";
 const ESPALDA_URL = "https://media.base44.com/images/public/69d2f43e55d64f6bbfa30f2c/173365721_espalda.png";
 
-function TshirtPreviewPrint({ posiciones }) {
-  const espalda = posiciones.find(p => p.numero === 5);
+const DEFAULT_LAYOUT = {
+  1: { x: 50, y: 32, w: 22 },
+  2: { x: 24, y: 32, w: 22 },
+  3: { x: 5,  y: 28, w: 17 },
+  4: { x: 76, y: 28, w: 17 },
+  5: { x: 22, y: 20, w: 56 },
+};
+
+function TshirtPreviewPrint({ posiciones, layout }) {
+  const resolvedLayout = layout || DEFAULT_LAYOUT;
+  const frontPos = [1, 2, 3, 4];
+  const backPos = [5];
+
+  const renderImages = (nums) =>
+    nums.map((num) => {
+      const pos = posiciones.find(p => p.numero === num);
+      if (!pos?.imagen_url) return null;
+      const l = resolvedLayout[num] || DEFAULT_LAYOUT[num] || { x: 20, y: 20, w: 25 };
+      return (
+        <img
+          key={num}
+          src={pos.imagen_url}
+          alt={pos.nombre}
+          style={{
+            position: "absolute",
+            left: `${l.x}%`,
+            top: `${l.y}%`,
+            width: `${l.w}%`,
+            objectFit: "contain",
+            pointerEvents: "none",
+          }}
+        />
+      );
+    });
+
   return (
     <div className="flex gap-6 justify-center items-start">
       <div className="text-center flex-1 max-w-xs">
         <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Vista Frontal</p>
         <div className="relative inline-block w-full">
           <img src={FRENTE_URL} alt="Frente" className="w-full object-contain" />
-          {posiciones.find(p => p.numero === 1)?.imagen_url && (
-            <img src={posiciones.find(p => p.numero === 1).imagen_url} alt="FI" className="absolute object-contain" style={{ top: "32%", left: "50%", width: "26%", height: "26%", pointerEvents: "none" }} />
-          )}
-          {posiciones.find(p => p.numero === 2)?.imagen_url && (
-            <img src={posiciones.find(p => p.numero === 2).imagen_url} alt="FD" className="absolute object-contain" style={{ top: "32%", left: "24%", width: "26%", height: "26%", pointerEvents: "none" }} />
-          )}
-          {posiciones.find(p => p.numero === 3)?.imagen_url && (
-            <img src={posiciones.find(p => p.numero === 3).imagen_url} alt="MD" className="absolute object-contain" style={{ top: "30%", left: "3%", width: "20%", height: "20%", pointerEvents: "none" }} />
-          )}
-          {posiciones.find(p => p.numero === 4)?.imagen_url && (
-            <img src={posiciones.find(p => p.numero === 4).imagen_url} alt="MI" className="absolute object-contain" style={{ top: "30%", left: "77%", width: "20%", height: "20%", pointerEvents: "none" }} />
-          )}
+          {renderImages(frontPos)}
         </div>
       </div>
       <div className="text-center flex-1 max-w-xs">
         <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Vista Trasera</p>
         <div className="relative inline-block w-full">
           <img src={ESPALDA_URL} alt="Espalda" className="w-full object-contain" />
-          {espalda?.imagen_url && (
-            <img src={espalda.imagen_url} alt="ESP" className="absolute object-contain" style={{ top: "22%", left: "22%", width: "56%", height: "50%", pointerEvents: "none" }} />
-          )}
+          {renderImages(backPos)}
         </div>
       </div>
     </div>
@@ -118,7 +138,7 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
             <Field label="FECHA DE ORDEN" value={order.fecha_orden} blue />
             <Field label="AGENTE DE VENTAS" value={order.agente_ventas} blue />
             <Field label="TELÉFONO" value={order.telefono} blue />
-            <div className="col-span-2"><Field label="ARTÍCULO SOLICITADO" value={order.articulo_solicitado} blue /></div>
+
           </div>
 
           {/* Tipo trabajo + observaciones */}
@@ -170,7 +190,7 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
           {/* Simulación de prenda */}
           {posiciones.length > 0 && (
             <div className="border-2 border-blue-200 rounded px-3 pt-2 pb-3 bg-blue-50/20">
-              <TshirtPreviewPrint posiciones={posiciones} />
+              <TshirtPreviewPrint posiciones={posiciones} layout={order.preview_layout} />
             </div>
           )}
 
@@ -255,9 +275,19 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
 
       <style>{`
         @media print {
+          @page {
+            size: letter portrait;
+            margin: 10mm;
+          }
           body * { visibility: hidden; }
           #orden-print, #orden-print * { visibility: visible; }
-          #orden-print { position: absolute; left: 0; top: 0; width: 100%; }
+          #orden-print {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            font-size: 11px;
+          }
         }
       `}</style>
     </>

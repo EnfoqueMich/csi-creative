@@ -146,7 +146,12 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
   const updateEspec = (idx, field, value) =>
     setForm((prev) => {
       const especificaciones = [...prev.especificaciones];
-      especificaciones[idx] = { ...especificaciones[idx], [field]: value };
+      const updated = { ...especificaciones[idx], [field]: value };
+      // Auto-calcular total_piezas al cambiar tallas
+      if (field === "tallas") {
+        updated.total_piezas = Object.values(value).reduce((sum, v) => sum + (Number(v) || 0), 0);
+      }
+      especificaciones[idx] = updated;
       return { ...prev, especificaciones };
     });
   const addEspec = () => setForm((prev) => ({ ...prev, especificaciones: [...prev.especificaciones, emptyEspec()] }));
@@ -224,7 +229,7 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
 
   const handleSave = async () => {
     setSaving(true);
-    const data = { ...form, folio: form.folio || await generateFolio() };
+    const data = { ...form, folio: form.folio || await generateFolio(), preview_layout: previewLayout };
     let saved;
     if (order?.id) {
       saved = await base44.entities.WorkOrder.update(order.id, data);
@@ -271,10 +276,7 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
             <label className="text-xs font-bold text-blue-700 uppercase tracking-wider">Teléfono</label>
             <Input value={form.telefono} onChange={(e) => set("telefono", e.target.value)} placeholder="Teléfono..." />
           </div>
-          <div className="space-y-1 md:col-span-2">
-            <label className="text-xs font-bold text-blue-700 uppercase tracking-wider">Artículo Solicitado</label>
-            <Input value={form.articulo_solicitado} onChange={(e) => set("articulo_solicitado", e.target.value)} placeholder="Playera, gorra, uniforme..." />
-          </div>
+
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="rounded-lg border-2 border-green-400 p-4 space-y-2">

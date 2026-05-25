@@ -15,9 +15,6 @@
       "type": "string",
       "format": "date"
     },
-    "articulo_solicitado": {
-      "type": "string"
-    },
     "telefono": {
       "type": "string"
     },
@@ -55,7 +52,7 @@
     },
     "especificaciones": {
       "type": "array",
-      "description": "Filas de tipo de prenda / tallas (un pedido puede tener m\u00faltiples modelos)",
+      "description": "Filas de tipo de prenda / tallas",
       "items": {
         "type": "object",
         "properties": {
@@ -99,6 +96,10 @@
           }
         }
       }
+    },
+    "preview_layout": {
+      "type": "object",
+      "description": "Layout guardado de posiciones de logotipos en la vista de playera"
     },
     "bobina_negra": {
       "type": "boolean"
