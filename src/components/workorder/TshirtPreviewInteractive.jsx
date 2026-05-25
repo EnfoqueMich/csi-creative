@@ -173,7 +173,7 @@ function ShirtView({ bgUrl, posNums, posiciones, layout, onUpdateLayout, label }
   );
 }
 
-export default function TshirtPreviewInteractive({ posiciones, layout, onLayoutChange, frenteUrl, espaldaUrl }) {
+export default function TshirtPreviewInteractive({ posiciones, layout, onLayoutChange, frenteUrl, espaldaUrl, latIzqUrl, latDerUrl, esGorra }) {
   const handleUpdate = (posNum, newPos) => {
     onLayoutChange({ ...layout, [posNum]: newPos });
   };
@@ -200,28 +200,38 @@ export default function TshirtPreviewInteractive({ posiciones, layout, onLayoutC
           </button>
         </div>
       )}
-      <div className="flex gap-6 justify-center items-start">
-        <div className="text-center flex-1 max-w-sm">
-          <p className="text-xs font-bold text-blue-600 uppercase mb-1 tracking-wider">Vista Frontal</p>
-          <ShirtView
-            bgUrl={frenteUrl || DEFAULT_FRENTE_URL}
-            posNums={[1, 2, 3, 4]}
-            posiciones={posiciones}
-            layout={layout}
-            onUpdateLayout={handleUpdate}
-          />
+
+      {esGorra ? (
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <div className="text-center">
+            <p className="text-xs font-bold text-blue-600 uppercase mb-1 tracking-wider">Vista Frontal</p>
+            <ShirtView bgUrl={frenteUrl || DEFAULT_FRENTE_URL} posNums={[1]} posiciones={posiciones} layout={layout} onUpdateLayout={handleUpdate} />
+          </div>
+          <div className="text-center">
+            <p className="text-xs font-bold text-blue-600 uppercase mb-1 tracking-wider">Lateral Izq.</p>
+            <ShirtView bgUrl={latIzqUrl || frenteUrl || DEFAULT_FRENTE_URL} posNums={[6]} posiciones={posiciones} layout={layout} onUpdateLayout={handleUpdate} />
+          </div>
+          <div className="text-center">
+            <p className="text-xs font-bold text-blue-600 uppercase mb-1 tracking-wider">Lateral Der.</p>
+            <ShirtView bgUrl={latDerUrl || frenteUrl || DEFAULT_FRENTE_URL} posNums={[7]} posiciones={posiciones} layout={layout} onUpdateLayout={handleUpdate} />
+          </div>
+          <div className="text-center">
+            <p className="text-xs font-bold text-blue-600 uppercase mb-1 tracking-wider">Vista Trasera</p>
+            <ShirtView bgUrl={espaldaUrl || DEFAULT_ESPALDA_URL} posNums={[5]} posiciones={posiciones} layout={layout} onUpdateLayout={handleUpdate} />
+          </div>
         </div>
-        <div className="text-center flex-1 max-w-sm">
-          <p className="text-xs font-bold text-blue-600 uppercase mb-1 tracking-wider">Vista Trasera</p>
-          <ShirtView
-            bgUrl={espaldaUrl || DEFAULT_ESPALDA_URL}
-            posNums={[5]}
-            posiciones={posiciones}
-            layout={layout}
-            onUpdateLayout={handleUpdate}
-          />
+      ) : (
+        <div className="flex gap-6 justify-center items-start">
+          <div className="text-center flex-1 max-w-sm">
+            <p className="text-xs font-bold text-blue-600 uppercase mb-1 tracking-wider">Vista Frontal</p>
+            <ShirtView bgUrl={frenteUrl || DEFAULT_FRENTE_URL} posNums={[1, 2, 3, 4]} posiciones={posiciones} layout={layout} onUpdateLayout={handleUpdate} />
+          </div>
+          <div className="text-center flex-1 max-w-sm">
+            <p className="text-xs font-bold text-blue-600 uppercase mb-1 tracking-wider">Vista Trasera</p>
+            <ShirtView bgUrl={espaldaUrl || DEFAULT_ESPALDA_URL} posNums={[5]} posiciones={posiciones} layout={layout} onUpdateLayout={handleUpdate} />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

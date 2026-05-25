@@ -10,40 +10,14 @@ const DEFAULT_ESPALDA = "https://media.base44.com/images/public/69d2f43e55d64f6b
 
 export { DEFAULT_FRENTE, DEFAULT_ESPALDA };
 
-function NewGarmentForm({ onSaved, onCancel }) {
-  const [titulo, setTitulo] = useState("");
-  const [frenteUrl, setFrenteUrl] = useState("");
-  const [espaldaUrl, setEspaldaUrl] = useState("");
-  const [uploadingFrente, setUploadingFrente] = useState(false);
-  const [uploadingEspalda, setUploadingEspalda] = useState(false);
-  const [saving, setSaving] = useState(false);
-
-  const uploadImg = async (file, setUrl, setUploading) => {
-    setUploading(true);
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    setUrl(file_url);
-    setUploading(false);
-  };
-
-  const handleSave = async () => {
-    if (!titulo.trim()) return;
-    setSaving(true);
-    const saved = await base44.entities.GarmentTemplate.create({
-      titulo: titulo.trim(),
-      frente_url: frenteUrl || DEFAULT_FRENTE,
-      espalda_url: espaldaUrl || DEFAULT_ESPALDA,
-    });
-    setSaving(false);
-    onSaved(saved);
-  };
-
-  const ImgUpload = ({ label, url, uploading, onFile }) => (
+function ImgUploadField({ label, url, uploading, onUpload, onClear }) {
+  return (
     <div className="space-y-1">
       <p className="text-[10px] font-bold text-blue-600 uppercase">{label}</p>
       {url ? (
         <div className="relative">
           <img src={url} alt={label} className="w-full h-20 object-contain border border-blue-200 rounded" />
-          <button type="button" onClick={() => onFile(null)} className="absolute top-0.5 right-0.5 bg-black/60 rounded-full p-0.5">
+          <button type="button" onClick={onClear} className="absolute top-0.5 right-0.5 bg-black/60 rounded-full p-0.5">
             <X className="w-2.5 h-2.5 text-white" />
           </button>
         </div>
@@ -54,66 +28,72 @@ function NewGarmentForm({ onSaved, onCancel }) {
         )}>
           {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImagePlus className="w-4 h-4" />}
           <span className="text-[9px]">{uploading ? "Subiendo..." : "Cargar"}</span>
-          <input type="file" accept="image/*" className="hidden"
-            onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadImg(f, (u) => onFile(u), uploading ? () => {} : (v) => {}) }}
-          />
+          <input type="file" accept="image/*" className="hidden" onChange={onUpload} disabled={uploading} />
         </label>
       )}
     </div>
   );
+}
+
+function NewGarmentForm({ onSaved, onCancel }) {
+  const [titulo, setTitulo] = useState("");
+  const [esGorra, setEsGorra] = useState(false);
+  const [urls, setUrls] = useState({ frente: "", espalda: "", lat_izq: "", lat_der: "" });
+  const [uploading, setUploading] = useState({ frente: false, espalda: false, lat_izq: false, lat_der: false });
+  const [saving, setSaving] = useState(false);
+
+  const uploadImg = async (e, key) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading((prev) => ({ ...prev, [key]: true }));
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    setUrls((prev) => ({ ...prev, [key]: file_url }));
+    setUploading((prev) => ({ ...prev, [key]: false }));
+  };
+
+  const clearUrl = (key) => setUrls((prev) => ({ ...prev, [key]: "" }));
+
+  const handleSave = async () => {
+    if (!titulo.trim()) return;
+    setSaving(true);
+    const saved = await base44.entities.GarmentTemplate.create({
+      titulo: titulo.trim(),
+      es_gorra: esGorra,
+      frente_url: urls.frente || DEFAULT_FRENTE,
+      espalda_url: urls.espalda || DEFAULT_ESPALDA,
+      lateral_izq_url: urls.lat_izq || "",
+      lateral_der_url: urls.lat_der || "",
+    });
+    setSaving(false);
+    onSaved(saved);
+  };
 
   return (
-    <div className="border-2 border-blue-300 rounded-lg p-3 space-y-2 bg-blue-50/40">
+    <div className="border-2 border-blue-300 rounded-lg p-3 space-y-3 bg-blue-50/40">
       <p className="text-xs font-bold text-blue-700 uppercase">Nueva prenda</p>
       <Input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Nombre (ej: Chamarra, Gorra...)" className="text-sm" />
-      <div className="grid grid-cols-2 gap-2">
-        {/* Frente */}
-        <div className="space-y-1">
-          <p className="text-[10px] font-bold text-blue-600 uppercase">Vista Frontal</p>
-          {frenteUrl ? (
-            <div className="relative">
-              <img src={frenteUrl} alt="frente" className="w-full h-20 object-contain border border-blue-200 rounded" />
-              <button type="button" onClick={() => setFrenteUrl("")} className="absolute top-0.5 right-0.5 bg-black/60 rounded-full p-0.5">
-                <X className="w-2.5 h-2.5 text-white" />
-              </button>
-            </div>
-          ) : (
-            <label className={cn(
-              "flex flex-col items-center justify-center gap-1 h-20 border border-dashed border-blue-300 rounded cursor-pointer hover:bg-blue-50 text-blue-400 transition-colors",
-              uploadingFrente && "opacity-50 pointer-events-none"
-            )}>
-              {uploadingFrente ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImagePlus className="w-4 h-4" />}
-              <span className="text-[9px]">{uploadingFrente ? "Subiendo..." : "Cargar frente"}</span>
-              <input type="file" accept="image/*" className="hidden"
-                onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadImg(f, setFrenteUrl, setUploadingFrente); }}
-              />
-            </label>
+
+      {/* Toggle es gorra */}
+      <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-blue-700">
+        <div
+          onClick={() => setEsGorra((v) => !v)}
+          className={cn(
+            "w-8 h-4 rounded-full transition-colors relative",
+            esGorra ? "bg-blue-600" : "bg-gray-300"
           )}
+        >
+          <div className={cn("absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-all", esGorra ? "left-4" : "left-0.5")} />
         </div>
-        {/* Espalda */}
-        <div className="space-y-1">
-          <p className="text-[10px] font-bold text-blue-600 uppercase">Vista Trasera</p>
-          {espaldaUrl ? (
-            <div className="relative">
-              <img src={espaldaUrl} alt="espalda" className="w-full h-20 object-contain border border-blue-200 rounded" />
-              <button type="button" onClick={() => setEspaldaUrl("")} className="absolute top-0.5 right-0.5 bg-black/60 rounded-full p-0.5">
-                <X className="w-2.5 h-2.5 text-white" />
-              </button>
-            </div>
-          ) : (
-            <label className={cn(
-              "flex flex-col items-center justify-center gap-1 h-20 border border-dashed border-blue-300 rounded cursor-pointer hover:bg-blue-50 text-blue-400 transition-colors",
-              uploadingEspalda && "opacity-50 pointer-events-none"
-            )}>
-              {uploadingEspalda ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImagePlus className="w-4 h-4" />}
-              <span className="text-[9px]">{uploadingEspalda ? "Subiendo..." : "Cargar espalda"}</span>
-              <input type="file" accept="image/*" className="hidden"
-                onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadImg(f, setEspaldaUrl, setUploadingEspalda); }}
-              />
-            </label>
-          )}
-        </div>
+        Es gorra (4 vistas)
+      </label>
+
+      <div className={cn("grid gap-2", esGorra ? "grid-cols-2 md:grid-cols-4" : "grid-cols-2")}>
+        <ImgUploadField label="Vista Frontal" url={urls.frente} uploading={uploading.frente} onUpload={(e) => uploadImg(e, "frente")} onClear={() => clearUrl("frente")} />
+        {esGorra && <ImgUploadField label="Lateral Izq." url={urls.lat_izq} uploading={uploading.lat_izq} onUpload={(e) => uploadImg(e, "lat_izq")} onClear={() => clearUrl("lat_izq")} />}
+        {esGorra && <ImgUploadField label="Lateral Der." url={urls.lat_der} uploading={uploading.lat_der} onUpload={(e) => uploadImg(e, "lat_der")} onClear={() => clearUrl("lat_der")} />}
+        <ImgUploadField label="Vista Trasera" url={urls.espalda} uploading={uploading.espalda} onUpload={(e) => uploadImg(e, "espalda")} onClear={() => clearUrl("espalda")} />
       </div>
+
       <div className="flex gap-2 pt-1">
         <Button size="sm" onClick={handleSave} disabled={saving || !titulo.trim()} className="gap-1">
           {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />} Guardar
