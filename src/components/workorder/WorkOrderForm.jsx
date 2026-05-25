@@ -126,11 +126,7 @@ const emptyOrder = () => ({
   observaciones: "",
   tipo_trabajo: {},
   especificaciones: [emptyEspec()],
-  posiciones: POSICIONES_DEFAULT.map((p) => ({
-    numero: p.numero, nombre: p.nombre, descripcion: "", imagen_url: "", color_hilos: [""],
-    bobina_negra: false, bobina_blanca: false,
-    extras: {},
-  })),
+  posiciones: [],
   estado: "borrador",
 });
 

@@ -210,14 +210,9 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
             </div>
           )}
 
-          {/* Posiciones — solo las que tienen info */}
-          {(pdfCfg?.mostrar_posiciones !== false) && (() => {
-            const posConInfo = posiciones.filter(pos =>
-              pos.imagen_url || pos.descripcion || pos.alto_cm || pos.ancho_cm ||
-              pos.color_hilos?.filter(Boolean).length > 0 || pos.bobina_negra || pos.bobina_blanca ||
-              (pos.extras && Object.values(pos.extras).some(Boolean))
-            );
-            if (posConInfo.length === 0) return null;
+          {/* Posiciones */}
+          {(pdfCfg?.mostrar_posiciones !== false) && posiciones.length > 0 && (() => {
+            const posConInfo = posiciones;
             return (
               <div className="border-2 rounded p-3" style={{ borderColor: pdfCfg?.color_posiciones || "#1d4ed8" }}>
                 <p className="text-xs font-bold text-center uppercase tracking-widest mb-2" style={{ color: pdfCfg?.color_posiciones || "#1d4ed8" }}>Posiciones de Bordado / Estampado</p>
