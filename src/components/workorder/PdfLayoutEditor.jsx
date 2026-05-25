@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Save, Loader2, Eye, EyeOff, GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 const DEFAULT_PDF_CONFIG = {
   mostrar_encabezado: true,
@@ -40,6 +41,7 @@ const COLOR_FIELDS = [
 
 export default function PdfLayoutEditor() {
   const [cfg, setCfg] = useState(DEFAULT_PDF_CONFIG);
+  const [secciones, setSecciones] = useState(SECCIONES);
   const [recordId, setRecordId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -49,7 +51,18 @@ export default function PdfLayoutEditor() {
       if (list.length > 0) {
         setRecordId(list[0].id);
         const saved = list[0].pdf_config;
-        if (saved) setCfg({ ...DEFAULT_PDF_CONFIG, ...saved });
+        if (saved) {
+          setCfg({ ...DEFAULT_PDF_CONFIG, ...saved });
+          // Restaurar orden guardado si existe
+          if (saved.secciones_orden) {
+            const ordenado = saved.secciones_orden
+              .map(k => SECCIONES.find(s => s.key === k))
+              .filter(Boolean);
+            // añadir cualquier sección nueva que no esté en el orden guardado
+            const faltantes = SECCIONES.filter(s => !saved.secciones_orden.includes(s.key));
+            setSecciones([...ordenado, ...faltantes]);
+          }
+        }
       }
       setLoading(false);
     });
@@ -57,12 +70,21 @@ export default function PdfLayoutEditor() {
 
   const set = (field, value) => setCfg((prev) => ({ ...prev, [field]: value }));
 
+  const handleDragEnd = (result) => {
+    if (!result.destination) return;
+    const items = Array.from(secciones);
+    const [moved] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, moved);
+    setSecciones(items);
+  };
+
   const handleSave = async () => {
     setSaving(true);
+    const configToSave = { ...cfg, secciones_orden: secciones.map(s => s.key) };
     if (recordId) {
-      await base44.entities.OrderSettings.update(recordId, { pdf_config: cfg });
+      await base44.entities.OrderSettings.update(recordId, { pdf_config: configToSave });
     } else {
-      const saved = await base44.entities.OrderSettings.create({ pdf_config: cfg });
+      const saved = await base44.entities.OrderSettings.create({ pdf_config: configToSave });
       setRecordId(saved.id);
     }
     setSaving(false);
@@ -77,29 +99,49 @@ export default function PdfLayoutEditor() {
       <div className="bg-card rounded-xl border border-border p-6 space-y-4">
         <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Secciones del PDF</p>
         <p className="text-xs text-muted-foreground">Activa o desactiva cada sección para controlar qué aparece en el documento impreso.</p>
-        <div className="space-y-2">
-          {SECCIONES.map(({ key, label }) => (
-            <div key={key} className="flex items-center justify-between py-2 px-3 rounded-lg border border-border hover:bg-muted/30 transition-colors">
-              <div className="flex items-center gap-2">
-                <GripVertical className="w-4 h-4 text-muted-foreground/40" />
-                <span className="text-sm">{label}</span>
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId="secciones">
+            {(provided) => (
+              <div className="space-y-2" {...provided.droppableProps} ref={provided.innerRef}>
+                {secciones.map(({ key, label }, index) => (
+                  <Draggable key={key} draggableId={key} index={index}>
+                    {(provided, snapshot) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        className={cn(
+                          "flex items-center justify-between py-2 px-3 rounded-lg border border-border transition-colors",
+                          snapshot.isDragging ? "bg-muted shadow-md" : "hover:bg-muted/30"
+                        )}
+                      >
+                        <div className="flex items-center gap-2">
+                          <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing">
+                            <GripVertical className="w-4 h-4 text-muted-foreground/60 hover:text-muted-foreground" />
+                          </div>
+                          <span className="text-sm">{label}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => set(key, !cfg[key])}
+                          className={cn(
+                            "flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-colors",
+                            cfg[key]
+                              ? "bg-green-100 text-green-700 hover:bg-green-200"
+                              : "bg-muted text-muted-foreground hover:bg-muted/80"
+                          )}
+                        >
+                          {cfg[key] ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                          {cfg[key] ? "Visible" : "Oculto"}
+                        </button>
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
               </div>
-              <button
-                type="button"
-                onClick={() => set(key, !cfg[key])}
-                className={cn(
-                  "flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-colors",
-                  cfg[key]
-                    ? "bg-green-100 text-green-700 hover:bg-green-200"
-                    : "bg-muted text-muted-foreground hover:bg-muted/80"
-                )}
-              >
-                {cfg[key] ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
-                {cfg[key] ? "Visible" : "Oculto"}
-              </button>
-            </div>
-          ))}
-        </div>
+            )}
+          </Droppable>
+        </DragDropContext>
       </div>
 
       {/* Colores */}
@@ -201,7 +243,7 @@ export default function PdfLayoutEditor() {
           </div>
           <div className="px-4 py-2 text-[10px] text-muted-foreground">
             <span className="font-semibold">Secciones activas:</span>{" "}
-            {SECCIONES.filter(s => cfg[s.key]).map(s => s.label.split("(")[0].trim()).join(" • ")}
+            {secciones.filter(s => cfg[s.key]).map(s => s.label.split("(")[0].trim()).join(" • ")}
           </div>
         </div>
       </div>
