@@ -130,7 +130,7 @@ export default function Layout() {
 
       {/* Main Content */}
       <main className="flex-1 lg:ml-64 pt-14 lg:pt-0">
-        <div className="p-4 md:p-8 max-w-6xl mx-auto">
+        <div className="p-4 md:p-8 mx-auto" style={{ maxWidth: '1400px' }}>
           <Outlet />
         </div>
       </main>
