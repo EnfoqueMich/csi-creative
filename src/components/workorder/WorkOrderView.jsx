@@ -277,9 +277,9 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
                       </div>
                     )}
                     {(pos.alto_cm || pos.ancho_cm) && (
-                      <div className="px-2 pt-1 flex items-center gap-3 text-[10px]">
-                        {pos.alto_cm && <span><span className="font-bold text-blue-600 uppercase">Alto:</span> {pos.alto_cm} cm</span>}
-                        {pos.ancho_cm && <span><span className="font-bold text-blue-600 uppercase">Ancho:</span> {pos.ancho_cm} cm</span>}
+                      <div className="px-2 pt-1 space-y-0.5 text-[10px]">
+                        {pos.alto_cm && <div><span className="font-bold text-blue-600 uppercase">Alto:</span> {pos.alto_cm} cm</div>}
+                        {pos.ancho_cm && <div><span className="font-bold text-blue-600 uppercase">Ancho:</span> {pos.ancho_cm} cm</div>}
                       </div>
                     )}
                     <div className="px-2 pb-1 min-h-[30px]">
