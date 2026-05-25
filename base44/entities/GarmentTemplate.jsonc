@@ -1,0 +1,21 @@
+{
+  "name": "GarmentTemplate",
+  "type": "object",
+  "properties": {
+    "titulo": {
+      "type": "string",
+      "description": "Nombre de la prenda (ej: Playera, Chamarra, Gorra)"
+    },
+    "frente_url": {
+      "type": "string",
+      "description": "URL de la imagen frontal de la prenda"
+    },
+    "espalda_url": {
+      "type": "string",
+      "description": "URL de la imagen trasera de la prenda"
+    }
+  },
+  "required": [
+    "titulo"
+  ]
+}

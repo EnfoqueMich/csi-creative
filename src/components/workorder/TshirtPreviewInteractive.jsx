@@ -1,8 +1,8 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Move, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 
-const FRENTE_URL = "https://media.base44.com/images/public/69d2f43e55d64f6bbfa30f2c/6b6aec754_frente.png";
-const ESPALDA_URL = "https://media.base44.com/images/public/69d2f43e55d64f6bbfa30f2c/173365721_espalda.png";
+export const DEFAULT_FRENTE_URL = "https://media.base44.com/images/public/69d2f43e55d64f6bbfa30f2c/6b6aec754_frente.png";
+export const DEFAULT_ESPALDA_URL = "https://media.base44.com/images/public/69d2f43e55d64f6bbfa30f2c/173365721_espalda.png";
 
 // Posiciones iniciales por defecto para cada posición en % del contenedor
 const DEFAULT_LAYOUT = {
@@ -149,7 +149,7 @@ function DraggableImage({ imgUrl, posNum, layout, onUpdateLayout, containerRef }
   );
 }
 
-function ShirtView({ bgUrl, posNums, posiciones, layout, onUpdateLayout }) {
+function ShirtView({ bgUrl, posNums, posiciones, layout, onUpdateLayout, label }) {
   const containerRef = useRef(null);
 
   return (
@@ -173,7 +173,7 @@ function ShirtView({ bgUrl, posNums, posiciones, layout, onUpdateLayout }) {
   );
 }
 
-export default function TshirtPreviewInteractive({ posiciones, layout, onLayoutChange }) {
+export default function TshirtPreviewInteractive({ posiciones, layout, onLayoutChange, frenteUrl, espaldaUrl }) {
   const handleUpdate = (posNum, newPos) => {
     onLayoutChange({ ...layout, [posNum]: newPos });
   };
@@ -204,7 +204,7 @@ export default function TshirtPreviewInteractive({ posiciones, layout, onLayoutC
         <div className="text-center flex-1 max-w-sm">
           <p className="text-xs font-bold text-blue-600 uppercase mb-1 tracking-wider">Vista Frontal</p>
           <ShirtView
-            bgUrl={FRENTE_URL}
+            bgUrl={frenteUrl || DEFAULT_FRENTE_URL}
             posNums={[1, 2, 3, 4]}
             posiciones={posiciones}
             layout={layout}
@@ -214,7 +214,7 @@ export default function TshirtPreviewInteractive({ posiciones, layout, onLayoutC
         <div className="text-center flex-1 max-w-sm">
           <p className="text-xs font-bold text-blue-600 uppercase mb-1 tracking-wider">Vista Trasera</p>
           <ShirtView
-            bgUrl={ESPALDA_URL}
+            bgUrl={espaldaUrl || DEFAULT_ESPALDA_URL}
             posNums={[5]}
             posiciones={posiciones}
             layout={layout}

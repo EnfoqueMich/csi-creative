@@ -28,8 +28,8 @@ function Field({ label, value, blue }) {
 }
 
 // Silueta de playera para la vista/impresión
-const FRENTE_URL = "https://media.base44.com/images/public/69d2f43e55d64f6bbfa30f2c/6b6aec754_frente.png";
-const ESPALDA_URL = "https://media.base44.com/images/public/69d2f43e55d64f6bbfa30f2c/173365721_espalda.png";
+const DEFAULT_FRENTE = "https://media.base44.com/images/public/69d2f43e55d64f6bbfa30f2c/6b6aec754_frente.png";
+const DEFAULT_ESPALDA = "https://media.base44.com/images/public/69d2f43e55d64f6bbfa30f2c/173365721_espalda.png";
 
 const DEFAULT_LAYOUT = {
   1: { x: 50, y: 32, w: 22 },
@@ -39,7 +39,7 @@ const DEFAULT_LAYOUT = {
   5: { x: 22, y: 20, w: 56 },
 };
 
-function TshirtPreviewPrint({ posiciones, layout }) {
+function TshirtPreviewPrint({ posiciones, layout, frenteUrl, espaldaUrl }) {
   const resolvedLayout = layout || DEFAULT_LAYOUT;
   const frontPos = [1, 2, 3, 4];
   const backPos = [5];
@@ -71,14 +71,14 @@ function TshirtPreviewPrint({ posiciones, layout }) {
       <div className="text-center flex-1 max-w-xs">
         <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Vista Frontal</p>
         <div className="relative inline-block w-full">
-          <img src={FRENTE_URL} alt="Frente" className="w-full object-contain" />
+          <img src={frenteUrl || DEFAULT_FRENTE} alt="Frente" className="w-full object-contain" />
           {renderImages(frontPos)}
         </div>
       </div>
       <div className="text-center flex-1 max-w-xs">
         <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Vista Trasera</p>
         <div className="relative inline-block w-full">
-          <img src={ESPALDA_URL} alt="Espalda" className="w-full object-contain" />
+          <img src={espaldaUrl || DEFAULT_ESPALDA} alt="Espalda" className="w-full object-contain" />
           {renderImages(backPos)}
         </div>
       </div>
@@ -190,7 +190,12 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
           {/* Simulación de prenda */}
           {posiciones.length > 0 && (
             <div className="border-2 border-blue-200 rounded px-3 pt-2 pb-3 bg-blue-50/20">
-              <TshirtPreviewPrint posiciones={posiciones} layout={order.preview_layout} />
+              <TshirtPreviewPrint
+                posiciones={posiciones}
+                layout={order.preview_layout}
+                frenteUrl={order.garment_frente_url}
+                espaldaUrl={order.garment_espalda_url}
+              />
             </div>
           )}
 

@@ -101,6 +101,18 @@
       "type": "object",
       "description": "Layout guardado de posiciones de logotipos en la vista de playera"
     },
+    "garment_frente_url": {
+      "type": "string",
+      "description": "URL imagen frontal de la prenda"
+    },
+    "garment_espalda_url": {
+      "type": "string",
+      "description": "URL imagen trasera de la prenda"
+    },
+    "garment_titulo": {
+      "type": "string",
+      "description": "Nombre de la prenda seleccionada"
+    },
     "bobina_negra": {
       "type": "boolean"
     },

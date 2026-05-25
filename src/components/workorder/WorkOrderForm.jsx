@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Save, ArrowLeft, Loader2, Plus, X, ImagePlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import TshirtPreviewInteractive, { DEFAULT_LAYOUT } from "./TshirtPreviewInteractive";
+import GarmentPicker from "./GarmentPicker";
 
 // TshirtPreview removido — ahora en TshirtPreviewInteractive.jsx
 
@@ -139,6 +140,11 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
     ...DEFAULT_LAYOUT,
     ...(order?.preview_layout || {}),
   }));
+  const [selectedGarment, setSelectedGarment] = useState(() =>
+    order?.garment_frente_url
+      ? { frente_url: order.garment_frente_url, espalda_url: order.garment_espalda_url, titulo: order.garment_titulo }
+      : null
+  );
 
   const set = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
   const setNested = (field, key, value) => setForm((prev) => ({ ...prev, [field]: { ...(prev[field] || {}), [key]: value } }));
@@ -229,7 +235,14 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
 
   const handleSave = async () => {
     setSaving(true);
-    const data = { ...form, folio: form.folio || await generateFolio(), preview_layout: previewLayout };
+    const data = {
+      ...form,
+      folio: form.folio || await generateFolio(),
+      preview_layout: previewLayout,
+      garment_frente_url: selectedGarment?.frente_url || form.garment_frente_url || "",
+      garment_espalda_url: selectedGarment?.espalda_url || form.garment_espalda_url || "",
+      garment_titulo: selectedGarment?.titulo || form.garment_titulo || "",
+    };
     let saved;
     if (order?.id) {
       saved = await base44.entities.WorkOrder.update(order.id, data);
@@ -307,12 +320,18 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
         ))}
       </div>
 
-      {/* Simulación de playera */}
-      <div className="rounded-xl border-2 border-blue-200 bg-blue-50/30 px-6 pt-3 pb-4">
+      {/* Selector de prenda + Vista previa */}
+      <div className="rounded-xl border-2 border-blue-200 bg-blue-50/30 px-6 pt-4 pb-5 space-y-4">
+        <GarmentPicker
+          selectedId={selectedGarment?.id || null}
+          onSelect={(g) => setSelectedGarment(g)}
+        />
         <TshirtPreviewInteractive
           posiciones={form.posiciones}
           layout={previewLayout}
           onLayoutChange={setPreviewLayout}
+          frenteUrl={selectedGarment?.frente_url || form.garment_frente_url}
+          espaldaUrl={selectedGarment?.espalda_url || form.garment_espalda_url}
         />
       </div>
 
