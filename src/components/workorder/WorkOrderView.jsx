@@ -195,18 +195,18 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
 
         <div className="px-6 py-4 space-y-4">
 
-          {/* Datos cliente — una sola línea dentro de un recuadro */}
-          <div className="border border-gray-300 rounded px-3 py-1.5 flex flex-wrap items-center gap-x-5 gap-y-0.5" style={{ fontSize: pdfCfg?.fuente_datos_cliente || "11px" }}>
+          {/* Datos cliente — cada uno en su propio rectángulo en una sola línea */}
+          <div className="flex flex-wrap gap-2" style={{ fontSize: pdfCfg?.fuente_datos_cliente || "11px" }}>
             {[
               { label: "Nombre Cliente", value: order.nombre_cliente },
               { label: "Teléfono", value: order.telefono },
               { label: "Agente", value: order.agente_ventas },
               { label: "Fecha Ingreso", value: order.fecha_orden },
             ].map(({ label, value }) => (
-              <span key={label} className="whitespace-nowrap">
-                <span className="text-gray-500 font-semibold uppercase mr-1" style={{ fontSize: "0.75em" }}>{label}:</span>
-                <span className="font-medium text-black">{value || ""}</span>
-              </span>
+              <div key={label} className="border border-gray-300 rounded px-2 py-1 flex-shrink-0">
+                <p className="text-gray-500 font-semibold uppercase" style={{ fontSize: "0.75em" }}>{label}:</p>
+                <p className="font-medium text-black">{value || ""}</p>
+              </div>
             ))}
           </div>
 

@@ -174,57 +174,52 @@ export default function PdfLayoutEditor() {
         <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Tipografía y Layout</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="text-xs font-semibold">Tamaño de fuente base del PDF</label>
-            <select
-              value={cfg.fuente_tamanio}
-              onChange={(e) => set("fuente_tamanio", e.target.value)}
+            <label className="text-xs font-semibold">Tamaño de fuente base del PDF (pts)</label>
+            <input
+              type="number"
+              min="7"
+              max="16"
+              value={parseInt(cfg.fuente_tamanio) || 11}
+              onChange={(e) => set("fuente_tamanio", `${e.target.value}px`)}
               className="w-full border border-input rounded-md px-3 py-1.5 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-ring"
-            >
-              <option value="9px">Pequeña (9px)</option>
-              <option value="10px">Compacta (10px)</option>
-              <option value="11px">Normal (11px)</option>
-              <option value="12px">Grande (12px)</option>
-              <option value="13px">Extra grande (13px)</option>
-            </select>
+              placeholder="11"
+            />
           </div>
           <div className="space-y-1">
-            <label className="text-xs font-semibold">Tamaño de fuente - Datos cliente (Nombre, Teléfono...)</label>
-            <select
-              value={cfg.fuente_datos_cliente}
-              onChange={(e) => set("fuente_datos_cliente", e.target.value)}
+            <label className="text-xs font-semibold">Tamaño de fuente - Datos cliente (pts)</label>
+            <input
+              type="number"
+              min="7"
+              max="14"
+              value={parseInt(cfg.fuente_datos_cliente) || 11}
+              onChange={(e) => set("fuente_datos_cliente", `${e.target.value}px`)}
               className="w-full border border-input rounded-md px-3 py-1.5 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-ring"
-            >
-              <option value="9px">Pequeña (9px)</option>
-              <option value="10px">Compacta (10px)</option>
-              <option value="11px">Normal (11px)</option>
-              <option value="12px">Grande (12px)</option>
-            </select>
+              placeholder="11"
+            />
           </div>
           <div className="space-y-1">
-            <label className="text-xs font-semibold">Tamaño de fuente - Firma del cliente</label>
-            <select
-              value={cfg.fuente_firma}
-              onChange={(e) => set("fuente_firma", e.target.value)}
+            <label className="text-xs font-semibold">Tamaño de fuente - Firma del cliente (pts)</label>
+            <input
+              type="number"
+              min="7"
+              max="12"
+              value={parseInt(cfg.fuente_firma) || 10}
+              onChange={(e) => set("fuente_firma", `${e.target.value}px`)}
               className="w-full border border-input rounded-md px-3 py-1.5 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-ring"
-            >
-              <option value="8px">Muy pequeña (8px)</option>
-              <option value="9px">Pequeña (9px)</option>
-              <option value="10px">Compacta (10px)</option>
-              <option value="11px">Normal (11px)</option>
-            </select>
+              placeholder="10"
+            />
           </div>
           <div className="space-y-1">
-            <label className="text-xs font-semibold">Tamaño de fuente - Leyenda y atención al cliente</label>
-            <select
-              value={cfg.fuente_leyenda}
-              onChange={(e) => set("fuente_leyenda", e.target.value)}
+            <label className="text-xs font-semibold">Tamaño de fuente - Leyenda y atención (pts)</label>
+            <input
+              type="number"
+              min="6"
+              max="11"
+              value={parseInt(cfg.fuente_leyenda) || 9}
+              onChange={(e) => set("fuente_leyenda", `${e.target.value}px`)}
               className="w-full border border-input rounded-md px-3 py-1.5 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-ring"
-            >
-              <option value="7px">Muy pequeña (7px)</option>
-              <option value="8px">Extra pequeña (8px)</option>
-              <option value="9px">Pequeña (9px)</option>
-              <option value="10px">Compacta (10px)</option>
-            </select>
+              placeholder="9"
+            />
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold">Columnas en sección Posiciones</label>
