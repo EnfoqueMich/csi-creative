@@ -165,20 +165,20 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
         {/* Encabezado */}
         {(pdfCfg?.mostrar_encabezado !== false) && (
           <div className="flex items-start justify-between px-6 pt-6 pb-3 border-b-2" style={{ borderColor: pdfCfg?.color_encabezado || "#1e3a8a" }}>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               {cfg.logo_url ? (
-                <img src={cfg.logo_url} alt="Logo" className="h-12 object-contain" />
+                <img src={cfg.logo_url} alt="Logo" className="h-20 object-contain" />
               ) : (
                 <div className="flex items-center gap-1">
-                  <div className="bg-yellow-600 text-white font-black text-xl px-2 py-1 rounded-sm">C</div>
+                  <div className="bg-yellow-600 text-white font-black text-2xl px-2 py-1 rounded-sm">C</div>
                   <div className="flex flex-col leading-none">
-                    <span className="font-black text-sm tracking-widest text-blue-900">CSI</span>
-                    <span className="text-xs tracking-widest text-gray-600 font-semibold">CREATIVE</span>
+                    <span className="font-black text-lg tracking-widest text-blue-900">CSI</span>
+                    <span className="text-sm tracking-widest text-gray-600 font-semibold">CREATIVE</span>
                   </div>
                 </div>
               )}
               {(cfg.empresa_telefono || cfg.empresa_direccion || cfg.empresa_redes) && (
-                <div className="ml-2 text-[9px] text-gray-500 space-y-0.5 leading-tight">
+                <div className="ml-2 text-[11px] text-gray-500 space-y-0.5 leading-tight">
                   {cfg.empresa_telefono && <p>📞 {cfg.empresa_telefono}</p>}
                   {cfg.empresa_direccion && <p>📍 {cfg.empresa_direccion}</p>}
                   {cfg.empresa_redes && <p>🌐 {cfg.empresa_redes}</p>}
