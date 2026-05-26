@@ -367,9 +367,9 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
                 {/* Firma cliente */}
                 <div className="border border-gray-300 rounded p-3 text-center">
                   <div className="border-b border-gray-400 mb-1 mx-4 mt-6" />
-                  <p className="font-semibold text-gray-600 uppercase" style={{ fontSize: pdfCfg?.fuente_firma || "10px" }}>Firma del Cliente</p>
-                  <p style={{ fontSize: pdfCfg?.fuente_leyenda || "9px" }} className="text-gray-400">{cfg.texto_firma_cliente}</p>
-                  <p style={{ fontSize: pdfCfg?.fuente_leyenda || "9px" }} className="text-gray-400 italic mt-1 px-2">{cfg.leyenda_autorizacion}</p>
+                  <p className="font-semibold text-gray-800 uppercase" style={{ fontSize: pdfCfg?.fuente_firma || "10px" }}>{order.nombre_cliente}</p>
+                  <p style={{ fontSize: pdfCfg?.fuente_leyenda || "9px" }} className="text-black">{cfg.texto_firma_cliente}</p>
+                  <p style={{ fontSize: pdfCfg?.fuente_leyenda || "9px" }} className="text-black italic mt-1 px-2">{cfg.leyenda_autorizacion}</p>
                 </div>
                 {/* Firma atención */}
                 <div className="border border-gray-300 rounded p-3 text-center">
