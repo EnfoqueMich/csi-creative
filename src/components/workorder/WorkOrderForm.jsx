@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import TshirtPreviewInteractive, { DEFAULT_LAYOUT } from "./TshirtPreviewInteractive";
 import GarmentPicker from "./GarmentPicker";
 import HiloColorPicker from "./HiloColorPicker";
+import VinilColorPicker from "./VinilColorPicker";
 
 // TshirtPreview removido — ahora en TshirtPreviewInteractive.jsx
 
@@ -482,6 +483,16 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
                   <CheckBox label="Negra" checked={!!pos.bobina_negra} onChange={() => setPosicion(i, "bobina_negra", !pos.bobina_negra)} />
                   <CheckBox label="Blanca" checked={!!pos.bobina_blanca} onChange={() => setPosicion(i, "bobina_blanca", !pos.bobina_blanca)} />
                 </div>
+              </div>
+
+              {/* Vinil Textil por posición */}
+              <div className="border-t border-purple-100 pt-2">
+                <p className="text-[10px] font-bold text-purple-700 uppercase mb-1">Vinil Textil</p>
+                <VinilColorPicker
+                  value={pos.vinil_codigo || ""}
+                  onChange={(val) => setPosicion(i, "vinil_codigo", val)}
+                  placeholder="Código o color vinil..."
+                />
               </div>
 
               {/* Extras por posición — colapsable */}

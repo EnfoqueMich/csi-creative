@@ -1,0 +1,30 @@
+{
+  "name": "VinilTextil",
+  "type": "object",
+  "properties": {
+    "codigo": {
+      "type": "string",
+      "description": "C\u00f3digo del vinil textil"
+    },
+    "color": {
+      "type": "string",
+      "description": "Nombre del color"
+    },
+    "efecto": {
+      "type": "string",
+      "description": "Efecto del vinil (ej: Mate, Brillante, Met\u00e1lico, Glitter)"
+    },
+    "marca": {
+      "type": "string",
+      "description": "Marca del vinil textil"
+    },
+    "hex": {
+      "type": "string",
+      "description": "Color representativo en hexadecimal"
+    }
+  },
+  "required": [
+    "codigo",
+    "color"
+  ]
+}

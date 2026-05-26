@@ -274,6 +274,14 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
                           </div>
                         )}
 
+                        {/* Vinil Textil */}
+                        {pos.vinil_codigo && (
+                          <div className="border-t border-purple-100 pt-1">
+                            <p className="font-bold text-purple-600 uppercase mb-0.5">Vinil Textil</p>
+                            <span className="font-mono font-semibold text-purple-700 text-[10px]">{pos.vinil_codigo}</span>
+                          </div>
+                        )}
+
                         {/* Extras */}
                         {pos.extras && Object.values(pos.extras).some(Boolean) && (
                           <div className="border-t border-orange-100 pt-1">
