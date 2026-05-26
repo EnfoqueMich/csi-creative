@@ -383,45 +383,75 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
 
           {/* Especificaciones — al final */}
           {(pdfCfg?.mostrar_especificaciones !== false) && (
-            <div className="border-2 border-green-500 rounded p-3 space-y-3">
-              <p className="text-xs font-bold text-green-700 text-center uppercase tracking-widest">Prendas que Ingresaron</p>
-              {especificaciones.map((row, idx) => (
-                <div key={idx} className={cn("space-y-1", idx > 0 && "border-t border-green-200 pt-2")}>
-                  {especificaciones.length > 1 && <p className="text-[10px] font-bold text-green-600 uppercase">Modelo {idx + 1}</p>}
-                  <div className="flex items-center gap-2 flex-wrap text-xs">
-                    <div className="border border-gray-400 rounded px-2 py-1 min-w-[80px]">
-                      <p className="text-gray-500 text-[10px] uppercase">Tipo Prenda</p>
-                      <p className="font-semibold">{row.tipo_prenda || ""}</p>
+            <div className="border-2 border-green-600 rounded overflow-hidden space-y-0">
+              <div className="bg-green-700 px-4 py-1.5 text-center">
+                <p className="text-white font-bold text-xs uppercase tracking-widest">Prendas que Ingresaron</p>
+              </div>
+              {especificaciones.map((row, idx) => {
+                const personalizados = row.personalizados || {};
+                const totalPiezas = TALLAS_KEYS.reduce((s, t) => s + (Number(row.tallas?.[t]) || 0), 0);
+                return (
+                  <div key={idx} className={cn("px-4 py-3", idx > 0 && "border-t-2 border-green-300")}>
+                    {/* Cabecera prenda */}
+                    <div className="flex items-center gap-3 flex-wrap mb-3">
+                      {[
+                        { label: "TIPO PRENDA", value: row.tipo_prenda },
+                        { label: "COLOR", value: row.color_prenda },
+                        row.modelo && { label: "MODELO", value: row.modelo },
+                        row.marca && { label: "MARCA", value: row.marca },
+                      ].filter(Boolean).map(({ label, value }) => (
+                        <div key={label} className="border border-gray-400 rounded px-2 py-1 text-center">
+                          <p className="text-[9px] text-gray-500 uppercase">{label}</p>
+                          <p className="text-xs font-bold">{value}</p>
+                        </div>
+                      ))}
+                      <div className="ml-auto border-2 border-green-500 rounded px-3 py-1 text-center">
+                        <p className="text-[9px] text-gray-500 uppercase">Total Piezas</p>
+                        <p className="text-xl font-black text-green-700 leading-none">{totalPiezas}</p>
+                      </div>
                     </div>
-                    <div className="border border-gray-400 rounded px-2 py-1 min-w-[60px]">
-                      <p className="text-gray-500 text-[10px] uppercase">Color</p>
-                      <p className="font-semibold">{row.color_prenda || ""}</p>
-                    </div>
-                    {row.modelo && (
-                      <div className="border border-gray-400 rounded px-2 py-1 min-w-[60px]">
-                        <p className="text-gray-500 text-[10px] uppercase">Modelo</p>
-                        <p className="font-semibold">{row.modelo}</p>
-                      </div>
-                    )}
-                    {row.marca && (
-                      <div className="border border-gray-400 rounded px-2 py-1 min-w-[60px]">
-                        <p className="text-gray-500 text-[10px] uppercase">Marca</p>
-                        <p className="font-semibold">{row.marca}</p>
-                      </div>
-                    )}
-                    {TALLAS_KEYS.map((t, i) => (
-                      <div key={t} className="border border-gray-400 rounded px-2 py-1 w-10 text-center">
-                        <p className="text-gray-500 text-[10px] uppercase">{TALLAS_LABELS[i]}</p>
-                        <p className="font-bold min-h-[16px]">{row.tallas?.[t] || ""}</p>
-                      </div>
-                    ))}
-                    <div className="border-2 border-green-500 rounded px-2 py-1 min-w-[60px] text-center ml-auto">
-                      <p className="text-gray-500 text-[10px] uppercase">Total Piezas</p>
-                      <p className="font-black text-base text-green-700 min-h-[20px]">{row.total_piezas || ""}</p>
+
+                    {/* Tallas con personalizados */}
+                    <div className="space-y-2">
+                      {TALLAS_KEYS.map((t, ti) => {
+                        const cantidad = Number(row.tallas?.[t]) || 0;
+                        if (!cantidad) return null;
+                        const listaP = personalizados[t] || [];
+                        const sinP = cantidad - listaP.length;
+                        return (
+                          <div key={t} className="border border-gray-200 rounded overflow-hidden">
+                            {/* Fila resumen talla */}
+                            <div className="flex items-center gap-3 px-3 py-1.5 bg-gray-50">
+                              <div className="flex flex-col items-center justify-center border border-green-500 rounded w-12 py-0.5 bg-white flex-shrink-0">
+                                <span className="text-[9px] font-bold text-gray-500 uppercase">{TALLAS_LABELS[ti]}</span>
+                                <span className="text-base font-black text-green-700 leading-none">{cantidad}</span>
+                              </div>
+                              <div className="flex flex-col text-[10px] text-gray-600">
+                                {sinP > 0 && <span><strong>{sinP}</strong> tallas {TALLAS_LABELS[ti]} <span className="font-bold text-gray-500">SIN PERSONALIZAR</span></span>}
+                                {listaP.length > 0 && <span><strong className="text-green-700">{listaP.length}</strong> tallas {TALLAS_LABELS[ti]} <span className="font-bold text-green-700">PERSONALIZADAS</span></span>}
+                              </div>
+                            </div>
+                            {/* Personalizados */}
+                            {listaP.map((p, pi) => (
+                              <div key={pi} className="flex items-start gap-2 px-3 py-1.5 border-t border-yellow-200 bg-yellow-50/30">
+                                <div className="flex flex-col items-center justify-center border border-green-400 rounded w-10 py-0.5 bg-white flex-shrink-0">
+                                  <span className="text-[8px] font-bold text-gray-500 uppercase">{TALLAS_LABELS[ti]}</span>
+                                  <span className="text-xs font-black text-green-700">1</span>
+                                </div>
+                                <div className="flex-1 text-[10px] space-y-0.5">
+                                  <p className="font-bold uppercase text-black">{p.nombre}</p>
+                                  {p.color_hilo && <p className="text-gray-600">Color hilo: <span className="font-semibold text-blue-700">{p.color_hilo}</span></p>}
+                                  {p.nota && <p className="text-gray-500 italic">Nota: {p.nota}</p>}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 

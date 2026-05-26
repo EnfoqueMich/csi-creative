@@ -100,6 +100,10 @@
           },
           "total_piezas": {
             "type": "number"
+          },
+          "personalizados": {
+            "type": "object",
+            "description": "Mapa de talla -> lista de personalizados { nombre, color_hilo, nota }"
           }
         }
       }
@@ -138,6 +142,9 @@
           },
           "bobina_blanca": {
             "type": "boolean"
+          },
+          "vinil_codigo": {
+            "type": "string"
           },
           "extras": {
             "type": "object",

@@ -9,6 +9,7 @@ import TshirtPreviewInteractive, { DEFAULT_LAYOUT } from "./TshirtPreviewInterac
 import GarmentPicker from "./GarmentPicker";
 import HiloColorPicker from "./HiloColorPicker";
 import VinilColorPicker from "./VinilColorPicker";
+import EspecRow from "./EspecRow";
 
 // TshirtPreview removido — ahora en TshirtPreviewInteractive.jsx
 
@@ -48,55 +49,7 @@ function CheckBox({ checked, onChange, label }) {
   );
 }
 
-function EspecRow({ row, onChange, onRemove, canRemove }) {
-  return (
-    <div className="border border-green-300 rounded-lg p-3 space-y-2 bg-green-50/30 relative">
-      {canRemove && (
-        <button type="button" onClick={onRemove} className="absolute top-2 right-2 p-0.5 rounded hover:bg-red-100 text-muted-foreground hover:text-destructive transition-colors">
-          <X className="w-3.5 h-3.5" />
-        </button>
-      )}
-      <div className="flex flex-wrap items-end gap-3 pr-6">
-        <div className="space-y-1">
-          <label className="text-xs text-muted-foreground font-medium">Tipo de Prenda</label>
-          <Input value={row.tipo_prenda || ""} onChange={(e) => onChange("tipo_prenda", e.target.value)} placeholder="Playera..." className="w-32" />
-        </div>
-        <div className="space-y-1">
-          <label className="text-xs text-muted-foreground font-medium">Color</label>
-          <Input value={row.color_prenda || ""} onChange={(e) => onChange("color_prenda", e.target.value)} placeholder="Negro..." className="w-28" />
-        </div>
-        <div className="space-y-1">
-          <label className="text-xs text-muted-foreground font-medium">Modelo</label>
-          <Input value={row.modelo || ""} onChange={(e) => onChange("modelo", e.target.value)} placeholder="Modelo..." className="w-28" />
-        </div>
-        <div className="space-y-1">
-          <label className="text-xs text-muted-foreground font-medium">Marca</label>
-          <Input value={row.marca || ""} onChange={(e) => onChange("marca", e.target.value)} placeholder="Marca..." className="w-28" />
-        </div>
-        {TALLAS.map((t) => (
-          <div key={t} className="space-y-1">
-            <label className="text-xs text-muted-foreground font-medium uppercase">{t}</label>
-            <Input
-              type="number" min="0"
-              value={row.tallas?.[t] || ""}
-              onChange={(e) => onChange("tallas", { ...(row.tallas || {}), [t]: Number(e.target.value) || 0 })}
-              className="w-14 text-center"
-            />
-          </div>
-        ))}
-        <div className="space-y-1">
-          <label className="text-xs font-bold text-green-700">Total Piezas</label>
-          <Input
-            type="number" min="0"
-            value={row.total_piezas || ""}
-            onChange={(e) => onChange("total_piezas", Number(e.target.value) || 0)}
-            className="w-24 font-bold text-center border-green-400 border-2"
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
+
 
 
 
@@ -674,16 +627,13 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
       </div>
 
       {/* Especificaciones */}
-      <div className="rounded-xl border-2 border-green-400 bg-card p-5 space-y-3">
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-bold text-green-700 uppercase tracking-widest">Especificaciones</p>
-          <Button type="button" variant="outline" size="sm" onClick={addEspec} className="gap-1 text-green-700 border-green-400 hover:bg-green-50">
-            <Plus className="w-3.5 h-3.5" /> Agregar modelo
-          </Button>
-        </div>
+      <div className="space-y-3">
         {form.especificaciones.map((row, idx) => (
           <EspecRow key={idx} row={row} onChange={(field, value) => updateEspec(idx, field, value)} onRemove={() => removeEspec(idx)} canRemove={form.especificaciones.length > 1} />
         ))}
+        <Button type="button" variant="outline" size="sm" onClick={addEspec} className="gap-1 text-green-700 border-green-400 hover:bg-green-50 w-full">
+          <Plus className="w-3.5 h-3.5" /> Agregar modelo de prenda
+        </Button>
       </div>
 
     </div>
