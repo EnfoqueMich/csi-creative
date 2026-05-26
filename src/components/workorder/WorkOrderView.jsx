@@ -381,89 +381,140 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
             </div>
           )}
 
-          {/* Especificaciones — al final */}
-          {(pdfCfg?.mostrar_especificaciones !== false) && (
-            <div className="border-2 border-green-600 rounded overflow-hidden space-y-0">
+        </div>
+      </div>
+
+      {/* ── HOJA 2: Prendas que Ingresaron ── */}
+      {(pdfCfg?.mostrar_especificaciones !== false) && (
+        <div className="bg-white text-black rounded-xl border border-gray-300 shadow-sm w-full mx-auto mt-6 print:shadow-none print:border-none print:rounded-none print:mt-0" id="orden-print-2">
+
+          {/* Header empresa (igual al principal) */}
+          <div className="flex items-start justify-between px-6 pt-6 pb-3 border-b-2" style={{ borderColor: pdfCfg?.color_encabezado || "#1e3a8a" }}>
+            <div className="flex items-center gap-3">
+              {cfg.logo_url ? (
+                <img src={cfg.logo_url} alt="Logo" className="h-20 object-contain" />
+              ) : (
+                <div className="flex items-center gap-1">
+                  <div className="bg-yellow-600 text-white font-black text-2xl px-2 py-1 rounded-sm">C</div>
+                  <div className="flex flex-col leading-none">
+                    <span className="font-black text-lg tracking-widest text-blue-900">CSI</span>
+                    <span className="text-sm tracking-widest text-gray-600 font-semibold">CREATIVE</span>
+                  </div>
+                </div>
+              )}
+              {(cfg.empresa_telefono || cfg.empresa_direccion || cfg.empresa_redes) && (
+                <div className="ml-2 text-[11px] text-gray-500 space-y-0.5 leading-tight">
+                  {cfg.empresa_telefono && <p>📞 {cfg.empresa_telefono}</p>}
+                  {cfg.empresa_direccion && <p>📍 {cfg.empresa_direccion}</p>}
+                  {cfg.empresa_redes && <p>🌐 {cfg.empresa_redes}</p>}
+                </div>
+              )}
+            </div>
+            <div className="text-right">
+              <p className="text-2xl font-black text-yellow-600 tracking-wider">ORDEN DE TRABAJO</p>
+              <p className="text-xs text-gray-600 font-mono mt-1">No. DOCUMENTO: {pdfCfg?.numero_documento || "CR-FTW-003-V01"}</p>
+              {order.folio && <p className="text-xs text-gray-600 font-mono">{order.folio}</p>}
+            </div>
+          </div>
+
+          {/* Datos del cliente */}
+          <div className="px-6 pt-3 pb-2 flex flex-wrap gap-2 border-b border-gray-200">
+            {[
+              { label: "NOMBRE CLIENTE", value: order.nombre_cliente },
+              { label: "TELÉFONO", value: order.telefono },
+              { label: "AGENTE", value: order.agente_ventas },
+              { label: "FECHA INGRESO", value: order.fecha_orden },
+            ].map(({ label, value }) => value ? (
+              <div key={label} className="border-2 rounded-lg px-3 py-1 text-center flex-shrink-0" style={{ borderColor: "#FFA500" }}>
+                <p className="font-bold text-black text-xs"><span className="font-semibold uppercase">{label}:</span> {value}</p>
+              </div>
+            ) : null)}
+          </div>
+
+          {/* Modelos en grid 2 columnas */}
+          <div className="px-4 py-4">
+            <div className="border-2 border-green-600 rounded overflow-hidden">
               <div className="bg-green-700 px-4 py-1.5 text-center">
                 <p className="text-white font-bold text-xs uppercase tracking-widest">Prendas que Ingresaron</p>
               </div>
-              {especificaciones.map((row, idx) => {
-                const personalizados = row.personalizados || {};
-                const totalPiezas = TALLAS_KEYS.reduce((s, t) => s + (Number(row.tallas?.[t]) || 0), 0);
-                return (
-                  <div key={idx} className={cn("px-4 py-3", idx > 0 && "border-t-2 border-green-300")}>
-                    {/* Cabecera prenda */}
-                    <div className="flex items-center gap-3 flex-wrap mb-3">
-                      {[
-                        { label: "TIPO PRENDA", value: row.tipo_prenda },
-                        { label: "COLOR", value: row.color_prenda },
-                        row.modelo && { label: "MODELO", value: row.modelo },
-                        row.marca && { label: "MARCA", value: row.marca },
-                      ].filter(Boolean).map(({ label, value }) => (
-                        <div key={label} className="border border-gray-400 rounded px-2 py-1 text-center">
-                          <p className="text-[9px] text-gray-500 uppercase">{label}</p>
-                          <p className="text-xs font-bold">{value}</p>
+              <div className="grid grid-cols-2 divide-x-2 divide-green-300">
+                {especificaciones.map((row, idx) => {
+                  const personalizados = row.personalizados || {};
+                  const totalPiezas = TALLAS_KEYS.reduce((s, t) => s + (Number(row.tallas?.[t]) || 0), 0);
+                  return (
+                    <div key={idx} className={cn("px-3 py-3", idx >= 2 && "border-t-2 border-green-300")}>
+                      {/* Cabecera prenda */}
+                      <div className="flex items-center gap-2 flex-wrap mb-2">
+                        {[
+                          { label: "TIPO PRENDA", value: row.tipo_prenda },
+                          { label: "COLOR", value: row.color_prenda },
+                          row.modelo && { label: "MODELO", value: row.modelo },
+                          row.marca && { label: "MARCA", value: row.marca },
+                        ].filter(Boolean).map(({ label, value }) => (
+                          <div key={label} className="border border-gray-400 rounded px-1.5 py-0.5 text-center">
+                            <p className="text-[8px] text-gray-500 uppercase">{label}</p>
+                            <p className="text-[10px] font-bold">{value}</p>
+                          </div>
+                        ))}
+                        <div className="ml-auto border-2 border-green-500 rounded px-2 py-0.5 text-center">
+                          <p className="text-[8px] text-gray-500 uppercase">Total Piezas</p>
+                          <p className="text-lg font-black text-green-700 leading-none">{totalPiezas}</p>
                         </div>
-                      ))}
-                      <div className="ml-auto border-2 border-green-500 rounded px-3 py-1 text-center">
-                        <p className="text-[9px] text-gray-500 uppercase">Total Piezas</p>
-                        <p className="text-xl font-black text-green-700 leading-none">{totalPiezas}</p>
+                      </div>
+
+                      {/* Tallas con personalizados */}
+                      <div className="space-y-1.5">
+                        {TALLAS_KEYS.map((t, ti) => {
+                          const cantidad = Number(row.tallas?.[t]) || 0;
+                          if (!cantidad) return null;
+                          const listaP = personalizados[t] || [];
+                          const sinP = cantidad - listaP.length;
+                          return (
+                            <div key={t} className="border border-gray-200 rounded overflow-hidden">
+                              <div className="flex items-center gap-2 px-2 py-1 bg-gray-50">
+                                <div className="flex flex-col items-center justify-center border border-green-500 rounded w-11 py-0.5 bg-white flex-shrink-0">
+                                  <span className="text-[8px] font-bold text-gray-500 uppercase">{TALLAS_LABELS[ti]}</span>
+                                  <span className="text-sm font-black text-green-700 leading-none">{cantidad}</span>
+                                </div>
+                                <div className="flex flex-col text-[9px] text-gray-600">
+                                  {sinP > 0 && <span><strong>{sinP}</strong> tallas {TALLAS_LABELS[ti]} <span className="font-bold text-gray-500">SIN PERSONALIZAR</span></span>}
+                                  {listaP.length > 0 && <span><strong className="text-green-700">{listaP.length}</strong> tallas {TALLAS_LABELS[ti]} <span className="font-bold text-green-700">PERSONALIZADAS</span></span>}
+                                </div>
+                              </div>
+                              {listaP.map((p, pi) => (
+                                <div key={pi} className="flex items-start gap-1.5 px-2 py-1 border-t border-yellow-200 bg-yellow-50/30">
+                                  <div className="flex flex-col items-center justify-center border border-green-400 rounded w-9 py-0.5 bg-white flex-shrink-0">
+                                    <span className="text-[7px] font-bold text-gray-500 uppercase">{TALLAS_LABELS[ti]}</span>
+                                    <span className="text-[10px] font-black text-green-700">1</span>
+                                  </div>
+                                  <div className="flex-1 text-[9px] space-y-0.5">
+                                    <p className="font-bold uppercase text-black">{p.nombre}</p>
+                                    {p.color_hilo && <p className="text-gray-600">Hilo: <span className="font-semibold text-blue-700">{p.color_hilo}</span></p>}
+                                    {p.nota && <p className="text-gray-500 italic">Nota: {p.nota}</p>}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
-
-                    {/* Tallas con personalizados */}
-                    <div className="space-y-2">
-                      {TALLAS_KEYS.map((t, ti) => {
-                        const cantidad = Number(row.tallas?.[t]) || 0;
-                        if (!cantidad) return null;
-                        const listaP = personalizados[t] || [];
-                        const sinP = cantidad - listaP.length;
-                        return (
-                          <div key={t} className="border border-gray-200 rounded overflow-hidden">
-                            {/* Fila resumen talla */}
-                            <div className="flex items-center gap-3 px-3 py-1.5 bg-gray-50">
-                              <div className="flex flex-col items-center justify-center border border-green-500 rounded w-12 py-0.5 bg-white flex-shrink-0">
-                                <span className="text-[9px] font-bold text-gray-500 uppercase">{TALLAS_LABELS[ti]}</span>
-                                <span className="text-base font-black text-green-700 leading-none">{cantidad}</span>
-                              </div>
-                              <div className="flex flex-col text-[10px] text-gray-600">
-                                {sinP > 0 && <span><strong>{sinP}</strong> tallas {TALLAS_LABELS[ti]} <span className="font-bold text-gray-500">SIN PERSONALIZAR</span></span>}
-                                {listaP.length > 0 && <span><strong className="text-green-700">{listaP.length}</strong> tallas {TALLAS_LABELS[ti]} <span className="font-bold text-green-700">PERSONALIZADAS</span></span>}
-                              </div>
-                            </div>
-                            {/* Personalizados */}
-                            {listaP.map((p, pi) => (
-                              <div key={pi} className="flex items-start gap-2 px-3 py-1.5 border-t border-yellow-200 bg-yellow-50/30">
-                                <div className="flex flex-col items-center justify-center border border-green-400 rounded w-10 py-0.5 bg-white flex-shrink-0">
-                                  <span className="text-[8px] font-bold text-gray-500 uppercase">{TALLAS_LABELS[ti]}</span>
-                                  <span className="text-xs font-black text-green-700">1</span>
-                                </div>
-                                <div className="flex-1 text-[10px] space-y-0.5">
-                                  <p className="font-bold uppercase text-black">{p.nombre}</p>
-                                  {p.color_hilo && <p className="text-gray-600">Color hilo: <span className="font-semibold text-blue-700">{p.color_hilo}</span></p>}
-                                  {p.nota && <p className="text-gray-500 italic">Nota: {p.nota}</p>}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          )}
-
+          </div>
         </div>
-      </div>
+      )}
 
       <style>{`
         @media print {
           @page { size: letter portrait; margin: 10mm; }
           body * { visibility: hidden; }
           #orden-print, #orden-print * { visibility: visible; }
+          #orden-print-2, #orden-print-2 * { visibility: visible; }
           #orden-print { position: absolute; left: 0; top: 0; width: 100%; max-width: 100%; font-size: 11px; }
+          #orden-print-2 { position: relative; width: 100%; max-width: 100%; font-size: 11px; page-break-before: always; margin-top: 0; }
         }
       `}</style>
     </>
