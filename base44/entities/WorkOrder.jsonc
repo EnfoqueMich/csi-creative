@@ -8,6 +8,10 @@
     "nombre_cliente": {
       "type": "string"
     },
+    "cliente_id": {
+      "type": "string",
+      "description": "ID del cliente registrado"
+    },
     "agente_ventas": {
       "type": "string"
     },
@@ -17,6 +21,29 @@
     },
     "telefono": {
       "type": "string"
+    },
+    "rfc": {
+      "type": "string"
+    },
+    "cp": {
+      "type": "string"
+    },
+    "tipo_regimen": {
+      "type": "string"
+    },
+    "uso_factura": {
+      "type": "string"
+    },
+    "requiere_factura": {
+      "type": "boolean",
+      "default": false
+    },
+    "forma_pago": {
+      "type": "string",
+      "enum": [
+        "Efectivo",
+        "Transferencia"
+      ]
     },
     "observaciones": {
       "type": "string"
@@ -127,8 +154,7 @@
       }
     },
     "preview_layout": {
-      "type": "object",
-      "description": "Layout guardado de posiciones de logotipos en la vista de playera"
+      "type": "object"
     },
     "garment_frente_url": {
       "type": "string"
@@ -140,8 +166,7 @@
       "type": "string"
     },
     "garment_es_gorra": {
-      "type": "boolean",
-      "description": "Si la prenda es una gorra (4 vistas)"
+      "type": "boolean"
     },
     "garment_lateral_izq_url": {
       "type": "string"

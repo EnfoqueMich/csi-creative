@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Save, ArrowLeft, Loader2, Plus, X, ImagePlus, ChevronDown } from "lucide-react";
+import { Save, ArrowLeft, Loader2, Plus, X, ImagePlus, ChevronDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import TshirtPreviewInteractive, { DEFAULT_LAYOUT } from "./TshirtPreviewInteractive";
 import GarmentPicker from "./GarmentPicker";
@@ -137,7 +137,78 @@ const emptyOrder = () => ({
   especificaciones: [emptyEspec()],
   posiciones: [],
   estado: "borrador",
+  cliente_id: "",
+  rfc: "",
+  cp: "",
+  tipo_regimen: "",
+  uso_factura: "",
+  requiere_factura: false,
+  forma_pago: "",
 });
+
+// ─── Client Autocomplete ───────────────────────────────────────────────────────
+function ClientSearch({ value, onSelect }) {
+  const [query, setQuery] = useState(value || "");
+  const [clients, setClients] = useState([]);
+  const [results, setResults] = useState([]);
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    base44.entities.Client.list("nombre", 200).then(setClients);
+  }, []);
+
+  useEffect(() => {
+    if (!query.trim()) { setResults([]); return; }
+    const q = query.toLowerCase();
+    setResults(clients.filter(c =>
+      c.nombre?.toLowerCase().includes(q) ||
+      c.rfc?.toLowerCase().includes(q) ||
+      c.folio_id?.toLowerCase().includes(q)
+    ).slice(0, 6));
+  }, [query, clients]);
+
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const handleSelect = (client) => {
+    setQuery(client.nombre);
+    setOpen(false);
+    onSelect(client);
+  };
+
+  return (
+    <div className="relative" ref={ref}>
+      <div className="relative">
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+        <Input
+          value={query}
+          onChange={e => { setQuery(e.target.value); setOpen(true); if (!e.target.value) onSelect(null); }}
+          onFocus={() => setOpen(true)}
+          placeholder="Buscar cliente por nombre, RFC o ID..."
+          className="h-8 text-xs pl-8"
+        />
+      </div>
+      {open && results.length > 0 && (
+        <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-popover border border-border rounded-lg shadow-lg overflow-hidden">
+          {results.map(c => (
+            <button key={c.id} type="button" onClick={() => handleSelect(c)}
+              className="w-full text-left px-3 py-2 hover:bg-muted transition-colors flex items-center gap-3"
+            >
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold truncate">{c.nombre}</p>
+                <p className="text-[10px] text-muted-foreground">{c.folio_id} {c.rfc ? `· RFC: ${c.rfc}` : ""}</p>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function WorkOrderForm({ order, onSave, onCancel }) {
   const [form, setForm] = useState(() => {
@@ -349,6 +420,28 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
 
       {/* Encabezado cliente */}
       <div className="rounded-xl border-2 border-blue-300 bg-card p-4 space-y-3">
+        {/* Buscador de cliente */}
+        <div className="space-y-0.5">
+          <label className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">Buscar Cliente</label>
+          <ClientSearch
+            value={form.nombre_cliente}
+            onSelect={(client) => {
+              if (!client) return;
+              setForm(prev => ({
+                ...prev,
+                nombre_cliente: client.nombre,
+                cliente_id: client.id,
+                rfc: client.rfc || "",
+                cp: client.cp || "",
+                tipo_regimen: client.tipo_regimen || "",
+                uso_factura: client.uso_factura || "",
+                telefono: prev.telefono || client.tel_celular || "",
+              }));
+            }}
+          />
+        </div>
+
+        {/* Fila 1: datos básicos */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="space-y-0.5">
             <label className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">Nombre Cliente</label>
@@ -365,6 +458,64 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
           <div className="space-y-0.5">
             <label className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">Fecha de Orden</label>
             <Input type="date" value={form.fecha_orden} onChange={(e) => set("fecha_orden", e.target.value)} className="h-8 text-xs" />
+          </div>
+        </div>
+
+        {/* Fila 2: datos fiscales */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="space-y-0.5">
+            <label className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">RFC</label>
+            <Input value={form.rfc || ""} onChange={(e) => set("rfc", e.target.value.toUpperCase())} placeholder="RFC..." className="h-8 text-xs font-mono" />
+          </div>
+          <div className="space-y-0.5">
+            <label className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">C.P.</label>
+            <Input value={form.cp || ""} onChange={(e) => set("cp", e.target.value)} placeholder="C.P..." className="h-8 text-xs" maxLength={5} />
+          </div>
+          <div className="space-y-0.5 md:col-span-2">
+            <label className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">Régimen Fiscal</label>
+            <Input value={form.tipo_regimen || ""} onChange={(e) => set("tipo_regimen", e.target.value)} placeholder="Régimen fiscal..." className="h-8 text-xs" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="space-y-0.5">
+            <label className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">Uso de Factura (CFDI)</label>
+            <Input value={form.uso_factura || ""} onChange={(e) => set("uso_factura", e.target.value)} placeholder="Uso de CFDI..." className="h-8 text-xs" />
+          </div>
+          {/* Requiere Factura + Forma de Pago */}
+          <div className="flex gap-4 items-end">
+            <div className="space-y-0.5 flex-1">
+              <label className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">Requiere Factura</label>
+              <div className="flex gap-2">
+                {[["true", "Sí"], ["false", "No"]].map(([val, lbl]) => (
+                  <button key={val} type="button"
+                    onClick={() => set("requiere_factura", val === "true")}
+                    className={cn(
+                      "flex-1 h-8 text-xs font-semibold rounded-md border-2 transition-all",
+                      String(form.requiere_factura) === val
+                        ? "bg-blue-600 border-blue-600 text-white"
+                        : "bg-card border-border text-muted-foreground hover:border-blue-300"
+                    )}
+                  >{lbl}</button>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-0.5 flex-1">
+              <label className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">Forma de Pago</label>
+              <div className="flex gap-2">
+                {["Efectivo", "Transferencia"].map((op) => (
+                  <button key={op} type="button"
+                    onClick={() => set("forma_pago", op)}
+                    className={cn(
+                      "flex-1 h-8 text-xs font-semibold rounded-md border-2 transition-all",
+                      form.forma_pago === op
+                        ? "bg-blue-600 border-blue-600 text-white"
+                        : "bg-card border-border text-muted-foreground hover:border-blue-300"
+                    )}
+                  >{op}</button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>
