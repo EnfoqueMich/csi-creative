@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Search, Loader2, FolderOpen, Trash2, ChevronDown, ChevronRight, Tag } from "lucide-react";
+import { Plus, Search, Loader2, FolderOpen, Trash2, ChevronDown, ChevronRight, Tag, Check, X, Pencil } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
@@ -8,6 +8,113 @@ import StatusBadge from "../components/project/StatusBadge";
 import DashboardHeader from "../components/DashboardHeader";
 import ProductionOrderPanel from "../components/dashboard/ProductionOrderPanel";
 import moment from "moment";
+
+const CAT_COLORS = ["#6366f1", "#f59e0b", "#10b981", "#ef4444", "#3b82f6", "#8b5cf6", "#ec4899", "#14b8a6", "#f97316", "#64748b"];
+
+function CategoriesSection({ categories, onCategoriesChange }) {
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({ nombre: "", color: CAT_COLORS[0], descripcion: "" });
+  const [editing, setEditing] = useState(null);
+  const [saving, setSaving] = useState(false);
+
+  const load = async () => {
+    const data = await base44.entities.Category.list("nombre");
+    onCategoriesChange(data);
+  };
+
+  const handleSave = async () => {
+    if (!form.nombre.trim()) return;
+    setSaving(true);
+    if (editing) { await base44.entities.Category.update(editing.id, form); }
+    else { await base44.entities.Category.create(form); }
+    setForm({ nombre: "", color: CAT_COLORS[0], descripcion: "" });
+    setEditing(null);
+    await load();
+    setSaving(false);
+  };
+
+  const handleEdit = (cat) => {
+    setEditing(cat);
+    setForm({ nombre: cat.nombre, color: cat.color || CAT_COLORS[0], descripcion: cat.descripcion || "" });
+    setOpen(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm("¿Eliminar esta categoría?")) return;
+    onCategoriesChange((prev) => prev.filter((c) => c.id !== id));
+    await base44.entities.Category.delete(id);
+    await load();
+  };
+
+  const handleCancel = () => { setEditing(null); setForm({ nombre: "", color: CAT_COLORS[0], descripcion: "" }); };
+
+  return (
+    <div className="bg-card rounded-xl border border-border overflow-hidden">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center gap-3 px-5 py-3 bg-muted/40 hover:bg-muted/60 transition-colors text-left"
+      >
+        <Tag className="w-4 h-4 text-muted-foreground" />
+        <span className="text-sm font-semibold flex-1">Categorías</span>
+        <span className="text-xs text-muted-foreground font-mono mr-2">{categories.length} categoría(s)</span>
+        {open ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
+      </button>
+      {open && (
+        <div className="p-4 space-y-4 border-t border-border">
+          {/* Form */}
+          <div className="bg-muted/20 rounded-lg border border-border p-4 space-y-3 max-w-lg">
+            <p className="text-sm font-semibold">{editing ? "Editar categoría" : "Nueva categoría"}</p>
+            <Input
+              placeholder="Nombre de la categoría..."
+              value={form.nombre}
+              onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+              onKeyDown={(e) => e.key === "Enter" && handleSave()}
+            />
+            <div className="flex gap-2 flex-wrap">
+              {CAT_COLORS.map((c) => (
+                <button key={c} type="button" onClick={() => setForm({ ...form, color: c })}
+                  className="w-6 h-6 rounded-full border-2 transition-all"
+                  style={{ backgroundColor: c, borderColor: form.color === c ? "#000" : "transparent" }}
+                />
+              ))}
+            </div>
+            <Input
+              placeholder="Descripción (opcional)..."
+              value={form.descripcion}
+              onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
+            />
+            <div className="flex gap-2">
+              <Button size="sm" onClick={handleSave} disabled={saving || !form.nombre.trim()} className="gap-1.5">
+                <Check className="w-3.5 h-3.5" />{editing ? "Actualizar" : "Crear"}
+              </Button>
+              {editing && (
+                <Button size="sm" variant="outline" onClick={handleCancel}><X className="w-3.5 h-3.5 mr-1" />Cancelar</Button>
+              )}
+            </div>
+          </div>
+          {/* List */}
+          <div className="space-y-2">
+            {categories.map((cat) => (
+              <div key={cat.id} className="flex items-center justify-between gap-3 p-3 bg-card rounded-lg border border-border group">
+                <div className="flex items-center gap-3">
+                  <div className="w-3.5 h-3.5 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color || "#64748b" }} />
+                  <div>
+                    <p className="text-sm font-semibold">{cat.nombre}</p>
+                    {cat.descripcion && <p className="text-xs text-muted-foreground">{cat.descripcion}</p>}
+                  </div>
+                </div>
+                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button onClick={() => handleEdit(cat)} className="p-1.5 hover:text-primary rounded-lg hover:bg-muted transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => handleDelete(cat.id)} className="p-1.5 hover:text-destructive rounded-lg hover:bg-red-50 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function formatDuration(start, end) {
   if (!start || !end) return null;
@@ -117,6 +224,7 @@ export default function Dashboard() {
   }, []);
 
   const handleDelete = (id) => setProjects((prev) => prev.filter((p) => p.id !== id));
+  const handleCategoriesChange = (data) => setCategories(typeof data === "function" ? data : data);
 
   const filtered = projects
     .filter((p) => {
@@ -213,6 +321,9 @@ export default function Dashboard() {
           className="pl-10"
         />
       </div>
+
+      {/* Categorías */}
+      {!loading && <CategoriesSection categories={categories} onCategoriesChange={handleCategoriesChange} />}
 
       {/* Production Order */}
       {!loading && <ProductionOrderPanel projects={projects} />}

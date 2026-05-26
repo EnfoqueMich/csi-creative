@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
-import { TrendingUp, ChevronLeft, ChevronRight } from "lucide-react";
+import { TrendingUp, ChevronLeft, ChevronRight, DollarSign, Save, Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
 import moment from "moment";
 import "moment/locale/es";
@@ -7,6 +9,95 @@ import "moment/locale/es";
 moment.locale("es");
 
 const fmt$ = (n) => `$${n.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+function PriceRow({ label, unit, field, value, onChange }) {
+  return (
+    <div className="flex items-center justify-between gap-4 py-2.5 border-b border-border last:border-0">
+      <div>
+        <p className="text-sm font-medium text-foreground">{label}</p>
+        <p className="text-xs text-muted-foreground">{unit}</p>
+      </div>
+      <div className="relative w-32">
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
+        <Input
+          type="number"
+          placeholder="0.000"
+          step="0.001"
+          min="0"
+          value={value || ""}
+          onChange={(e) => onChange(field, Number(e.target.value))}
+          className="font-mono pl-7 text-right h-8 text-sm"
+        />
+      </div>
+    </div>
+  );
+}
+
+function PricesSection() {
+  const [prices, setPrices] = useState({});
+  const [recordId, setRecordId] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    base44.entities.PriceSettings.list().then((data) => {
+      if (data.length > 0) { setRecordId(data[0].id); setPrices(data[0]); }
+      setLoading(false);
+    });
+  }, []);
+
+  const handleChange = (field, value) => setPrices((prev) => ({ ...prev, [field]: value }));
+
+  const handleSave = async () => {
+    setSaving(true);
+    const { id, created_date, updated_date, created_by, ...data } = prices;
+    if (recordId) { await base44.entities.PriceSettings.update(recordId, data); }
+    else { const created = await base44.entities.PriceSettings.create(data); setRecordId(created.id); }
+    setSaving(false);
+  };
+
+  return (
+    <div className="border-t border-border mt-4 pt-4">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors w-full text-left"
+      >
+        <DollarSign className="w-4 h-4" />
+        Precios Unitarios
+        <ChevronLeft className={`w-3.5 h-3.5 ml-auto transition-transform ${open ? "-rotate-90" : "rotate-180"}`} />
+      </button>
+      {open && (
+        <div className="mt-3 space-y-3">
+          {loading ? (
+            <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>
+          ) : (
+            <>
+              <div className="bg-card rounded-lg border border-border p-4">
+                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Materiales</p>
+                <PriceRow label="Hilo" unit="por metro" field="precio_hilo_m" value={prices.precio_hilo_m} onChange={handleChange} />
+                <PriceRow label="Bobina" unit="por metro" field="precio_bobina_m" value={prices.precio_bobina_m} onChange={handleChange} />
+                <PriceRow label="Tatami" unit="por cm²" field="precio_tatami_cm2" value={prices.precio_tatami_cm2} onChange={handleChange} />
+                <PriceRow label="Tela Canasta" unit="por cm²" field="precio_tela_canasta_cm2" value={prices.precio_tela_canasta_cm2} onChange={handleChange} />
+                <PriceRow label="Tela Scrap" unit="por cm²" field="precio_tela_scrap_cm2" value={prices.precio_tela_scrap_cm2} onChange={handleChange} />
+                <PriceRow label="Velcro" unit="por cm²" field="precio_velcro_cm2" value={prices.precio_velcro_cm2} onChange={handleChange} />
+              </div>
+              <div className="bg-card rounded-lg border border-border p-4">
+                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Mano de Obra</p>
+                <PriceRow label="Bordado" unit="por minuto" field="precio_minuto_bordado" value={prices.precio_minuto_bordado} onChange={handleChange} />
+                <PriceRow label="Diseño Gráfico" unit="por hora" field="precio_hora_diseno" value={prices.precio_hora_diseno} onChange={handleChange} />
+              </div>
+              <Button onClick={handleSave} disabled={saving} className="gap-2 w-full" size="sm">
+                {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                {saving ? "Guardando..." : "Guardar Precios"}
+              </Button>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function StatBox({ label, value, unit, money }) {
   return (
@@ -149,6 +240,7 @@ export default function MonthlyScrapPanel() {
             )}
           </>
         )}
+        <PricesSection />
       </div>
     </div>
   );
