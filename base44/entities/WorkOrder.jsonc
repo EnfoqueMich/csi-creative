@@ -89,6 +89,12 @@
           "color_prenda": {
             "type": "string"
           },
+          "modelo": {
+            "type": "string"
+          },
+          "marca": {
+            "type": "string"
+          },
           "tallas": {
             "type": "object"
           },

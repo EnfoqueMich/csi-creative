@@ -361,6 +361,18 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
                       <p className="text-gray-500 text-[10px] uppercase">Color</p>
                       <p className="font-semibold">{row.color_prenda || ""}</p>
                     </div>
+                    {row.modelo && (
+                      <div className="border border-gray-400 rounded px-2 py-1 min-w-[60px]">
+                        <p className="text-gray-500 text-[10px] uppercase">Modelo</p>
+                        <p className="font-semibold">{row.modelo}</p>
+                      </div>
+                    )}
+                    {row.marca && (
+                      <div className="border border-gray-400 rounded px-2 py-1 min-w-[60px]">
+                        <p className="text-gray-500 text-[10px] uppercase">Marca</p>
+                        <p className="font-semibold">{row.marca}</p>
+                      </div>
+                    )}
                     {TALLAS_KEYS.map((t, i) => (
                       <div key={t} className="border border-gray-400 rounded px-2 py-1 w-10 text-center">
                         <p className="text-gray-500 text-[10px] uppercase">{TALLAS_LABELS[i]}</p>
