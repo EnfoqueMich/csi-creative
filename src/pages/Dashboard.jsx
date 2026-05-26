@@ -7,6 +7,7 @@ import { base44 } from "@/api/base44Client";
 import StatusBadge from "../components/project/StatusBadge";
 import DashboardHeader from "../components/DashboardHeader";
 import ProductionOrderPanel from "../components/dashboard/ProductionOrderPanel";
+import MonthlyScrapPanel from "../components/MonthlyScrapPanel";
 import moment from "moment";
 
 const CAT_COLORS = ["#6366f1", "#f59e0b", "#10b981", "#ef4444", "#3b82f6", "#8b5cf6", "#ec4899", "#14b8a6", "#f97316", "#64748b"];
@@ -324,6 +325,9 @@ export default function Dashboard() {
 
       {/* Categorías */}
       {!loading && <CategoriesSection categories={categories} onCategoriesChange={handleCategoriesChange} />}
+
+      {/* Scrap del Mes + Precios */}
+      {!loading && <MonthlyScrapPanel />}
 
       {/* Production Order */}
       {!loading && <ProductionOrderPanel projects={projects} />}
