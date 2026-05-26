@@ -39,6 +39,7 @@ function GarmentForm({ garment, onSaved, onCancel }) {
   const [titulo, setTitulo] = useState(garment?.titulo || "");
   const [modelo, setModelo] = useState(garment?.modelo || "");
   const [marca, setMarca] = useState(garment?.marca || "");
+  const [color, setColor] = useState(garment?.color || "");
   const [esGorra, setEsGorra] = useState(garment?.es_gorra || false);
   const [urls, setUrls] = useState({
     frente: garment?.frente_url || "",
@@ -67,6 +68,7 @@ function GarmentForm({ garment, onSaved, onCancel }) {
       titulo: titulo.trim(),
       modelo: modelo.trim(),
       marca: marca.trim(),
+      color: color.trim(),
       es_gorra: esGorra,
       frente_url: urls.frente || DEFAULT_FRENTE,
       espalda_url: urls.espalda || DEFAULT_ESPALDA,
@@ -88,9 +90,10 @@ function GarmentForm({ garment, onSaved, onCancel }) {
     <div className="border-2 border-blue-300 rounded-lg p-3 space-y-3 bg-blue-50/40">
       <p className="text-xs font-bold text-blue-700 uppercase">{garment ? "Editar prenda" : "Nueva prenda"}</p>
       <Input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Nombre (ej: Playera, Chamarra...)" className="text-sm" />
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-3 gap-2">
         <Input value={modelo} onChange={(e) => setModelo(e.target.value)} placeholder="Modelo" className="text-sm" />
         <Input value={marca} onChange={(e) => setMarca(e.target.value)} placeholder="Marca" className="text-sm" />
+        <Input value={color} onChange={(e) => setColor(e.target.value)} placeholder="Color" className="text-sm" />
       </div>
 
       {/* Toggle es gorra */}
@@ -218,8 +221,9 @@ export default function GarmentPicker({ selectedId, onSelect }) {
            if (!search) return true;
            const searchLower = search.toLowerCase();
            return (g.titulo?.toLowerCase().includes(searchLower) ||
-                   g.modelo?.toLowerCase().includes(searchLower) ||
-                   g.marca?.toLowerCase().includes(searchLower));
+                    g.modelo?.toLowerCase().includes(searchLower) ||
+                    g.marca?.toLowerCase().includes(searchLower) ||
+                    g.color?.toLowerCase().includes(searchLower));
           }).map((g) => (
             <button
               key={g.id}

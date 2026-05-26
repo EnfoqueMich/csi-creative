@@ -14,6 +14,10 @@
       "type": "string",
       "description": "Marca de la prenda"
     },
+    "color": {
+      "type": "string",
+      "description": "Color de la prenda"
+    },
     "frente_url": {
       "type": "string",
       "description": "URL de la imagen frontal de la prenda"
