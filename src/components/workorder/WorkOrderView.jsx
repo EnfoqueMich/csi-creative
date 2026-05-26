@@ -324,7 +324,28 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
             </div>
           )}
 
-          {/* Especificaciones */}
+          {/* Firmas */}
+          {(pdfCfg?.mostrar_firma !== false) && (
+            <div className="space-y-2 mt-2">
+              <div className="grid grid-cols-2 gap-4">
+                {/* Firma cliente */}
+                <div className="border border-gray-300 rounded p-3 text-center">
+                  <div className="border-b border-gray-400 mb-1 mx-4 mt-6" />
+                  <p className="font-semibold text-gray-600 uppercase" style={{ fontSize: pdfCfg?.fuente_firma || "10px" }}>Firma del Cliente</p>
+                  <p style={{ fontSize: pdfCfg?.fuente_leyenda || "9px" }} className="text-gray-400">{cfg.texto_firma_cliente}</p>
+                  <p style={{ fontSize: pdfCfg?.fuente_leyenda || "9px" }} className="text-gray-400 italic mt-1 px-2">{cfg.leyenda_autorizacion}</p>
+                </div>
+                {/* Firma atención */}
+                <div className="border border-gray-300 rounded p-3 text-center">
+                  <div className="border-b border-gray-400 mb-1 mx-4 mt-6" />
+                  <p className="font-semibold text-gray-700" style={{ fontSize: pdfCfg?.fuente_firma || "10px" }}>{cfg.atencion_nombre}</p>
+                  <p style={{ fontSize: pdfCfg?.fuente_leyenda || "9px" }} className="text-gray-500">{cfg.atencion_puesto}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Especificaciones — al final */}
           {(pdfCfg?.mostrar_especificaciones !== false) && (
             <div className="border-2 border-green-500 rounded p-3 space-y-3">
               <p className="text-xs font-bold text-green-700 text-center uppercase tracking-widest">Prendas que Ingresaron</p>
@@ -353,27 +374,6 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
                   </div>
                 </div>
               ))}
-            </div>
-          )}
-
-          {/* Firmas */}
-          {(pdfCfg?.mostrar_firma !== false) && (
-            <div className="space-y-2 mt-2">
-              <div className="grid grid-cols-2 gap-4">
-                {/* Firma cliente */}
-                <div className="border border-gray-300 rounded p-3 text-center">
-                  <div className="border-b border-gray-400 mb-1 mx-4 mt-6" />
-                  <p className="font-semibold text-gray-600 uppercase" style={{ fontSize: pdfCfg?.fuente_firma || "10px" }}>Firma del Cliente</p>
-                  <p style={{ fontSize: pdfCfg?.fuente_leyenda || "9px" }} className="text-gray-400">{cfg.texto_firma_cliente}</p>
-                  <p style={{ fontSize: pdfCfg?.fuente_leyenda || "9px" }} className="text-gray-400 italic mt-1 px-2">{cfg.leyenda_autorizacion}</p>
-                </div>
-                {/* Firma atención */}
-                <div className="border border-gray-300 rounded p-3 text-center">
-                  <div className="border-b border-gray-400 mb-1 mx-4 mt-6" />
-                  <p className="font-semibold text-gray-700" style={{ fontSize: pdfCfg?.fuente_firma || "10px" }}>{cfg.atencion_nombre}</p>
-                  <p style={{ fontSize: pdfCfg?.fuente_leyenda || "9px" }} className="text-gray-500">{cfg.atencion_puesto}</p>
-                </div>
-              </div>
             </div>
           )}
 
