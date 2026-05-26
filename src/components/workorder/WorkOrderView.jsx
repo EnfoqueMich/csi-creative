@@ -195,18 +195,54 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
 
         <div className="px-6 py-4 space-y-4">
 
-          {/* Datos cliente — cada uno en su propio rectángulo naranja en una sola línea */}
-          <div className="flex flex-nowrap gap-2 items-center" style={{ fontSize: pdfCfg?.fuente_datos_cliente || "11px" }}>
-            {[
-              { label: "NOMBRE CLIENTE", value: order.nombre_cliente },
-              { label: "TELÉFONO", value: order.telefono },
-              { label: "AGENTE", value: order.agente_ventas },
-              { label: "FECHA INGRESO", value: order.fecha_orden },
-            ].map(({ label, value }) => (
-              <div key={label} className="border-2 rounded-lg px-3 py-1.5 flex-shrink-0 whitespace-nowrap text-center" style={{ borderColor: "#FFA500" }}>
-                <p className="font-bold text-black"><span className="font-semibold uppercase">{label}:</span> {value || ""}</p>
+          {/* Datos cliente */}
+          <div className="space-y-2" style={{ fontSize: pdfCfg?.fuente_datos_cliente || "11px" }}>
+            {/* Fila 1: datos principales */}
+            <div className="flex flex-wrap gap-2 items-center">
+              {[
+                { label: "NOMBRE CLIENTE", value: order.nombre_cliente },
+                { label: "TELÉFONO", value: order.telefono },
+                { label: "AGENTE", value: order.agente_ventas },
+                { label: "FECHA INGRESO", value: order.fecha_orden },
+              ].map(({ label, value }) => (
+                <div key={label} className="border-2 rounded-lg px-3 py-1.5 flex-shrink-0 whitespace-nowrap text-center" style={{ borderColor: "#FFA500" }}>
+                  <p className="font-bold text-black"><span className="font-semibold uppercase">{label}:</span> {value || ""}</p>
+                </div>
+              ))}
+            </div>
+            {/* Fila 2: datos fiscales (solo si hay alguno) */}
+            {(order.rfc || order.cp || order.tipo_regimen || order.uso_factura || order.forma_pago || order.requiere_factura) && (
+              <div className="flex flex-wrap gap-2 items-center">
+                {order.rfc && (
+                  <div className="border-2 rounded-lg px-3 py-1.5 flex-shrink-0 whitespace-nowrap text-center" style={{ borderColor: "#6366f1" }}>
+                    <p className="font-bold text-black"><span className="font-semibold uppercase text-indigo-700">RFC:</span> {order.rfc}</p>
+                  </div>
+                )}
+                {order.cp && (
+                  <div className="border-2 rounded-lg px-3 py-1.5 flex-shrink-0 whitespace-nowrap text-center" style={{ borderColor: "#6366f1" }}>
+                    <p className="font-bold text-black"><span className="font-semibold uppercase text-indigo-700">C.P.:</span> {order.cp}</p>
+                  </div>
+                )}
+                {order.tipo_regimen && (
+                  <div className="border-2 rounded-lg px-3 py-1.5 flex-shrink-0 text-center" style={{ borderColor: "#6366f1" }}>
+                    <p className="font-bold text-black"><span className="font-semibold uppercase text-indigo-700">RÉGIMEN:</span> {order.tipo_regimen}</p>
+                  </div>
+                )}
+                {order.uso_factura && (
+                  <div className="border-2 rounded-lg px-3 py-1.5 flex-shrink-0 text-center" style={{ borderColor: "#6366f1" }}>
+                    <p className="font-bold text-black"><span className="font-semibold uppercase text-indigo-700">USO CFDI:</span> {order.uso_factura}</p>
+                  </div>
+                )}
+                {order.forma_pago && (
+                  <div className="border-2 rounded-lg px-3 py-1.5 flex-shrink-0 whitespace-nowrap text-center" style={{ borderColor: "#6366f1" }}>
+                    <p className="font-bold text-black"><span className="font-semibold uppercase text-indigo-700">PAGO:</span> {order.forma_pago}</p>
+                  </div>
+                )}
+                <div className="border-2 rounded-lg px-3 py-1.5 flex-shrink-0 whitespace-nowrap text-center" style={{ borderColor: "#6366f1" }}>
+                  <p className="font-bold text-black"><span className="font-semibold uppercase text-indigo-700">FACTURA:</span> {order.requiere_factura ? "Sí" : "No"}</p>
+                </div>
               </div>
-            ))}
+            )}
           </div>
 
           {/* Vista de prenda + Posiciones juntas */}
