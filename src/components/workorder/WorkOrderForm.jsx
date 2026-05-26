@@ -124,7 +124,7 @@ function ExtrasCollapsible({ extras, onChange }) {
   );
 }
 
-const emptyEspec = () => ({ tipo_prenda: "", color_prenda: "", modelo: "", marca: "", tallas: {}, total_piezas: 0 });
+const emptyEspec = (base = {}) => ({ tipo_prenda: "", color_prenda: "", modelo: "", marca: "", tallas: {}, total_piezas: 0, ...base });
 
 const emptyOrder = () => ({
   nombre_cliente: "",
@@ -232,9 +232,9 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
       ...base,
       ...order,
       especificaciones: order.especificaciones?.length
-        ? order.especificaciones
+        ? order.especificaciones.map(e => emptyEspec(e))
         : (order.tipo_prenda !== undefined
-            ? [{ tipo_prenda: order.tipo_prenda || "", color_prenda: order.color_prenda || "", tallas: order.tallas || {}, total_piezas: order.total_piezas || "" }]
+            ? [emptyEspec({ tipo_prenda: order.tipo_prenda || "", color_prenda: order.color_prenda || "", tallas: order.tallas || {}, total_piezas: order.total_piezas || 0 })]
             : [emptyEspec()]),
       posiciones: order.posiciones?.length
         ? order.posiciones.map((p) => ({
@@ -275,13 +275,14 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
 
   const updateEspec = (idx, field, value) =>
     setForm((prev) => {
-      const especificaciones = [...prev.especificaciones];
-      const updated = { ...especificaciones[idx], [field]: field === "total_piezas" ? Number(value) || 0 : value };
-      // Auto-calcular total_piezas al cambiar tallas
-      if (field === "tallas") {
-        updated.total_piezas = Object.values(value).reduce((sum, v) => sum + (Number(v) || 0), 0);
-      }
-      especificaciones[idx] = updated;
+      const especificaciones = prev.especificaciones.map((e, i) => {
+        if (i !== idx) return e;
+        const updated = { ...e, [field]: field === "total_piezas" ? Number(value) || 0 : value };
+        if (field === "tallas") {
+          updated.total_piezas = Object.values(value).reduce((sum, v) => sum + (Number(v) || 0), 0);
+        }
+        return updated;
+      });
       return { ...prev, especificaciones };
     });
   const addEspec = () => setForm((prev) => ({ ...prev, especificaciones: [...prev.especificaciones, emptyEspec()] }));
