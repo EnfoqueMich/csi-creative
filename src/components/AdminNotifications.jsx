@@ -25,9 +25,17 @@ export default function AdminNotifications() {
 
   useEffect(() => {
     load();
-    // Poll every 15 seconds
-    const id = setInterval(load, 15000);
-    return () => clearInterval(id);
+    // Subscribe to real-time changes instead of aggressive polling
+    const unsubscribe = base44.entities.Notification.subscribe((event) => {
+      if (event.type === "create") {
+        setNotifications((prev) => [event.data, ...prev]);
+      } else if (event.type === "update") {
+        setNotifications((prev) => prev.map((n) => n.id === event.id ? event.data : n));
+      } else if (event.type === "delete") {
+        setNotifications((prev) => prev.filter((n) => n.id !== event.id));
+      }
+    });
+    return () => unsubscribe();
   }, []);
 
   const unread = notifications.filter((n) => !n.leida).length;
