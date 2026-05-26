@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Plus, Loader2, FileText, Trash2, Eye, Settings, Layout, Package, Scissors, Palette } from "lucide-react";
+import { Plus, Loader2, FileText, Trash2, Eye, Settings, Package, Scissors, Palette } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import WorkOrderForm from "../components/workorder/WorkOrderForm";
 import WorkOrderView from "../components/workorder/WorkOrderView";
 import OrderSettingsPanel from "../components/workorder/OrderSettingsPanel";
-import PdfLayoutEditor from "../components/workorder/PdfLayoutEditor";
 import HiloColorManager from "../components/workorder/HiloColorManager";
 import GarmentCatalogManager from "../components/workorder/GarmentCatalogManager";
 import VinilTextilManager from "../components/workorder/VinilTextilManager";
@@ -23,7 +22,7 @@ export default function WorkOrders() {
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState("list");
   const [selected, setSelected] = useState(null);
-  const [tab, setTab] = useState("ordenes"); // 'ordenes' | 'configuracion' | 'catalogo' | 'pdf' | 'vinil'
+  const [tab, setTab] = useState("ordenes"); // 'ordenes' | 'configuracion' | 'catalogo' | 'hilos' | 'vinil'
 
   useEffect(() => {
     base44.entities.WorkOrder.list("-created_date", 200).then((data) => {
@@ -111,16 +110,6 @@ export default function WorkOrders() {
           Catálogo de Prendas
         </button>
         <button
-          onClick={() => setTab("pdf")}
-          className={cn(
-            "px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap",
-            tab === "pdf" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
-          )}
-        >
-          <Layout className="w-3.5 h-3.5 inline mr-1.5" />
-          Diseño PDF
-        </button>
-        <button
           onClick={() => setTab("hilos")}
           className={cn(
             "px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap",
@@ -147,8 +136,6 @@ export default function WorkOrders() {
         <HiloColorManager />
       ) : tab === "vinil" ? (
         <VinilTextilManager />
-      ) : tab === "pdf" ? (
-        <PdfLayoutEditor />
       ) : tab === "catalogo" ? (
         <GarmentCatalogManager />
       ) : tab === "configuracion" ? (
