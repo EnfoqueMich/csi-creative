@@ -15,6 +15,7 @@ import Categories from './pages/Categories';
 import WorkerDashboard from './pages/WorkerDashboard';
 import MyTasks from './pages/MyTasks';
 import WorkOrders from './pages/WorkOrders';
+import Clients from './pages/Clients';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -53,6 +54,7 @@ const AuthenticatedApp = () => {
         <Route path="/categorias" element={<Categories />} />
         <Route path="/mis-tareas" element={<MyTasks />} />
         <Route path="/pedidos" element={<WorkOrders />} />
+        <Route path="/clientes" element={<Clients />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>

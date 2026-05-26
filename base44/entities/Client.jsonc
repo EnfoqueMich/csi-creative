@@ -1,0 +1,45 @@
+{
+  "name": "Client",
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string",
+      "description": "Nombre completo o empresa"
+    },
+    "rfc": {
+      "type": "string",
+      "description": "RFC del cliente"
+    },
+    "cp": {
+      "type": "string",
+      "description": "C\u00f3digo postal"
+    },
+    "tipo_regimen": {
+      "type": "string",
+      "description": "Tipo de r\u00e9gimen fiscal"
+    },
+    "uso_factura": {
+      "type": "string",
+      "description": "Uso de la factura (CFDI)"
+    },
+    "correo": {
+      "type": "string",
+      "description": "Correo electr\u00f3nico"
+    },
+    "tel_celular": {
+      "type": "string",
+      "description": "Tel\u00e9fono celular"
+    },
+    "tel_local": {
+      "type": "string",
+      "description": "Tel\u00e9fono local / fijo"
+    },
+    "folio_id": {
+      "type": "string",
+      "description": "ID legible del cliente (ej: CLI-0001)"
+    }
+  },
+  "required": [
+    "nombre"
+  ]
+}
