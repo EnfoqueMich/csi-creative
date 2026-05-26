@@ -434,11 +434,15 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
               )}
 
               {/* Alto y Ancho */}
-              <div className="flex items-center gap-1 border-t border-blue-100 pt-1.5">
-                <label className="text-[9px] font-bold text-blue-700 uppercase whitespace-nowrap">Alto</label>
-                <Input type="number" min="0" step="0.1" value={pos.alto_cm || ""} onChange={(e) => setPosicion(i, "alto_cm", e.target.value)} placeholder="cm" className="text-[10px] h-6 text-center w-14" />
-                <label className="text-[9px] font-bold text-blue-700 uppercase whitespace-nowrap">Ancho</label>
-                <Input type="number" min="0" step="0.1" value={pos.ancho_cm || ""} onChange={(e) => setPosicion(i, "ancho_cm", e.target.value)} placeholder="cm" className="text-[10px] h-6 text-center w-14" />
+              <div className="flex flex-col gap-1 border-t border-blue-100 pt-1.5">
+                <div className="flex items-center gap-1">
+                  <label className="text-[9px] font-bold text-blue-700 uppercase whitespace-nowrap w-10">Alto</label>
+                  <Input type="number" min="0" step="0.1" value={pos.alto_cm || ""} onChange={(e) => setPosicion(i, "alto_cm", e.target.value)} placeholder="cm" className="text-[10px] h-6 text-center w-full" />
+                </div>
+                <div className="flex items-center gap-1">
+                  <label className="text-[9px] font-bold text-blue-700 uppercase whitespace-nowrap w-10">Ancho</label>
+                  <Input type="number" min="0" step="0.1" value={pos.ancho_cm || ""} onChange={(e) => setPosicion(i, "ancho_cm", e.target.value)} placeholder="cm" className="text-[10px] h-6 text-center w-full" />
+                </div>
               </div>
 
               <Textarea

@@ -234,8 +234,8 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
                         {/* Medidas */}
                         {(pos.alto_cm || pos.ancho_cm) && (
                           <div className="flex gap-2 border-t border-blue-100 pt-1">
-                            {pos.alto_cm && <span style={{fontSize:"8px",fontFamily:"Arial Narrow, Arial, sans-serif",letterSpacing:"-0.02em"}}><span className="font-bold text-blue-600 uppercase">ALTO:</span> {pos.alto_cm}<span className="text-gray-400">cm</span></span>}
-                            {pos.ancho_cm && <span style={{fontSize:"8px",fontFamily:"Arial Narrow, Arial, sans-serif",letterSpacing:"-0.02em"}}><span className="font-bold text-blue-600 uppercase">ANCHO:</span> {pos.ancho_cm}<span className="text-gray-400">cm</span></span>}
+                            {pos.alto_cm && <span className="text-[10px]"><span className="font-bold text-blue-600 uppercase">ALTO:</span> {pos.alto_cm}<span className="text-gray-400">cm</span></span>}
+                            {pos.ancho_cm && <span className="text-[10px]"><span className="font-bold text-blue-600 uppercase">ANCHO:</span> {pos.ancho_cm}<span className="text-gray-400">cm</span></span>}
                           </div>
                         )}
 
