@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Plus, Loader2, FileText, Trash2, Eye, Settings, Layout, Package, Scissors } from "lucide-react";
+import { Plus, Loader2, FileText, Trash2, Eye, Settings, Layout, Package, Scissors, Palette } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import WorkOrderForm from "../components/workorder/WorkOrderForm";
@@ -121,6 +121,16 @@ export default function WorkOrders() {
           Diseño PDF
         </button>
         <button
+          onClick={() => setTab("hilos")}
+          className={cn(
+            "px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap",
+            tab === "hilos" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <Palette className="w-3.5 h-3.5 inline mr-1.5" />
+          Colores de Hilo
+        </button>
+        <button
           onClick={() => setTab("vinil")}
           className={cn(
             "px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap",
@@ -133,19 +143,16 @@ export default function WorkOrders() {
       </div>
 
       {/* Contenido según tab */}
-      {tab === "vinil" ? (
+      {tab === "hilos" ? (
+        <HiloColorManager />
+      ) : tab === "vinil" ? (
         <VinilTextilManager />
       ) : tab === "pdf" ? (
         <PdfLayoutEditor />
       ) : tab === "catalogo" ? (
         <GarmentCatalogManager />
       ) : tab === "configuracion" ? (
-        <div className="space-y-8">
-          <OrderSettingsPanel />
-          <div className="border-t border-border pt-6">
-            <HiloColorManager />
-          </div>
-        </div>
+        <OrderSettingsPanel />
       ) : loading ? (
         <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-muted-foreground" /></div>
       ) : orders.length === 0 ? (
