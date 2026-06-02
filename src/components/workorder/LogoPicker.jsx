@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -290,19 +290,10 @@ function LogoSearchDropdown({ logos, onSelect, onNew }) {
 }
 
 // ── Componente principal que va en cada posición ──────────────────────────────
-export default function LogoPicker({ posicion, onChange }) {
-  const [logos, setLogos] = useState([]);
-  const [logosLoaded, setLogosLoaded] = useState(false);
+// logos y onLogoCatalogUpdate se pasan desde WorkOrderForm para compartir el catálogo
+export default function LogoPicker({ posicion, onChange, logos = [], onLogoCatalogUpdate }) {
   const [showForm, setShowForm] = useState(false);
-  const [editingLogo, setEditingLogo] = useState(null); // logo del catálogo que se está editando
-
-  // Carga catálogo una sola vez
-  useEffect(() => {
-    base44.entities.LogoCatalog.list("nombre").then((list) => {
-      setLogos(list);
-      setLogosLoaded(true);
-    });
-  }, []);
+  const [editingLogo, setEditingLogo] = useState(null);
 
   // Aplicar un logo (del catálogo o sin guardar) a la posición
   const applyLogo = (logoData) => {
@@ -323,12 +314,7 @@ export default function LogoPicker({ posicion, onChange }) {
   };
 
   const handleSaved = (savedLogo) => {
-    // Actualiza catálogo local
-    setLogos((prev) => {
-      const exists = prev.find((l) => l.id === savedLogo.id);
-      if (exists) return prev.map((l) => l.id === savedLogo.id ? savedLogo : l);
-      return [...prev, savedLogo];
-    });
+    onLogoCatalogUpdate?.(savedLogo);
     applyLogo(savedLogo);
   };
 
@@ -338,7 +324,7 @@ export default function LogoPicker({ posicion, onChange }) {
   return (
     <div className="space-y-2">
       {/* Buscador de catálogo */}
-      {logosLoaded && !showForm && (
+      {!showForm && (
         <LogoSearchDropdown
           logos={logos}
           onSelect={(l) => applyLogo(l)}

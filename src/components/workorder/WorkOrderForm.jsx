@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -206,7 +206,21 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
     };
   });
   const [saving, setSaving] = useState(false);
-  // uploadingPos ya no es necesario — LogoPicker maneja la subida internamente
+  const [logoCatalog, setLogoCatalog] = useState([]);
+
+  // Carga el catálogo de logos una sola vez para todas las posiciones
+  useEffect(() => {
+    base44.entities.LogoCatalog.list("nombre").then(setLogoCatalog);
+  }, []);
+
+  // Cuando una posición guarda un logo nuevo/editado, actualiza el catálogo compartido
+  const handleLogoCatalogUpdate = useCallback((savedLogo) => {
+    setLogoCatalog((prev) => {
+      const exists = prev.find((l) => l.id === savedLogo.id);
+      if (exists) return prev.map((l) => l.id === savedLogo.id ? savedLogo : l);
+      return [...prev, savedLogo].sort((a, b) => a.nombre.localeCompare(b.nombre));
+    });
+  }, []);
   const [previewLayout, setPreviewLayout] = useState(() => ({
     ...DEFAULT_LAYOUT,
     ...(order?.preview_layout || {}),
@@ -512,9 +526,11 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
                 className="text-xs font-semibold text-center bg-green-50 border-green-300 text-green-800 h-7"
               />
 
-              {/* Logo / Imagen — catálogo de logos */}
+              {/* Logo / Imagen — catálogo compartido de logos */}
               <LogoPicker
                 posicion={pos}
+                logos={logoCatalog}
+                onLogoCatalogUpdate={handleLogoCatalogUpdate}
                 onChange={(logoFields) =>
                   setForm((prev) => {
                     const posiciones = [...prev.posiciones];
