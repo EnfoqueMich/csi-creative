@@ -159,7 +159,8 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
         </Button>
       </div>
 
-      {/* Documento */}
+      {/* Contenedor de impresión — ambas hojas */}
+      <div id="print-container">
       <div className="bg-white text-black rounded-xl border border-gray-300 shadow-sm w-full mx-auto print:shadow-none print:border-none print:rounded-none print:w-full" id="orden-print" style={{ fontSize: pdfCfg?.fuente_tamanio || "11px" }}>
 
         {/* Encabezado */}
@@ -382,7 +383,7 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
           )}
 
         </div>
-      </div>
+      </div>{/* /orden-print */}
 
       {/* ── HOJA 2: Prendas que Ingresaron ── */}
       {(pdfCfg?.mostrar_especificaciones !== false) && (
@@ -506,15 +507,39 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
           </div>
         </div>
       )}
+      </div>{/* /print-container */}
 
       <style>{`
         @media print {
           @page { size: letter portrait; margin: 10mm; }
           body * { visibility: hidden; }
-          #orden-print, #orden-print * { visibility: visible; }
-          #orden-print-2, #orden-print-2 * { visibility: visible; }
-          #orden-print { position: absolute; left: 0; top: 0; width: 100%; max-width: 100%; font-size: 11px; }
-          #orden-print-2 { position: relative; width: 100%; max-width: 100%; font-size: 11px; page-break-before: always; margin-top: 0; }
+          #print-container, #print-container * { visibility: visible; }
+          #print-container {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            background: white;
+          }
+          #orden-print {
+            width: 100%;
+            font-size: 11px !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            border: none !important;
+            margin: 0 !important;
+            page-break-after: always;
+            break-after: page;
+          }
+          #orden-print-2 {
+            width: 100%;
+            font-size: 11px !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            border: none !important;
+            margin: 0 !important;
+            margin-top: 0 !important;
+          }
         }
       `}</style>
     </>
