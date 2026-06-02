@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { TrendingUp, ChevronLeft, ChevronRight, DollarSign, Save, Loader2 } from "lucide-react";
+import { TrendingUp, ChevronLeft, ChevronRight, DollarSign, Save, Loader2, ChevronDown, ChevronUp, PackageX } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
@@ -137,6 +137,61 @@ function calcProjectCost(project, prices) {
   );
 }
 
+function ProjectScrapRow({ project, prices, hayPrecios }) {
+  const [open, setOpen] = useState(false);
+  const bordados = project.bordados_scrap || [];
+  const costo = calcProjectCost(project, prices);
+
+  const totalHilo = bordados.reduce((s, b) => s + (Number(b.total_hilo) || 0), 0);
+  const totalBobina = bordados.reduce((s, b) => s + (Number(b.total_bobina) || 0), 0);
+  const totalSecs = bordados.reduce((s, b) =>
+    s + (Number(b.tiempo_horas) || 0) * 3600 + (Number(b.tiempo_minutos) || 0) * 60 + (Number(b.tiempo_segundos) || 0), 0);
+  const fmtT = `${Math.floor(totalSecs / 3600)}h ${Math.round((totalSecs % 3600) / 60)}m`;
+
+  return (
+    <div className="border border-border rounded-lg overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-4 py-3 bg-muted/40 hover:bg-muted/70 transition-colors text-left gap-3"
+      >
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <span className="text-xs font-bold text-muted-foreground font-mono">CREA {project.crea}</span>
+          <span className="text-sm font-semibold truncate">{project.titulo || "Sin título"}</span>
+          <span className="text-[11px] text-muted-foreground">{bordados.length} bordado(s)</span>
+        </div>
+        <div className="flex items-center gap-3 flex-shrink-0">
+          {hayPrecios && <span className="text-sm font-bold text-green-700 font-mono">{fmt$(costo)}</span>}
+          {open ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+        </div>
+      </button>
+
+      {open && (
+        <div className="px-4 py-3 bg-card grid grid-cols-2 md:grid-cols-4 gap-3 text-center border-t border-border">
+          <div>
+            <p className="text-xs text-muted-foreground">Hilo</p>
+            <p className="text-sm font-bold">{totalHilo.toFixed(1)} m</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Bobina</p>
+            <p className="text-sm font-bold">{totalBobina.toFixed(1)} m</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Tiempo</p>
+            <p className="text-sm font-bold">{fmtT}</p>
+          </div>
+          {hayPrecios && (
+            <div className="bg-green-50 rounded-lg p-2 border border-green-200">
+              <p className="text-xs text-green-700">Total</p>
+              <p className="text-sm font-bold text-green-800 font-mono">{fmt$(costo)}</p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function MonthlyScrapPanel() {
   const [projects, setProjects] = useState([]);
   const [prices, setPrices] = useState({});
@@ -215,12 +270,15 @@ export default function MonthlyScrapPanel() {
       <div className="p-6">
         {loading ? (
           <p className="text-sm text-muted-foreground text-center py-4">Cargando...</p>
+        ) : monthProjects.filter(p => (p.bordados_scrap || []).length > 0).length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-10 gap-3 text-muted-foreground">
+            <PackageX className="w-10 h-10 opacity-30" />
+            <p className="text-sm font-medium">Sin registro de scrap este mes</p>
+          </div>
         ) : (
           <>
-            <p className="text-xs text-muted-foreground mb-4">
-              {monthProjects.length} proyecto(s) finalizado(s) · {allBordados.length} bordado(s) registrado(s)
-            </p>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            {/* Resumen totales del mes */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-5">
               <StatBox label="Total Hilo" value={totalHilo.toFixed(1)} unit="metros" />
               <StatBox label="Total Bobina" value={totalBobina.toFixed(1)} unit="metros" />
               <StatBox label="Total Tela" value={totalTela.toLocaleString()} unit="cm²" />
@@ -229,13 +287,23 @@ export default function MonthlyScrapPanel() {
               {hayPrecios && <StatBox label="Costo del Mes" value={fmt$(costoMes)} money />}
             </div>
 
+            {/* Listado colapsable por proyecto */}
+            <div className="space-y-2 mb-4">
+              {monthProjects
+                .filter(p => (p.bordados_scrap || []).length > 0)
+                .map((p) => (
+                  <ProjectScrapRow key={p.id} project={p} prices={prices} hayPrecios={hayPrecios} />
+                ))}
+            </div>
+
+            {/* Gran total */}
             {hayPrecios && (
-              <div className="mt-4 rounded-xl border border-green-300 bg-green-50 p-4 flex items-center justify-between">
+              <div className="rounded-xl border border-green-300 bg-green-50 p-4 flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-green-700">Gran Total — Todos los proyectos finalizados</p>
-                  <p className="text-xs text-green-600 mt-0.5">{projects.length} proyecto(s) en total</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-green-700">Gran Total del Mes</p>
+                  <p className="text-xs text-green-600 mt-0.5">{monthProjects.filter(p => (p.bordados_scrap||[]).length > 0).length} proyecto(s) con scrap</p>
                 </div>
-                <p className="text-3xl font-bold font-mono text-green-800">{fmt$(granTotal)}</p>
+                <p className="text-3xl font-bold font-mono text-green-800">{fmt$(costoMes)}</p>
               </div>
             )}
           </>

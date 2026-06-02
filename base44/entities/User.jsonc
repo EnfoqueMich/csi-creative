@@ -11,5 +11,6 @@
       "default": "worker",
       "description": "Rol del usuario: admin = control total, worker = solo sus proyectos asignados"
     }
-  }
+  },
+  "required": []
 }
