@@ -3,13 +3,14 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Save, ArrowLeft, Loader2, Plus, X, ImagePlus, ChevronDown, Search } from "lucide-react";
+import { Save, ArrowLeft, Loader2, Plus, X, ChevronDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import TshirtPreviewInteractive, { DEFAULT_LAYOUT } from "./TshirtPreviewInteractive";
 import GarmentPicker from "./GarmentPicker";
 import HiloColorPicker from "./HiloColorPicker";
 import VinilColorPicker from "./VinilColorPicker";
 import EspecRow from "./EspecRow";
+import LogoPicker from "./LogoPicker";
 
 // TshirtPreview removido — ahora en TshirtPreviewInteractive.jsx
 
@@ -205,7 +206,7 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
     };
   });
   const [saving, setSaving] = useState(false);
-  const [uploadingPos, setUploadingPos] = useState(null);
+  // uploadingPos ya no es necesario — LogoPicker maneja la subida internamente
   const [previewLayout, setPreviewLayout] = useState(() => ({
     ...DEFAULT_LAYOUT,
     ...(order?.preview_layout || {}),
@@ -297,15 +298,6 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
 
   const removePosicion = (idx) =>
     setForm((prev) => ({ ...prev, posiciones: prev.posiciones.filter((_, i) => i !== idx) }));
-
-  const handlePosImageUpload = async (e, posIdx) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploadingPos(posIdx);
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    setPosicion(posIdx, "imagen_url", file_url);
-    setUploadingPos(null);
-  };
 
   const generateFolio = async () => {
     const existing = await base44.entities.WorkOrder.list("-created_date", 1);
@@ -520,36 +512,17 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
                 className="text-xs font-semibold text-center bg-green-50 border-green-300 text-green-800 h-7"
               />
 
-              {/* Imagen */}
-              {pos.imagen_url ? (
-                <div className="relative">
-                  <img src={pos.imagen_url} alt="pos" className="w-[80%] mx-auto rounded border border-blue-200 object-contain" />
-                  <button type="button" onClick={() => setPosicion(i, "imagen_url", "")} className="absolute top-1 right-1 bg-black/60 rounded-full p-0.5">
-                    <X className="w-3 h-3 text-white" />
-                  </button>
-                </div>
-              ) : (
-                <label className={cn(
-                  "flex flex-col items-center justify-center gap-1 border border-dashed border-blue-300 rounded-lg p-3 cursor-pointer hover:bg-blue-50 transition-colors text-blue-400",
-                  uploadingPos === i && "opacity-50 pointer-events-none"
-                )}>
-                  {uploadingPos === i ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImagePlus className="w-4 h-4" />}
-                  <span className="text-[10px]">{uploadingPos === i ? "Subiendo..." : "Cargar imagen"}</span>
-                  <input type="file" accept="image/*" className="hidden" onChange={(e) => handlePosImageUpload(e, i)} disabled={uploadingPos !== null} />
-                </label>
-              )}
-
-              {/* Alto y Ancho */}
-              <div className="flex flex-col gap-1 border-t border-blue-100 pt-1.5">
-                <div className="flex items-center gap-1">
-                  <label className="text-[9px] font-bold text-blue-700 uppercase whitespace-nowrap w-10">Alto</label>
-                  <Input type="number" min="0" step="0.1" value={pos.alto_cm || ""} onChange={(e) => setPosicion(i, "alto_cm", e.target.value)} placeholder="cm" className="text-[10px] h-6 text-center w-full" />
-                </div>
-                <div className="flex items-center gap-1">
-                  <label className="text-[9px] font-bold text-blue-700 uppercase whitespace-nowrap w-10">Ancho</label>
-                  <Input type="number" min="0" step="0.1" value={pos.ancho_cm || ""} onChange={(e) => setPosicion(i, "ancho_cm", e.target.value)} placeholder="cm" className="text-[10px] h-6 text-center w-full" />
-                </div>
-              </div>
+              {/* Logo / Imagen — catálogo de logos */}
+              <LogoPicker
+                posicion={pos}
+                onChange={(logoFields) =>
+                  setForm((prev) => {
+                    const posiciones = [...prev.posiciones];
+                    posiciones[i] = { ...posiciones[i], ...logoFields };
+                    return { ...prev, posiciones };
+                  })
+                }
+              />
 
               <Textarea
                 placeholder="Descripción..."

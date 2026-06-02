@@ -1,0 +1,63 @@
+{
+  "name": "LogoCatalog",
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string",
+      "description": "Nombre del logo (ej: Logo Empresa X)"
+    },
+    "imagen_url": {
+      "type": "string",
+      "description": "URL de la imagen del logo"
+    },
+    "descripcion": {
+      "type": "string",
+      "description": "Descripci\u00f3n del logo / instrucciones"
+    },
+    "alto_cm": {
+      "type": "number",
+      "description": "Alto en cm"
+    },
+    "ancho_cm": {
+      "type": "number",
+      "description": "Ancho en cm"
+    },
+    "color_hilos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "C\u00f3digos de colores de hilo"
+    },
+    "bobina_negra": {
+      "type": "boolean"
+    },
+    "bobina_blanca": {
+      "type": "boolean"
+    },
+    "vinil_codigo": {
+      "type": "string",
+      "description": "C\u00f3digo de vinil textil"
+    },
+    "extras": {
+      "type": "object",
+      "properties": {
+        "foamy": {
+          "type": "boolean"
+        },
+        "velcro_macho": {
+          "type": "boolean"
+        },
+        "velcro_hembra": {
+          "type": "boolean"
+        },
+        "adhesivo_termico": {
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  "required": [
+    "nombre"
+  ]
+}
