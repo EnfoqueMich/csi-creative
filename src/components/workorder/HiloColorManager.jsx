@@ -19,8 +19,11 @@ export default function HiloColorManager() {
     });
   }, []);
 
+  const codigoDuplicado = colores.some(c => c.codigo.toLowerCase() === form.codigo.trim().toLowerCase());
+
   const handleAdd = async () => {
     if (!form.codigo.trim() || !form.nombre.trim()) return;
+    if (codigoDuplicado) return;
     setSaving(true);
     const nuevo = await base44.entities.HiloColor.create(form);
     setColores(prev => [...prev, nuevo].sort((a, b) => a.codigo.localeCompare(b.codigo)));
@@ -92,7 +95,10 @@ export default function HiloColorManager() {
             />
           </div>
         </div>
-        <Button onClick={handleAdd} disabled={saving || !form.codigo.trim() || !form.nombre.trim()} size="sm" className="gap-1 h-8">
+        {codigoDuplicado && (
+          <p className="text-xs text-destructive font-semibold w-full -mt-1">⚠ El código "{form.codigo}" ya existe en el catálogo.</p>
+        )}
+        <Button onClick={handleAdd} disabled={saving || !form.codigo.trim() || !form.nombre.trim() || codigoDuplicado} size="sm" className="gap-1 h-8">
           {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
           Agregar
         </Button>
