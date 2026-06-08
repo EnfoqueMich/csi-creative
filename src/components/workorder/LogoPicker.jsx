@@ -35,6 +35,7 @@ function CheckBox({ checked, onChange, label }) {
 // Formulario para crear/editar un logo del catálogo
 function LogoForm({ logo, onSaved, onCancel, onUseWithoutSaving }) {
   const [nombre, setNombre] = useState(logo?.nombre || "");
+  const [cliente, setCliente] = useState(logo?.cliente || "");
   const [imagenUrl, setImagenUrl] = useState(logo?.imagen_url || "");
   const [descripcion, setDescripcion] = useState(logo?.descripcion || "");
   const [altoCm, setAltoCm] = useState(logo?.alto_cm || "");
@@ -58,6 +59,7 @@ function LogoForm({ logo, onSaved, onCancel, onUseWithoutSaving }) {
 
   const buildData = () => ({
     nombre: nombre.trim(),
+    cliente: cliente.trim(),
     imagen_url: imagenUrl,
     descripcion: descripcion.trim(),
     alto_cm: Number(altoCm) || 0,
@@ -103,12 +105,26 @@ function LogoForm({ logo, onSaved, onCancel, onUseWithoutSaving }) {
     <div className="border-2 border-violet-300 rounded-lg p-3 space-y-3 bg-violet-50/40">
       <p className="text-xs font-bold text-violet-700 uppercase">{logo?.id ? "Editar Logo" : "Nuevo Logo"}</p>
 
-      <Input
-        value={nombre}
-        onChange={(e) => setNombre(e.target.value)}
-        placeholder="Nombre del logo (ej: Logo Empresa X)..."
-        className="text-sm"
-      />
+      <div className="grid grid-cols-2 gap-2">
+        <div className="space-y-0.5">
+          <label className="text-[9px] font-bold text-violet-700 uppercase">Nombre del logo</label>
+          <Input
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
+            placeholder="ej: Logo Frente..."
+            className="text-sm"
+          />
+        </div>
+        <div className="space-y-0.5">
+          <label className="text-[9px] font-bold text-violet-700 uppercase">Cliente</label>
+          <Input
+            value={cliente}
+            onChange={(e) => setCliente(e.target.value)}
+            placeholder="ej: Empresa X..."
+            className="text-sm"
+          />
+        </div>
+      </div>
 
       {/* Imagen */}
       <div className="space-y-1">
@@ -223,8 +239,8 @@ function LogoSearchDropdown({ logos, onSelect, onNew }) {
 
   const results = logos.filter((l) => {
     const nombre = l.nombre?.toLowerCase() || "";
-    const desc = l.descripcion?.toLowerCase() || "";
-    const matchCliente = !queryCliente.trim() || nombre.includes(queryCliente.toLowerCase()) || desc.includes(queryCliente.toLowerCase());
+    const clienteField = l.cliente?.toLowerCase() || "";
+    const matchCliente = !queryCliente.trim() || clienteField.includes(queryCliente.toLowerCase()) || nombre.includes(queryCliente.toLowerCase());
     const matchNombre = !queryNombre.trim() || nombre.includes(queryNombre.toLowerCase());
     return matchCliente && matchNombre;
   });
@@ -290,6 +306,7 @@ function LogoSearchDropdown({ logos, onSelect, onNew }) {
                 }
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-semibold truncate">{l.nombre}</p>
+                  {l.cliente && <p className="text-[10px] text-violet-600 font-medium truncate">{l.cliente}</p>}
                   {(l.alto_cm || l.ancho_cm) && (
                     <p className="text-[10px] text-muted-foreground">{l.alto_cm}×{l.ancho_cm} cm</p>
                   )}

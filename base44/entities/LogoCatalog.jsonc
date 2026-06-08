@@ -6,6 +6,10 @@
       "type": "string",
       "description": "Nombre del logo (ej: Logo Empresa X)"
     },
+    "cliente": {
+      "type": "string",
+      "description": "Nombre del cliente al que pertenece el logo"
+    },
     "imagen_url": {
       "type": "string",
       "description": "URL de la imagen del logo"
