@@ -216,15 +216,18 @@ function LogoForm({ logo, onSaved, onCancel, onUseWithoutSaving }) {
 
 // Buscador inline con dropdown de resultados
 function LogoSearchDropdown({ logos, onSelect, onNew }) {
-  const [query, setQuery] = useState("");
+  const [queryCliente, setQueryCliente] = useState("");
+  const [queryNombre, setQueryNombre] = useState("");
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
   const results = logos.filter((l) => {
-    if (!query.trim()) return true;
-    const q = query.toLowerCase();
-    return l.nombre?.toLowerCase().includes(q) || l.descripcion?.toLowerCase().includes(q);
-  }).slice(0, 8);
+    const nombre = l.nombre?.toLowerCase() || "";
+    const desc = l.descripcion?.toLowerCase() || "";
+    const matchCliente = !queryCliente.trim() || nombre.includes(queryCliente.toLowerCase()) || desc.includes(queryCliente.toLowerCase());
+    const matchNombre = !queryNombre.trim() || nombre.includes(queryNombre.toLowerCase());
+    return matchCliente && matchNombre;
+  });
 
   useEffect(() => {
     const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
@@ -234,24 +237,43 @@ function LogoSearchDropdown({ logos, onSelect, onNew }) {
 
   return (
     <div className="relative" ref={ref}>
-      <div className="relative">
-        <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none" />
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
-          onFocus={() => setOpen(true)}
-          placeholder="Buscar logo del catálogo..."
-          className="w-full pl-6 pr-3 py-1 text-[11px] border border-violet-200 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-violet-400"
-        />
-        {query && (
-          <button type="button" onClick={() => { setQuery(""); setOpen(false); }} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-            <X className="w-3 h-3" />
-          </button>
-        )}
+      {/* Dos campos de filtro */}
+      <div className="flex gap-1">
+        <div className="relative flex-1">
+          <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none" />
+          <input
+            type="text"
+            value={queryCliente}
+            onChange={(e) => { setQueryCliente(e.target.value); setOpen(true); }}
+            onFocus={() => setOpen(true)}
+            placeholder="Cliente..."
+            className="w-full pl-6 pr-6 py-1 text-[11px] border border-violet-200 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-violet-400"
+          />
+          {queryCliente && (
+            <button type="button" onClick={() => setQueryCliente("")} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+              <X className="w-3 h-3" />
+            </button>
+          )}
+        </div>
+        <div className="relative flex-1">
+          <input
+            type="text"
+            value={queryNombre}
+            onChange={(e) => { setQueryNombre(e.target.value); setOpen(true); }}
+            onFocus={() => setOpen(true)}
+            placeholder="Nombre del logo..."
+            className="w-full px-2 py-1 text-[11px] border border-violet-200 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-violet-400"
+          />
+          {queryNombre && (
+            <button type="button" onClick={() => setQueryNombre("")} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+              <X className="w-3 h-3" />
+            </button>
+          )}
+        </div>
       </div>
+
       {open && (
-        <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-popover border border-border rounded-lg shadow-lg overflow-hidden max-h-56 overflow-y-auto">
+        <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-popover border border-border rounded-lg shadow-lg overflow-hidden max-h-64 overflow-y-auto">
           {results.length === 0 ? (
             <div className="px-3 py-2 text-[11px] text-muted-foreground">Sin resultados</div>
           ) : (
@@ -259,7 +281,7 @@ function LogoSearchDropdown({ logos, onSelect, onNew }) {
               <button
                 key={l.id}
                 type="button"
-                onClick={() => { onSelect(l); setOpen(false); setQuery(""); }}
+                onClick={() => { onSelect(l); setOpen(false); setQueryCliente(""); setQueryNombre(""); }}
                 className="w-full text-left px-3 py-2 hover:bg-muted transition-colors flex items-center gap-2"
               >
                 {l.imagen_url
@@ -277,7 +299,7 @@ function LogoSearchDropdown({ logos, onSelect, onNew }) {
           )}
           <button
             type="button"
-            onClick={() => { onNew(); setOpen(false); setQuery(""); }}
+            onClick={() => { onNew(); setOpen(false); setQueryCliente(""); setQueryNombre(""); }}
             className="w-full text-left px-3 py-2 hover:bg-muted transition-colors flex items-center gap-2 border-t border-border text-violet-700"
           >
             <Plus className="w-3.5 h-3.5" />
