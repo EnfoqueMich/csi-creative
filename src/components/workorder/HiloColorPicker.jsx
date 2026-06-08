@@ -37,29 +37,40 @@ export default function HiloColorPicker({ value, onChange, placeholder = "Buscar
 
   const handleClear = () => { setQuery(""); onChange(""); };
 
+  const matchExacto = colores.find(c => c.codigo === value);
+
   return (
     <div ref={ref} className="relative flex-1">
-      <div className="flex items-center gap-1">
-        {/* Muestra el color si hay match exacto */}
-        {(() => {
-          const match = colores.find(c => c.codigo === query);
-          return match ? (
-            <div className="w-5 h-5 rounded border border-gray-300 flex-shrink-0" style={{ backgroundColor: match.hex || "#ccc" }} title={match.nombre} />
-          ) : null;
-        })()}
-        <Input
-          value={query}
-          onChange={e => { setQuery(e.target.value); onChange(e.target.value); setOpen(true); }}
-          onFocus={() => setOpen(true)}
-          placeholder={placeholder}
-          className="text-xs h-6 flex-1"
-        />
-        {query && (
-          <button type="button" onClick={handleClear} className="text-muted-foreground hover:text-destructive">
+      {/* Si hay match exacto, muestra chip con color + código + nombre */}
+      {matchExacto && !open ? (
+        <div
+          className="flex items-center gap-1.5 border border-blue-200 rounded px-1.5 py-0.5 bg-blue-50 cursor-pointer hover:bg-blue-100 transition-colors"
+          onClick={() => { setOpen(true); }}
+        >
+          <div className="w-4 h-4 rounded border border-gray-300 flex-shrink-0" style={{ backgroundColor: matchExacto.hex || "#ccc" }} />
+          <span className="font-mono text-xs font-bold text-blue-700">{matchExacto.codigo}</span>
+          <span className="text-xs text-muted-foreground truncate">{matchExacto.nombre}</span>
+          <button type="button" onClick={(e) => { e.stopPropagation(); handleClear(); }} className="ml-auto text-muted-foreground hover:text-destructive">
             <X className="w-3 h-3" />
           </button>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="flex items-center gap-1">
+          <Input
+            value={query}
+            onChange={e => { setQuery(e.target.value); onChange(e.target.value); setOpen(true); }}
+            onFocus={() => setOpen(true)}
+            placeholder={placeholder}
+            className="text-xs h-6 flex-1"
+            autoFocus={open}
+          />
+          {query && (
+            <button type="button" onClick={handleClear} className="text-muted-foreground hover:text-destructive">
+              <X className="w-3 h-3" />
+            </button>
+          )}
+        </div>
+      )}
 
       {open && filtered.length > 0 && (
         <div className="absolute z-50 top-full left-0 right-0 mt-0.5 bg-white border border-border rounded-lg shadow-lg overflow-hidden">
