@@ -105,7 +105,7 @@ function LogoForm({ logo, onSaved, onCancel, onUseWithoutSaving }) {
     <div className="border-2 border-violet-300 rounded-lg p-3 space-y-3 bg-violet-50/40">
       <p className="text-xs font-bold text-violet-700 uppercase">{logo?.id ? "Editar Logo" : "Nuevo Logo"}</p>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="space-y-2">
         <div className="space-y-0.5">
           <label className="text-[9px] font-bold text-violet-700 uppercase">Nombre del logo</label>
           <Input
