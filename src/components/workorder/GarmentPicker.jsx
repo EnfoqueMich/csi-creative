@@ -127,6 +127,39 @@ function GarmentForm({ garment, onSaved, onCancel }) {
   );
 }
 
+// Editor de imágenes para la Playera Default (sin guardar en BD)
+function DefaultGarmentEditor({ onSaved, onCancel }) {
+  const [urls, setUrls] = useState({ frente: DEFAULT_FRENTE, espalda: DEFAULT_ESPALDA });
+  const [uploading, setUploading] = useState({ frente: false, espalda: false });
+
+  const uploadImg = async (e, key) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading((prev) => ({ ...prev, [key]: true }));
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    setUrls((prev) => ({ ...prev, [key]: file_url }));
+    setUploading((prev) => ({ ...prev, [key]: false }));
+  };
+
+  return (
+    <div className="border-2 border-blue-300 rounded-lg p-3 space-y-3 bg-blue-50/40">
+      <p className="text-xs font-bold text-blue-700 uppercase">Editar Playera Default</p>
+      <div className="grid grid-cols-2 gap-2">
+        <ImgUploadField label="Vista Frontal" url={urls.frente} uploading={uploading.frente} onUpload={(e) => uploadImg(e, "frente")} onClear={() => setUrls((p) => ({ ...p, frente: "" }))} />
+        <ImgUploadField label="Vista Trasera" url={urls.espalda} uploading={uploading.espalda} onUpload={(e) => uploadImg(e, "espalda")} onClear={() => setUrls((p) => ({ ...p, espalda: "" }))} />
+      </div>
+      <div className="flex gap-2 pt-1">
+        <Button size="sm" onClick={() => onSaved({ titulo: "Playera Default", frente_url: urls.frente || DEFAULT_FRENTE, espalda_url: urls.espalda || DEFAULT_ESPALDA, es_gorra: false })} className="gap-1">
+          <Check className="w-3 h-3" /> Aplicar
+        </Button>
+        <Button size="sm" variant="outline" onClick={onCancel}>Cancelar</Button>
+      </div>
+    </div>
+  );
+}
+
+// selectedId=null significa "Playera Default seleccionada"
+// selectedId="__default_custom__" significa "Default personalizada (sin BD) seleccionada"
 export default function GarmentPicker({ selectedId, onSelect }) {
   const [garments, setGarments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -180,12 +213,10 @@ export default function GarmentPicker({ selectedId, onSelect }) {
       )}
 
       {editingDefault && (
-        <GarmentForm
-          garment={{ titulo: "Playera Default", frente_url: DEFAULT_FRENTE, espalda_url: DEFAULT_ESPALDA }}
-          onSaved={(saved) => {
-            setGarments((prev) => [...prev, saved]);
+        <DefaultGarmentEditor
+          onSaved={(data) => {
             setEditingDefault(false);
-            onSelect(saved);
+            onSelect({ ...data, id: "__default_custom__" });
           }}
           onCancel={() => setEditingDefault(false)}
         />
@@ -221,12 +252,12 @@ export default function GarmentPicker({ selectedId, onSelect }) {
             onClick={() => onSelect(null)}
             className={cn(
               "relative flex flex-col items-center gap-1 border-2 rounded-lg p-2 w-24 transition-all flex-shrink-0 group",
-              !selectedId ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-blue-300"
+              (!selectedId || selectedId === "__default_custom__") ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-blue-300"
             )}
           >
             <img src={DEFAULT_FRENTE} alt="Playera" className="w-12 h-12 object-contain" />
             <span className="text-[10px] font-semibold text-center leading-tight">Playera<br/>Default</span>
-            {!selectedId && <div className="absolute top-1 right-1 w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center"><Check className="w-2 h-2 text-white" /></div>}
+            {(!selectedId || selectedId === "__default_custom__") && <div className="absolute top-1 right-1 w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center"><Check className="w-2 h-2 text-white" /></div>}
             <div className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <button
                 type="button"

@@ -483,7 +483,7 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
       {/* Selector de prenda + Vista previa */}
       <div className="rounded-xl border-2 border-blue-200 bg-blue-50/30 px-6 pt-4 pb-5 space-y-4">
         <GarmentPicker
-          selectedId={selectedGarment?.id || null}
+          selectedId={selectedGarment?.id && selectedGarment.id !== "__default_custom__" ? selectedGarment.id : (selectedGarment?.id === "__default_custom__" ? "__default_custom__" : null)}
           onSelect={(g) => setSelectedGarment(g)}
         />
         <TshirtPreviewInteractive
