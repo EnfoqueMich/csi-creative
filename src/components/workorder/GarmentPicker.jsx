@@ -132,6 +132,7 @@ export default function GarmentPicker({ selectedId, onSelect }) {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [editingDefault, setEditingDefault] = useState(false);
   const [search, setSearch] = useState("");
 
   useEffect(() => {
@@ -178,6 +179,18 @@ export default function GarmentPicker({ selectedId, onSelect }) {
         />
       )}
 
+      {editingDefault && (
+        <GarmentForm
+          garment={{ titulo: "Playera Default", frente_url: DEFAULT_FRENTE, espalda_url: DEFAULT_ESPALDA }}
+          onSaved={(saved) => {
+            setGarments((prev) => [...prev, saved]);
+            setEditingDefault(false);
+            onSelect(saved);
+          }}
+          onCancel={() => setEditingDefault(false)}
+        />
+      )}
+
       {/* Buscador */}
       {!loading && garments.length > 0 && (
         <div className="relative">
@@ -207,13 +220,23 @@ export default function GarmentPicker({ selectedId, onSelect }) {
             type="button"
             onClick={() => onSelect(null)}
             className={cn(
-              "relative flex flex-col items-center gap-1 border-2 rounded-lg p-2 w-24 transition-all flex-shrink-0",
+              "relative flex flex-col items-center gap-1 border-2 rounded-lg p-2 w-24 transition-all flex-shrink-0 group",
               !selectedId ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-blue-300"
             )}
           >
             <img src={DEFAULT_FRENTE} alt="Playera" className="w-12 h-12 object-contain" />
             <span className="text-[10px] font-semibold text-center leading-tight">Playera<br/>Default</span>
             {!selectedId && <div className="absolute top-1 right-1 w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center"><Check className="w-2 h-2 text-white" /></div>}
+            <div className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); setEditingDefault(true); }}
+                className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center"
+                title="Editar playera default"
+              >
+                <Edit2 className="w-2.5 h-2.5 text-white" />
+              </button>
+            </div>
           </button>
           )}
 
