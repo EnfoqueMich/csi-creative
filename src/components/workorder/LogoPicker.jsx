@@ -251,6 +251,11 @@ function LogoSearchDropdown({ logos, onSelect, onNew }) {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  // Mostrar todos los logos cuando se abre sin filtros
+  const displayResults = (queryCliente.trim() || queryNombre.trim())
+    ? results
+    : logos.slice(0, 50);
+
   return (
     <div className="relative" ref={ref}>
       {/* Dos campos de filtro */}
@@ -290,10 +295,10 @@ function LogoSearchDropdown({ logos, onSelect, onNew }) {
 
       {open && (
         <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-popover border border-border rounded-lg shadow-lg overflow-hidden max-h-64 overflow-y-auto">
-          {results.length === 0 ? (
+          {displayResults.length === 0 ? (
             <div className="px-3 py-2 text-[11px] text-muted-foreground">Sin resultados</div>
           ) : (
-            results.map((l) => (
+            displayResults.map((l) => (
               <button
                 key={l.id}
                 type="button"
