@@ -258,8 +258,8 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
                   <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(posiciones.length, pdfCfg?.columnas_posiciones || 5)}, minmax(0, 1fr))` }}>
                     {posiciones.map((pos, i) => (
                     <div key={i} className="border border-blue-200 rounded text-[10px]">
-                      {/* Header posición */}
-                      <div className="text-white font-bold text-center py-1 rounded-t" style={{ backgroundColor: pdfCfg?.color_posiciones || "#1d4ed8" }}>POSICIÓN # {pos.numero}</div>
+                      {/* Header posición — oculto en impresión */}
+                      <div className="text-white font-bold text-center py-1 rounded-t print:hidden" style={{ backgroundColor: pdfCfg?.color_posiciones || "#1d4ed8" }}>POSICIÓN # {pos.numero}</div>
                       <div className="bg-green-100 text-green-800 font-semibold text-center py-0.5 mx-1 mt-1 rounded border border-green-300">{pos.nombre}</div>
 
                       <div className="px-2 pb-2 space-y-1 mt-1">
@@ -291,7 +291,7 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
                               const match = hiloMap[c];
                               return (
                                 <div key={hi} className="flex items-center gap-1 mb-0.5">
-                                  <div className="w-3 h-3 rounded-sm border border-gray-300 flex-shrink-0" style={{ backgroundColor: match?.hex || "#ffffff" }} />
+                                  <div className="w-3 h-3 border border-gray-300 flex-shrink-0" style={{ backgroundColor: match?.hex || "#ffffff" }} />
                                   <span className="font-mono font-semibold text-blue-700">{c}</span>
                                   {match && <span className="text-gray-500 truncate">{match.nombre}</span>}
                                 </div>
@@ -511,7 +511,7 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
 
       <style>{`
         @media print {
-          @page { size: letter portrait; margin: 10mm; }
+          @page { size: letter portrait; margin: 8mm; }
           body * { visibility: hidden; }
           #print-container, #print-container * { visibility: visible; }
           #print-container {
