@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, memo } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -90,7 +90,7 @@ const emptyOrder = () => ({
 
 // Migra órdenes antiguas que tenían un solo diseño a la nueva estructura
 function migrateOrder(order) {
-  if (order?.disenos?.length) return order.disenos;
+  if (order?.disenos?.length) return order.disenos.map(d => ({ ...d, titulo: d.titulo || "" }));
   // Orden antigua: un solo diseño
   return [
     {
@@ -195,8 +195,8 @@ function ClientSearch({ value, onSelect, onTypeName }) {
   );
 }
 
-// Wrapper memoizado para evitar closures stale en los callbacks de GarmentDesignBlock
-const GarmentDesignBlockMemo = memo(function GarmentDesignBlockMemo({ diseno, index, canRemove, disenoId, updateDiseno, removeDiseno, logoCatalog, onLogoCatalogUpdate }) {
+// Wrapper para estabilizar callbacks de GarmentDesignBlock
+function GarmentDesignBlockMemo({ diseno, index, canRemove, disenoId, updateDiseno, removeDiseno, logoCatalog, onLogoCatalogUpdate }) {
   const onUpdate = useCallback((patch) => updateDiseno(disenoId, patch), [disenoId, updateDiseno]);
   const onRemove = useCallback(() => removeDiseno(disenoId), [disenoId, removeDiseno]);
   return (
@@ -210,7 +210,7 @@ const GarmentDesignBlockMemo = memo(function GarmentDesignBlockMemo({ diseno, in
       onLogoCatalogUpdate={onLogoCatalogUpdate}
     />
   );
-});
+}
 
 export default function WorkOrderForm({ order, onSave, onCancel }) {
   const [form, setForm] = useState(() => {
