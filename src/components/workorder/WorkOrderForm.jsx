@@ -234,7 +234,7 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
   const set = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
   const setNested = (field, key, value) => setForm((prev) => ({ ...prev, [field]: { ...(prev[field] || {}), [key]: value } }));
 
-  const updateEspec = (idx, field, value) =>
+  const updateEspec = useCallback((idx, field, value) =>
     setForm((prev) => {
       const especificaciones = prev.especificaciones.map((e, i) => {
         if (i !== idx) return e;
@@ -245,13 +245,13 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
         return updated;
       });
       return { ...prev, especificaciones };
-    });
+    }), []);
   const addEspec = () => setForm((prev) => ({ ...prev, especificaciones: [...prev.especificaciones, emptyEspec()] }));
   const removeEspec = (idx) => setForm((prev) => ({ ...prev, especificaciones: prev.especificaciones.filter((_, i) => i !== idx) }));
 
   const addDiseno = () => setDisenos((prev) => [...prev, makeDefaultDiseno()]);
-  const removeDiseno = (idx) => setDisenos((prev) => prev.filter((_, i) => i !== idx));
-  const updateDiseno = (idx, patch) => setDisenos((prev) => prev.map((d, i) => i === idx ? { ...d, ...patch } : d));
+  const removeDiseno = (id) => setDisenos((prev) => prev.filter((d) => d.id !== id));
+  const updateDiseno = useCallback((id, patch) => setDisenos((prev) => prev.map((d) => d.id === id ? { ...d, ...patch } : d)), []);
 
   const generateFolio = async () => {
     const existing = await base44.entities.WorkOrder.list("-created_date", 1);
@@ -429,8 +429,8 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
             diseno={diseno}
             index={idx + 1}
             canRemove={disenos.length > 1}
-            onUpdate={(updated) => updateDiseno(idx, updated)}
-            onRemove={() => removeDiseno(idx)}
+            onUpdate={(patch) => updateDiseno(diseno.id, patch)}
+            onRemove={() => removeDiseno(diseno.id)}
             logoCatalog={logoCatalog}
             onLogoCatalogUpdate={handleLogoCatalogUpdate}
           />

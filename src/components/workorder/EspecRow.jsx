@@ -76,7 +76,7 @@ export default function EspecRow({ row, onChange, onRemove, canRemove, disenos =
         <span className="text-[10px] font-bold text-blue-700 uppercase whitespace-nowrap">Diseño vinculado:</span>
         <select
           value={row.diseno_id || ""}
-          onChange={e => onChange("diseno_id", e.target.value || null)}
+          onChange={e => onChange("diseno_id", e.target.value || "")}
           className="flex-1 h-7 text-xs border border-blue-300 rounded px-2 bg-white text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-400"
         >
           <option value="">— Sin diseño asignado —</option>

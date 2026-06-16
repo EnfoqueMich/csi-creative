@@ -117,6 +117,8 @@ export default function GarmentDesignBlock({ diseno, index, canRemove, onUpdate,
       garment_frente_url: g?.frente_url || "",
       garment_espalda_url: g?.espalda_url || "",
       garment_titulo: g?.titulo || "",
+      // Si el título del diseño está vacío, auto-poblarlo con el nombre de la prenda
+      ...(!diseno.titulo && g?.titulo ? { titulo: g.titulo } : {}),
       garment_es_gorra: g?.es_gorra || false,
       garment_lateral_izq_url: g?.lateral_izq_url || "",
       garment_lateral_der_url: g?.lateral_der_url || "",
