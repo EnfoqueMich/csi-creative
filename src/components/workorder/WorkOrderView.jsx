@@ -416,85 +416,270 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
             ) : null)}
           </div>
 
-          {/* Modelos en grid 2 columnas */}
-          <div className="px-4 py-4">
-            <div className="border-2 border-green-600 rounded overflow-hidden">
-              <div className="bg-green-700 px-4 py-1.5 text-center">
-                <p className="text-white font-bold text-xs uppercase tracking-widest">Prendas que Ingresaron</p>
-              </div>
-              <div className="grid grid-cols-2 divide-x-2 divide-green-300">
-                {especificaciones.map((row, idx) => {
-                  const personalizados = row.personalizados || {};
-                  const totalPiezas = TALLAS_KEYS.reduce((s, t) => s + (Number(row.tallas?.[t]) || 0), 0);
-                  const disenoVinculado = row.diseno_id ? disenoPorId[row.diseno_id] : null;
-                  return (
-                    <div key={idx} className={cn("px-3 py-3", idx >= 2 && "border-t-2 border-green-300")}>
-                      {/* Diseño vinculado */}
-                      {disenoVinculado && (
-                        <div className="mb-2 inline-flex items-center gap-1.5 bg-blue-100 border border-blue-300 rounded px-2 py-0.5">
-                          <span className="text-[9px] font-bold text-blue-700 uppercase">Diseño #{disenoVinculado.index}{(disenoVinculado.titulo || disenoVinculado.garment_titulo) ? ` — ${disenoVinculado.titulo || disenoVinculado.garment_titulo}` : ""}</span>
-                        </div>
-                      )}
-                      {/* Cabecera prenda */}
-                      <div className="flex items-center gap-2 flex-wrap mb-2">
-                        {[
-                          { label: "TIPO PRENDA", value: row.tipo_prenda },
-                          { label: "COLOR", value: row.color_prenda },
-                          row.modelo && { label: "MODELO", value: row.modelo },
-                          row.marca && { label: "MARCA", value: row.marca },
-                        ].filter(Boolean).map(({ label, value }) => (
-                          <div key={label} className="border border-gray-400 rounded px-1.5 py-0.5 text-center">
-                            <p className="text-[8px] text-gray-500 uppercase">{label}</p>
-                            <p className="text-[10px] font-bold">{value}</p>
-                          </div>
-                        ))}
-                        <div className="ml-auto border-2 border-green-500 rounded px-2 py-0.5 text-center">
-                          <p className="text-[8px] text-gray-500 uppercase">Total Piezas</p>
-                          <p className="text-lg font-black text-green-700 leading-none">{totalPiezas}</p>
-                        </div>
-                      </div>
+          {/* ─── Contenido: Agrupado por Diseño ─── */}
+          <div className="px-4 py-4 space-y-6">
+            {(() => {
+              // Agrupa filas de especificaciones por diseno_id
+              const grupos = new Map();
+              // Diseños sin fila vinculada — los mostramos al final
+              const sinDiseno = [];
+              especificaciones.forEach(row => {
+                const did = row.diseno_id || "";
+                if (did && disenoPorId[did]) {
+                  if (!grupos.has(did)) grupos.set(did, []);
+                  grupos.get(did).push(row);
+                } else {
+                  sinDiseno.push(row);
+                }
+              });
+              // Diseños que sí están en grupos, ordenados por el index del diseño
+              const disenosGrupo = Array.from(grupos.entries())
+                .sort(([a], [b]) => (disenoPorId[a]?.index || 99) - (disenoPorId[b]?.index || 99));
 
-                      {/* Tallas con personalizados */}
-                      <div className="space-y-1.5">
-                        {TALLAS_KEYS.map((t, ti) => {
-                          const cantidad = Number(row.tallas?.[t]) || 0;
-                          if (!cantidad) return null;
-                          const listaP = personalizados[t] || [];
-                          const sinP = cantidad - listaP.length;
-                          return (
-                            <div key={t} className="border border-gray-200 rounded overflow-hidden">
-                              <div className="flex items-center gap-2 px-2 py-1 bg-gray-50">
-                                <div className="flex flex-col items-center justify-center border border-green-500 rounded w-11 py-0.5 bg-white flex-shrink-0">
-                                  <span className="text-[8px] font-bold text-gray-500 uppercase">{TALLAS_LABELS[ti]}</span>
-                                  <span className="text-sm font-black text-green-700 leading-none">{cantidad}</span>
+              return (
+                <>
+                  {/* Secciones por diseño */}
+                  {disenosGrupo.map(([disenoId, rows]) => {
+                    const d = disenoPorId[disenoId];
+                    const totalPiezasGrupo = rows.reduce((s, r) => s + (TALLAS_KEYS.reduce((a, t) => a + (Number(r.tallas?.[t]) || 0), 0)), 0);
+                    const esGorra = d.garment_es_gorra;
+                    return (
+                      <div key={disenoId} className="border border-green-500 rounded overflow-hidden">
+                        {/* Banner azul con título del diseño */}
+                        <div className="px-4 py-2 text-center" style={{ backgroundColor: "#007bbd" }}>
+                          <p className="text-white font-bold text-sm uppercase tracking-wider">
+                            DISEÑO #{d.index} — {d.titulo || d.garment_titulo || "SIN NOMBRE"}
+                          </p>
+                        </div>
+
+                        {/* Imágenes del diseño + metadatos de prenda */}
+                        <div className="flex gap-4 p-4 border-b border-gray-200">
+                          {/* Preview prenda */}
+                          <div className="flex gap-2 flex-shrink-0" style={{ width: "55%" }}>
+                            {esGorra ? (
+                              <>
+                                <div className="flex-1 text-center">
+                                  <p className="text-[7px] font-bold text-gray-500 uppercase mb-1">Frente</p>
+                                  <img src={d.garment_frente_url || DEFAULT_FRENTE} alt="Frente" className="w-full object-contain max-h-[120px]" />
                                 </div>
-                                <div className="flex flex-col text-[9px] text-gray-600">
-                                  {sinP > 0 && <span><strong>{sinP}</strong> tallas {TALLAS_LABELS[ti]} <span className="font-bold text-gray-500">SIN PERSONALIZAR</span></span>}
-                                  {listaP.length > 0 && <span><strong className="text-green-700">{listaP.length}</strong> tallas {TALLAS_LABELS[ti]} <span className="font-bold text-green-700">PERSONALIZADAS</span></span>}
+                                <div className="flex-1 text-center">
+                                  <p className="text-[7px] font-bold text-gray-500 uppercase mb-1">Espalda</p>
+                                  <img src={d.garment_espalda_url || DEFAULT_ESPALDA} alt="Espalda" className="w-full object-contain max-h-[120px]" />
+                                </div>
+                                <div className="flex-1 text-center">
+                                  <p className="text-[7px] font-bold text-gray-500 uppercase mb-1">Lat.Izq</p>
+                                  <img src={d.garment_lateral_izq_url || d.garment_frente_url || DEFAULT_FRENTE} alt="Lat Izq" className="w-full object-contain max-h-[120px]" />
+                                </div>
+                                <div className="flex-1 text-center">
+                                  <p className="text-[7px] font-bold text-gray-500 uppercase mb-1">Lat.Der</p>
+                                  <img src={d.garment_lateral_der_url || d.garment_frente_url || DEFAULT_FRENTE} alt="Lat Der" className="w-full object-contain max-h-[120px]" />
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <div className="flex-1 text-center">
+                                  <p className="text-[7px] font-bold text-gray-500 uppercase mb-1">Frente</p>
+                                  <img src={d.garment_frente_url || DEFAULT_FRENTE} alt="Frente" className="w-full object-contain max-h-[120px]" />
+                                </div>
+                                <div className="flex-1 text-center">
+                                  <p className="text-[7px] font-bold text-gray-500 uppercase mb-1">Espalda</p>
+                                  <img src={d.garment_espalda_url || DEFAULT_ESPALDA} alt="Espalda" className="w-full object-contain max-h-[120px]" />
+                                </div>
+                              </>
+                            )}
+                          </div>
+
+                          {/* Metadata: Total Piezas + prenda info */}
+                          <div className="flex-1 space-y-2">
+                            <div className="border-2 border-green-500 rounded px-3 py-2 text-center">
+                              <p className="text-[10px] font-bold text-green-700 uppercase">TOTAL PIEZAS</p>
+                              <p className="text-2xl font-black text-green-600 leading-none mt-1">{totalPiezasGrupo}</p>
+                            </div>
+                            {rows.length === 1 ? (
+                              <div className="grid grid-cols-2 gap-1.5">
+                                {[
+                                  { label: "TIPO PRENDA", value: rows[0].tipo_prenda },
+                                  { label: "COLOR", value: rows[0].color_prenda },
+                                  rows[0].modelo && { label: "MODELO", value: rows[0].modelo },
+                                  rows[0].marca && { label: "MARCA", value: rows[0].marca },
+                                ].filter(Boolean).map(({ label, value }) => (
+                                  <div key={label} className="border border-gray-300 rounded px-2 py-1 text-center">
+                                    <p className="text-[8px] text-gray-500 uppercase leading-tight">{label}</p>
+                                    <p className="text-[12px] font-bold leading-tight">{value}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-[9px] text-gray-500 italic text-center">{rows.length} modelos vinculados a este diseño</p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Filas de tallas por cada modelo */}
+                        <div className="divide-y divide-gray-200">
+                          {rows.map((row, ri) => {
+                            const personalizados = row.personalizados || {};
+                            const totalPiezas = TALLAS_KEYS.reduce((s, t) => s + (Number(row.tallas?.[t]) || 0), 0);
+                            return (
+                              <div key={ri} className="px-4 py-3">
+                                {/* Si hay más de 1 fila en este diseño, mostramos los metadatos */}
+                                {rows.length > 1 && (
+                                  <div className="flex items-center gap-2 flex-wrap mb-3">
+                                    {[
+                                      { label: "TIPO PRENDA", value: row.tipo_prenda },
+                                      { label: "COLOR", value: row.color_prenda },
+                                      row.modelo && { label: "MODELO", value: row.modelo },
+                                      row.marca && { label: "MARCA", value: row.marca },
+                                    ].filter(Boolean).map(({ label, value }) => (
+                                      <div key={label} className="border border-gray-300 rounded px-1.5 py-0.5 text-center">
+                                        <p className="text-[8px] text-gray-500 uppercase">{label}</p>
+                                        <p className="text-[10px] font-bold">{value}</p>
+                                      </div>
+                                    ))}
+                                    <div className="ml-auto border-2 border-green-500 rounded px-2 py-0.5 text-center">
+                                      <p className="text-[8px] text-gray-500 uppercase">Total Piezas</p>
+                                      <p className="text-base font-black text-green-700 leading-none">{totalPiezas}</p>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Tallas */}
+                                <div className="space-y-1.5">
+                                  {TALLAS_KEYS.map((t, ti) => {
+                                    const cantidad = Number(row.tallas?.[t]) || 0;
+                                    if (!cantidad) return null;
+                                    const listaP = personalizados[t] || [];
+                                    const sinP = cantidad - listaP.length;
+                                    return (
+                                      <div key={t} className="border border-gray-300 rounded overflow-hidden">
+                                        <div className="flex items-center gap-3 px-3 py-1.5 bg-gray-50/50">
+                                          <div className="flex flex-col items-center justify-center border border-green-500 rounded-lg w-[38px] py-0.5 bg-white flex-shrink-0">
+                                            <span className="text-[9px] font-bold text-gray-600 uppercase">{TALLAS_LABELS[ti]}</span>
+                                            <span className="text-sm font-black text-green-700 leading-none">{cantidad}</span>
+                                          </div>
+                                          <div className="flex flex-col text-[10px] text-gray-700">
+                                            {sinP > 0 && <span><strong className="text-black">{sinP}</strong> tallas {TALLAS_LABELS[ti]} <span className="font-semibold text-gray-500">SIN PERSONALIZAR</span></span>}
+                                            {listaP.length > 0 && <span className="text-green-700 font-semibold"><strong>{listaP.length}</strong> tallas {TALLAS_LABELS[ti]} PERSONALIZADAS</span>}
+                                          </div>
+                                        </div>
+                                        {listaP.map((p, pi) => (
+                                          <div key={pi} className="flex items-start gap-2 px-3 py-1.5 border-t border-orange-300 bg-orange-50/20">
+                                            <div className="flex flex-col items-center justify-center border border-green-400 rounded-lg w-[34px] py-0.5 bg-white flex-shrink-0">
+                                              <span className="text-[8px] font-bold text-gray-500 uppercase">{TALLAS_LABELS[ti]}</span>
+                                              <span className="text-[11px] font-black text-green-700 leading-none">1</span>
+                                            </div>
+                                            <div className="flex-1 text-[10px] space-y-0.5">
+                                              <p className="font-bold text-black">{p.nombre}</p>
+                                              <div className="flex gap-4 flex-wrap text-gray-600">
+                                                {p.color_hilo && (
+                                                  <span>
+                                                    <span className="font-semibold text-blue-700">Hilo:</span>{" "}
+                                                    {(() => {
+                                                      const m = hiloMap[p.color_hilo];
+                                                      return m ? `${p.color_hilo} - ${m.nombre}` : p.color_hilo;
+                                                    })()}
+                                                  </span>
+                                                )}
+                                                {p.nota && <span className="text-gray-500 italic">Nota: {p.nota}</span>}
+                                              </div>
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    );
+                                  })}
                                 </div>
                               </div>
-                              {listaP.map((p, pi) => (
-                                <div key={pi} className="flex items-start gap-1.5 px-2 py-1 border-t border-yellow-200 bg-yellow-50/30">
-                                  <div className="flex flex-col items-center justify-center border border-green-400 rounded w-9 py-0.5 bg-white flex-shrink-0">
-                                    <span className="text-[7px] font-bold text-gray-500 uppercase">{TALLAS_LABELS[ti]}</span>
-                                    <span className="text-[10px] font-black text-green-700">1</span>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {/* Filas sin diseño vinculado */}
+                  {sinDiseno.length > 0 && (
+                    <div className="border border-gray-300 rounded overflow-hidden">
+                      <div className="px-4 py-2 text-center bg-gray-100">
+                        <p className="text-gray-600 font-bold text-xs uppercase tracking-wider">Prendas sin Diseño Asignado</p>
+                      </div>
+                      <div className="px-4 py-3 space-y-4 divide-y divide-gray-200">
+                        {sinDiseno.map((row, idx) => {
+                          const personalizados = row.personalizados || {};
+                          const totalPiezas = TALLAS_KEYS.reduce((s, t) => s + (Number(row.tallas?.[t]) || 0), 0);
+                          return (
+                            <div key={idx} className={idx > 0 ? "pt-4" : ""}>
+                              <div className="flex items-center gap-2 flex-wrap mb-2">
+                                {[
+                                  { label: "TIPO PRENDA", value: row.tipo_prenda },
+                                  { label: "COLOR", value: row.color_prenda },
+                                  row.modelo && { label: "MODELO", value: row.modelo },
+                                  row.marca && { label: "MARCA", value: row.marca },
+                                ].filter(Boolean).map(({ label, value }) => (
+                                  <div key={label} className="border border-gray-300 rounded px-1.5 py-0.5 text-center">
+                                    <p className="text-[8px] text-gray-500 uppercase">{label}</p>
+                                    <p className="text-[10px] font-bold">{value}</p>
                                   </div>
-                                  <div className="flex-1 text-[9px] space-y-0.5">
-                                    <p className="font-bold uppercase text-black">{p.nombre}</p>
-                                    {p.color_hilo && <p className="text-gray-600">Hilo: <span className="font-semibold text-blue-700">{p.color_hilo}</span></p>}
-                                    {p.nota && <p className="text-gray-500 italic">Nota: {p.nota}</p>}
-                                  </div>
+                                ))}
+                                <div className="ml-auto border-2 border-green-500 rounded px-2 py-0.5 text-center">
+                                  <p className="text-[8px] text-gray-500 uppercase">Total Piezas</p>
+                                  <p className="text-base font-black text-green-700 leading-none">{totalPiezas}</p>
                                 </div>
-                              ))}
+                              </div>
+                              <div className="space-y-1.5">
+                                {TALLAS_KEYS.map((t, ti) => {
+                                  const cantidad = Number(row.tallas?.[t]) || 0;
+                                  if (!cantidad) return null;
+                                  const listaP = personalizados[t] || [];
+                                  const sinP = cantidad - listaP.length;
+                                  return (
+                                    <div key={t} className="border border-gray-300 rounded overflow-hidden">
+                                      <div className="flex items-center gap-3 px-3 py-1.5 bg-gray-50/50">
+                                        <div className="flex flex-col items-center justify-center border border-green-500 rounded-lg w-[38px] py-0.5 bg-white flex-shrink-0">
+                                          <span className="text-[9px] font-bold text-gray-600 uppercase">{TALLAS_LABELS[ti]}</span>
+                                          <span className="text-sm font-black text-green-700 leading-none">{cantidad}</span>
+                                        </div>
+                                        <div className="flex flex-col text-[10px] text-gray-700">
+                                          {sinP > 0 && <span><strong className="text-black">{sinP}</strong> tallas {TALLAS_LABELS[ti]} <span className="font-semibold text-gray-500">SIN PERSONALIZAR</span></span>}
+                                          {listaP.length > 0 && <span className="text-green-700 font-semibold"><strong>{listaP.length}</strong> tallas {TALLAS_LABELS[ti]} PERSONALIZADAS</span>}
+                                        </div>
+                                      </div>
+                                      {listaP.map((p, pi) => (
+                                        <div key={pi} className="flex items-start gap-2 px-3 py-1.5 border-t border-orange-300 bg-orange-50/20">
+                                          <div className="flex flex-col items-center justify-center border border-green-400 rounded-lg w-[34px] py-0.5 bg-white flex-shrink-0">
+                                            <span className="text-[8px] font-bold text-gray-500 uppercase">{TALLAS_LABELS[ti]}</span>
+                                            <span className="text-[11px] font-black text-green-700 leading-none">1</span>
+                                          </div>
+                                          <div className="flex-1 text-[10px] space-y-0.5">
+                                            <p className="font-bold text-black">{p.nombre}</p>
+                                            <div className="flex gap-4 flex-wrap text-gray-600">
+                                              {p.color_hilo && (
+                                                <span>
+                                                  <span className="font-semibold text-blue-700">Hilo:</span>{" "}
+                                                  {(() => {
+                                                    const m = hiloMap[p.color_hilo];
+                                                    return m ? `${p.color_hilo} - ${m.nombre}` : p.color_hilo;
+                                                  })()}
+                                                </span>
+                                              )}
+                                              {p.nota && <span className="text-gray-500 italic">Nota: {p.nota}</span>}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  );
+                                })}
+                              </div>
                             </div>
                           );
                         })}
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            </div>
+                  )}
+                </>
+              );
+            })()}
           </div>
 
           {/* Footer firmas hoja especificaciones */}
