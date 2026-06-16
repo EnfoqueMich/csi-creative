@@ -46,6 +46,7 @@ const emptyEspec = (base = {}) => ({ tipo_prenda: "", color_prenda: "", modelo: 
 function makeDefaultDiseno(id) {
   return {
     id: id || `d-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    titulo: "",
     garment_frente_url: "",
     garment_espalda_url: "",
     garment_titulo: "",
@@ -93,6 +94,7 @@ function migrateOrder(order) {
   return [
     {
       id: `d-migrated`,
+      titulo: order?.garment_titulo || "",
       garment_frente_url: order?.garment_frente_url || "",
       garment_espalda_url: order?.garment_espalda_url || "",
       garment_titulo: order?.garment_titulo || "",
@@ -431,9 +433,24 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
       {/* Especificaciones */}
       <div className="space-y-3">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {form.especificaciones.map((row, idx) => (
-            <EspecRow key={idx} row={row} onChange={(field, value) => updateEspec(idx, field, value)} onRemove={() => removeEspec(idx)} canRemove={form.especificaciones.length > 1} />
-          ))}
+          {form.especificaciones.map((row, idx) => {
+            // Mapa de qué diseños ya están asignados (excluyendo el de esta fila)
+            const assignedDisenos = {};
+            form.especificaciones.forEach((e, i) => {
+              if (i !== idx && e.diseno_id) assignedDisenos[e.diseno_id] = true;
+            });
+            return (
+              <EspecRow
+                key={idx}
+                row={row}
+                onChange={(field, value) => updateEspec(idx, field, value)}
+                onRemove={() => removeEspec(idx)}
+                canRemove={form.especificaciones.length > 1}
+                disenos={disenos}
+                assignedDisenos={assignedDisenos}
+              />
+            );
+          })}
         </div>
         <Button type="button" variant="outline" size="sm" onClick={addEspec} className="gap-1 text-green-700 border-green-400 hover:bg-green-50 w-full">
           <Plus className="w-3.5 h-3.5" /> Agregar modelo de prenda

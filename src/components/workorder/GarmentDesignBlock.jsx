@@ -177,19 +177,25 @@ export default function GarmentDesignBlock({ diseno, index, canRemove, onUpdate,
   return (
     <div className="rounded-xl border-2 border-blue-200 bg-blue-50/20">
       {/* Header del bloque */}
-      <div className="flex items-center justify-between px-4 py-2 border-b border-blue-200 bg-blue-50/60 rounded-t-xl">
+      <div className="flex items-center gap-2 px-4 py-2 border-b border-blue-200 bg-blue-50/60 rounded-t-xl">
         <button
           type="button"
           onClick={() => setCollapsed(c => !c)}
-          className="flex items-center gap-2 flex-1 text-left"
+          className="flex items-center gap-1 flex-shrink-0"
         >
           {collapsed ? <ChevronDown className="w-4 h-4 text-blue-600" /> : <ChevronUp className="w-4 h-4 text-blue-600" />}
-          <span className="text-sm font-bold text-blue-700 uppercase tracking-wide">
-            Diseño #{index} {diseno.garment_titulo ? `— ${diseno.garment_titulo}` : ""}
-          </span>
+          <span className="text-sm font-bold text-blue-700 uppercase tracking-wide whitespace-nowrap">Diseño #{index}</span>
         </button>
+        {/* Título editable */}
+        <Input
+          value={diseno.titulo || ""}
+          onChange={e => update({ titulo: e.target.value })}
+          placeholder="Nombre del diseño (ej: Playera Azul)..."
+          className="h-7 text-xs font-semibold flex-1 border-blue-300 bg-white"
+          onClick={e => e.stopPropagation()}
+        />
         {canRemove && (
-          <button type="button" onClick={onRemove} className="p-1 rounded hover:bg-red-100 text-muted-foreground hover:text-destructive transition-colors">
+          <button type="button" onClick={onRemove} className="p-1 rounded hover:bg-red-100 text-muted-foreground hover:text-destructive transition-colors flex-shrink-0">
             <X className="w-4 h-4" />
           </button>
         )}

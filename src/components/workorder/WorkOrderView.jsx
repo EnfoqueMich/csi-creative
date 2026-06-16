@@ -143,7 +143,10 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
   // Soporte multi-diseño: usa order.disenos si existe, sino crea uno con datos legacy
   const disenos = order.disenos?.length
     ? order.disenos
-    : [{ id: "legacy", garment_frente_url: order.garment_frente_url, garment_espalda_url: order.garment_espalda_url, garment_titulo: order.garment_titulo, garment_es_gorra: order.garment_es_gorra, garment_lateral_izq_url: order.garment_lateral_izq_url, garment_lateral_der_url: order.garment_lateral_der_url, preview_layout: order.preview_layout, posiciones: order.posiciones || [] }];
+    : [{ id: "legacy", titulo: order.garment_titulo, garment_frente_url: order.garment_frente_url, garment_espalda_url: order.garment_espalda_url, garment_titulo: order.garment_titulo, garment_es_gorra: order.garment_es_gorra, garment_lateral_izq_url: order.garment_lateral_izq_url, garment_lateral_der_url: order.garment_lateral_der_url, preview_layout: order.preview_layout, posiciones: order.posiciones || [] }];
+
+  // Mapa id -> diseño para lookup rápido
+  const disenoPorId = Object.fromEntries(disenos.map((d, i) => [d.id, { ...d, index: i + 1 }]));
 
   const renderHeader = () => (
     <div className="flex items-start justify-between px-6 pt-6 pb-3 border-b-2" style={{ borderColor: pdfCfg?.color_encabezado || "#1e3a8a" }}>
@@ -316,7 +319,7 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
               {disenos.length > 1 && (
                 <div className="text-center">
                   <span className="inline-block border-2 border-blue-500 text-blue-700 font-bold text-xs rounded-lg px-4 py-1 uppercase tracking-wider">
-                    Diseño #{di + 1}{diseno.garment_titulo ? ` — ${diseno.garment_titulo}` : ""}
+                    Diseño #{di + 1}{(diseno.titulo || diseno.garment_titulo) ? ` — ${diseno.titulo || diseno.garment_titulo}` : ""}
                   </span>
                 </div>
               )}
@@ -425,8 +428,15 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
                 {especificaciones.map((row, idx) => {
                   const personalizados = row.personalizados || {};
                   const totalPiezas = TALLAS_KEYS.reduce((s, t) => s + (Number(row.tallas?.[t]) || 0), 0);
+                  const disenoVinculado = row.diseno_id ? disenoPorId[row.diseno_id] : null;
                   return (
                     <div key={idx} className={cn("px-3 py-3", idx >= 2 && "border-t-2 border-green-300")}>
+                      {/* Diseño vinculado */}
+                      {disenoVinculado && (
+                        <div className="mb-2 inline-flex items-center gap-1.5 bg-blue-100 border border-blue-300 rounded px-2 py-0.5">
+                          <span className="text-[9px] font-bold text-blue-700 uppercase">Diseño #{disenoVinculado.index}{(disenoVinculado.titulo || disenoVinculado.garment_titulo) ? ` — ${disenoVinculado.titulo || disenoVinculado.garment_titulo}` : ""}</span>
+                        </div>
+                      )}
                       {/* Cabecera prenda */}
                       <div className="flex items-center gap-2 flex-wrap mb-2">
                         {[
