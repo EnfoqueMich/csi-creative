@@ -115,7 +115,7 @@ export default function GarmentDesignBlock({ diseno, index, canRemove, onUpdate,
     ? diseno.preview_layout
     : { ...DEFAULT_LAYOUT };
 
-  const update = (patch) => onUpdate({ ...diseno, ...patch });
+  const update = (patch) => onUpdate(patch);
 
   const handleSelectGarment = (g) => {
     update({

@@ -240,7 +240,7 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
 
   const addDiseno = () => setDisenos((prev) => [...prev, makeDefaultDiseno()]);
   const removeDiseno = (idx) => setDisenos((prev) => prev.filter((_, i) => i !== idx));
-  const updateDiseno = (idx, updated) => setDisenos((prev) => prev.map((d, i) => i === idx ? updated : d));
+  const updateDiseno = (idx, patch) => setDisenos((prev) => prev.map((d, i) => i === idx ? { ...d, ...patch } : d));
 
   const generateFolio = async () => {
     const existing = await base44.entities.WorkOrder.list("-created_date", 1);
