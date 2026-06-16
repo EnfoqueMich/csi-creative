@@ -178,28 +178,37 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
     </div>
   );
 
-  const renderClienteInfo = (compact = false) => (
-    <div className={cn("space-y-2", compact ? "px-6 pt-3 pb-2 border-b border-gray-200" : "")} style={{ fontSize: pdfCfg?.fuente_datos_cliente || "11px" }}>
-      <div className="flex flex-wrap gap-2 items-center">
+  const renderClienteInfo = () => (
+    <div className="px-6 pt-3 pb-2 space-y-1.5" style={{ borderBottom: `2px solid ${pdfCfg?.color_encabezado || "#3D85C6"}`, fontSize: pdfCfg?.fuente_datos_cliente || "11px" }}>
+      {/* Row 1: datos principales */}
+      <div className="flex flex-wrap gap-x-6 gap-y-1 items-center">
         {[
-          { label: "NOMBRE CLIENTE", value: order.nombre_cliente },
-          { label: "TELÉFONO", value: order.telefono },
-          { label: "AGENTE", value: order.agente_ventas },
-          { label: "FECHA INGRESO", value: order.fecha_orden },
+          { label: "NOMBRE CLIENTE:", value: order.nombre_cliente },
+          { label: "TELÉFONO:", value: order.telefono },
+          { label: "AGENTE:", value: order.agente_ventas },
+          { label: "FECHA INGRESO:", value: order.fecha_orden },
         ].map(({ label, value }) => value ? (
-          <div key={label} className="border-2 rounded-lg px-3 py-1.5 flex-shrink-0 whitespace-nowrap text-center" style={{ borderColor: "#FFA500" }}>
-            <p className={cn("font-bold text-black", compact && "text-xs")}><span className="font-semibold uppercase">{label}:</span> {value}</p>
+          <div key={label} className="flex items-baseline gap-1">
+            <span className="inline-block px-1.5 py-0.5 text-xs font-semibold uppercase rounded" style={{ backgroundColor: "#FFE599" }}>{label}</span>
+            <span className="font-bold text-black text-sm">{value}</span>
           </div>
         ) : null)}
       </div>
-      {!compact && (order.rfc || order.cp || order.tipo_regimen || order.uso_factura || order.forma_pago || order.requiere_factura) && (
-        <div className="flex flex-wrap gap-2 items-center">
-          {order.rfc && <div className="border-2 rounded-lg px-3 py-1.5 flex-shrink-0 whitespace-nowrap text-center" style={{ borderColor: "#6366f1" }}><p className="font-bold text-black"><span className="font-semibold uppercase text-indigo-700">RFC:</span> {order.rfc}</p></div>}
-          {order.cp && <div className="border-2 rounded-lg px-3 py-1.5 flex-shrink-0 whitespace-nowrap text-center" style={{ borderColor: "#6366f1" }}><p className="font-bold text-black"><span className="font-semibold uppercase text-indigo-700">C.P.:</span> {order.cp}</p></div>}
-          {order.tipo_regimen && <div className="border-2 rounded-lg px-3 py-1.5 flex-shrink-0 text-center" style={{ borderColor: "#6366f1" }}><p className="font-bold text-black"><span className="font-semibold uppercase text-indigo-700">RÉGIMEN:</span> {order.tipo_regimen}</p></div>}
-          {order.uso_factura && <div className="border-2 rounded-lg px-3 py-1.5 flex-shrink-0 text-center" style={{ borderColor: "#6366f1" }}><p className="font-bold text-black"><span className="font-semibold uppercase text-indigo-700">USO CFDI:</span> {order.uso_factura}</p></div>}
-          {order.forma_pago && <div className="border-2 rounded-lg px-3 py-1.5 flex-shrink-0 whitespace-nowrap text-center" style={{ borderColor: "#6366f1" }}><p className="font-bold text-black"><span className="font-semibold uppercase text-indigo-700">PAGO:</span> {order.forma_pago}</p></div>}
-          <div className="border-2 rounded-lg px-3 py-1.5 flex-shrink-0 whitespace-nowrap text-center" style={{ borderColor: "#6366f1" }}><p className="font-bold text-black"><span className="font-semibold uppercase text-indigo-700">FACTURA:</span> {order.requiere_factura ? "Sí" : "No"}</p></div>
+      {/* Row 2: datos fiscales */}
+      {(order.rfc || order.cp || order.uso_factura || order.forma_pago || order.requiere_factura !== undefined) && (
+        <div className="flex flex-wrap gap-x-6 gap-y-1 items-center">
+          {[
+            { label: "RFC:", value: order.rfc },
+            { label: "C.P.:", value: order.cp },
+            { label: "USO CFDI:", value: order.uso_factura },
+            { label: "PAGO:", value: order.forma_pago },
+            { label: "FACTURA:", value: order.requiere_factura ? "SI" : "NO" },
+          ].map(({ label, value }) => value ? (
+            <div key={label} className="flex items-baseline gap-1">
+              <span className="inline-block px-1.5 py-0.5 text-xs font-semibold uppercase rounded" style={{ backgroundColor: "#FFE599" }}>{label}</span>
+              <span className="font-bold text-black text-sm">{value}</span>
+            </div>
+          ) : null)}
         </div>
       )}
     </div>
@@ -313,7 +322,7 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
           <div key={diseno.id || di} className="bg-white text-black rounded-xl border border-gray-300 shadow-sm w-full mx-auto print:shadow-none print:border-none print:rounded-none print:w-full print-page" style={{ fontSize: pdfCfg?.fuente_tamanio || "11px" }}>
             {renderHeader()}
             <div className="px-6 py-4 space-y-4">
-              {di === 0 ? renderClienteInfo(false) : renderClienteInfo(false)}
+              {di === 0 ? renderClienteInfo() : renderClienteInfo()}
 
               {/* Etiqueta del diseño — siempre visible */}
               <div className="text-center">
@@ -403,17 +412,36 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
           </div>
 
           {/* Datos del cliente */}
-          <div className="px-6 pt-3 pb-2 flex flex-wrap gap-2 border-b border-gray-200">
-            {[
-              { label: "NOMBRE CLIENTE", value: order.nombre_cliente },
-              { label: "TELÉFONO", value: order.telefono },
-              { label: "AGENTE", value: order.agente_ventas },
-              { label: "FECHA INGRESO", value: order.fecha_orden },
-            ].map(({ label, value }) => value ? (
-              <div key={label} className="border-2 rounded-lg px-3 py-1 text-center flex-shrink-0" style={{ borderColor: "#FFA500" }}>
-                <p className="font-bold text-black text-xs"><span className="font-semibold uppercase">{label}:</span> {value}</p>
+          <div className="px-6 pt-3 pb-2 space-y-1.5" style={{ borderBottom: `2px solid ${pdfCfg?.color_encabezado || "#3D85C6"}`, fontSize: pdfCfg?.fuente_datos_cliente || "11px" }}>
+            <div className="flex flex-wrap gap-x-6 gap-y-1 items-center">
+              {[
+                { label: "NOMBRE CLIENTE:", value: order.nombre_cliente },
+                { label: "TELÉFONO:", value: order.telefono },
+                { label: "AGENTE:", value: order.agente_ventas },
+                { label: "FECHA INGRESO:", value: order.fecha_orden },
+              ].map(({ label, value }) => value ? (
+                <div key={label} className="flex items-baseline gap-1">
+                  <span className="inline-block px-1.5 py-0.5 text-xs font-semibold uppercase rounded" style={{ backgroundColor: "#FFE599" }}>{label}</span>
+                  <span className="font-bold text-black text-sm">{value}</span>
+                </div>
+              ) : null)}
+            </div>
+            {(order.rfc || order.cp || order.uso_factura || order.forma_pago || order.requiere_factura !== undefined) && (
+              <div className="flex flex-wrap gap-x-6 gap-y-1 items-center">
+                {[
+                  { label: "RFC:", value: order.rfc },
+                  { label: "C.P.:", value: order.cp },
+                  { label: "USO CFDI:", value: order.uso_factura },
+                  { label: "PAGO:", value: order.forma_pago },
+                  { label: "FACTURA:", value: order.requiere_factura ? "SI" : "NO" },
+                ].map(({ label, value }) => value ? (
+                  <div key={label} className="flex items-baseline gap-1">
+                    <span className="inline-block px-1.5 py-0.5 text-xs font-semibold uppercase rounded" style={{ backgroundColor: "#FFE599" }}>{label}</span>
+                    <span className="font-bold text-black text-sm">{value}</span>
+                  </div>
+                ) : null)}
               </div>
-            ) : null)}
+            )}
           </div>
 
           {/* ─── Contenido: Agrupado por Diseño ─── */}
