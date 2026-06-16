@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, memo } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,6 +47,7 @@ function makeDefaultDiseno(id) {
   return {
     id: id || `d-${Date.now()}-${Math.random().toString(36).slice(2)}`,
     titulo: "",
+    // titulo es el nombre que escribe el usuario en el campo "Nombre del diseño"
     garment_frente_url: "",
     garment_espalda_url: "",
     garment_titulo: "",
@@ -193,6 +194,23 @@ function ClientSearch({ value, onSelect, onTypeName }) {
     </div>
   );
 }
+
+// Wrapper memoizado para evitar closures stale en los callbacks de GarmentDesignBlock
+const GarmentDesignBlockMemo = memo(function GarmentDesignBlockMemo({ diseno, index, canRemove, disenoId, updateDiseno, removeDiseno, logoCatalog, onLogoCatalogUpdate }) {
+  const onUpdate = useCallback((patch) => updateDiseno(disenoId, patch), [disenoId, updateDiseno]);
+  const onRemove = useCallback(() => removeDiseno(disenoId), [disenoId, removeDiseno]);
+  return (
+    <GarmentDesignBlock
+      diseno={diseno}
+      index={index}
+      canRemove={canRemove}
+      onUpdate={onUpdate}
+      onRemove={onRemove}
+      logoCatalog={logoCatalog}
+      onLogoCatalogUpdate={onLogoCatalogUpdate}
+    />
+  );
+});
 
 export default function WorkOrderForm({ order, onSave, onCancel }) {
   const [form, setForm] = useState(() => {
@@ -424,13 +442,14 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
           </Button>
         </div>
         {disenos.map((diseno, idx) => (
-          <GarmentDesignBlock
+          <GarmentDesignBlockMemo
             key={diseno.id}
             diseno={diseno}
             index={idx + 1}
             canRemove={disenos.length > 1}
-            onUpdate={(patch) => updateDiseno(diseno.id, patch)}
-            onRemove={() => removeDiseno(diseno.id)}
+            disenoId={diseno.id}
+            updateDiseno={updateDiseno}
+            removeDiseno={removeDiseno}
             logoCatalog={logoCatalog}
             onLogoCatalogUpdate={handleLogoCatalogUpdate}
           />

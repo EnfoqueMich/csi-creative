@@ -315,14 +315,12 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
             <div className="px-6 py-4 space-y-4">
               {di === 0 ? renderClienteInfo(false) : renderClienteInfo(false)}
 
-              {/* Etiqueta del diseño — siempre visible si tiene título o hay más de uno */}
-              {(disenos.length > 1 || diseno.titulo) && (
-                <div className="text-center">
-                  <span className="inline-block border-2 border-blue-500 text-blue-700 font-bold text-xs rounded-lg px-4 py-1 uppercase tracking-wider">
-                    Diseño #{di + 1}{(diseno.titulo || diseno.garment_titulo) ? ` — ${diseno.titulo || diseno.garment_titulo}` : ""}
-                  </span>
-                </div>
-              )}
+              {/* Etiqueta del diseño — siempre visible */}
+              <div className="text-center">
+                <span className="inline-block border-2 border-blue-500 text-blue-700 font-bold text-xs rounded-lg px-4 py-1 uppercase tracking-wider">
+                  Diseño #{di + 1}{(diseno.titulo || diseno.garment_titulo) ? ` — ${diseno.titulo || diseno.garment_titulo}` : ""}
+                </span>
+              </div>
 
               {renderPosiciones(posiciones, disenoOrder)}
 
