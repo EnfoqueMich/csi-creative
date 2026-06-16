@@ -166,6 +166,49 @@
         }
       }
     },
+    "disenos": {
+      "type": "array",
+      "description": "M\u00faltiples dise\u00f1os de prenda para el pedido",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "ID \u00fanico local del dise\u00f1o"
+          },
+          "garment_frente_url": {
+            "type": "string"
+          },
+          "garment_espalda_url": {
+            "type": "string"
+          },
+          "garment_titulo": {
+            "type": "string"
+          },
+          "garment_es_gorra": {
+            "type": "boolean"
+          },
+          "garment_lateral_izq_url": {
+            "type": "string"
+          },
+          "garment_lateral_der_url": {
+            "type": "string"
+          },
+          "garment_id": {
+            "type": "string"
+          },
+          "preview_layout": {
+            "type": "object"
+          },
+          "posiciones": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      }
+    },
     "preview_layout": {
       "type": "object"
     },

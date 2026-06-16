@@ -3,16 +3,11 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Save, ArrowLeft, Loader2, Plus, X, ChevronDown, Search } from "lucide-react";
+import { Save, ArrowLeft, Loader2, Plus, X, ChevronDown, Search, Shirt } from "lucide-react";
 import { cn } from "@/lib/utils";
-import TshirtPreviewInteractive, { DEFAULT_LAYOUT } from "./TshirtPreviewInteractive";
-import GarmentPicker from "./GarmentPicker";
-import HiloColorPicker from "./HiloColorPicker";
-import VinilColorPicker from "./VinilColorPicker";
+import { DEFAULT_LAYOUT } from "./TshirtPreviewInteractive";
 import EspecRow from "./EspecRow";
-import LogoPicker from "./LogoPicker";
-
-// TshirtPreview removido — ahora en TshirtPreviewInteractive.jsx
+import GarmentDesignBlock from "./GarmentDesignBlock";
 
 const POSICIONES_DEFAULT = [
   { numero: 1, nombre: "FRENTE IZQUIERDO" },
@@ -28,10 +23,6 @@ const TIPOS_TRABAJO = [
   ["costura", "Costura"], ["parche", "Parche"],
   ["riveteado", "Riveteado"], ["dtf", "DTF"],
 ];
-
-const TALLAS = ["xs", "s", "m", "l", "xl", "xxl", "xxxl", "xxxxl"];
-
-
 
 function CheckBox({ checked, onChange, label }) {
   return (
@@ -50,46 +41,41 @@ function CheckBox({ checked, onChange, label }) {
   );
 }
 
-
-
-
-
-const EXTRAS_LIST = [["foamy","Foamy"],["velcro_macho","Velcro macho"],["velcro_hembra","Velcro hembra"],["adhesivo_termico","Adhesivo térmico"]];
-
-function ExtrasCollapsible({ extras, onChange }) {
-  const [open, setOpen] = useState(false);
-  const activeCount = EXTRAS_LIST.filter(([key]) => !!extras?.[key]).length;
-  return (
-    <div className="border-t border-orange-100 pt-2">
-      <button type="button" onClick={() => setOpen(o => !o)} className="flex items-center gap-1 w-full text-left">
-        <p className="text-[10px] font-bold text-orange-600 uppercase flex-1">
-          Extras {activeCount > 0 && <span className="bg-orange-500 text-white rounded-full px-1 ml-1">{activeCount}</span>}
-        </p>
-        <ChevronDown className={cn("w-3 h-3 text-orange-400 transition-transform", open && "rotate-180")} />
-      </button>
-      {open && (
-        <div className="mt-1 space-y-1">
-          {EXTRAS_LIST.map(([key, label]) => (
-            <CheckBox key={key} label={label} checked={!!extras?.[key]} onChange={() => onChange(key, !extras?.[key])} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 const emptyEspec = (base = {}) => ({ tipo_prenda: "", color_prenda: "", modelo: "", marca: "", tallas: {}, total_piezas: 0, ...base });
+
+function makeDefaultDiseno(id) {
+  return {
+    id: id || `d-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    garment_frente_url: "",
+    garment_espalda_url: "",
+    garment_titulo: "",
+    garment_es_gorra: false,
+    garment_lateral_izq_url: "",
+    garment_lateral_der_url: "",
+    garment_id: null,
+    preview_layout: { ...DEFAULT_LAYOUT },
+    posiciones: POSICIONES_DEFAULT.map(p => ({
+      ...p,
+      descripcion: "",
+      imagen_url: "",
+      color_hilos: [""],
+      bobina_negra: false,
+      bobina_blanca: false,
+      extras: {},
+      alto_cm: 0,
+      ancho_cm: 0,
+    })),
+  };
+}
 
 const emptyOrder = () => ({
   nombre_cliente: "",
   agente_ventas: "",
   fecha_orden: new Date().toISOString().split("T")[0],
-  articulo_solicitado: "",
   telefono: "",
   observaciones: "",
   tipo_trabajo: {},
   especificaciones: [emptyEspec()],
-  posiciones: [],
   estado: "borrador",
   cliente_id: "",
   rfc: "",
@@ -99,6 +85,37 @@ const emptyOrder = () => ({
   requiere_factura: false,
   forma_pago: "",
 });
+
+// Migra órdenes antiguas que tenían un solo diseño a la nueva estructura
+function migrateOrder(order) {
+  if (order?.disenos?.length) return order.disenos;
+  // Orden antigua: un solo diseño
+  return [
+    {
+      id: `d-migrated`,
+      garment_frente_url: order?.garment_frente_url || "",
+      garment_espalda_url: order?.garment_espalda_url || "",
+      garment_titulo: order?.garment_titulo || "",
+      garment_es_gorra: order?.garment_es_gorra || false,
+      garment_lateral_izq_url: order?.garment_lateral_izq_url || "",
+      garment_lateral_der_url: order?.garment_lateral_der_url || "",
+      garment_id: null,
+      preview_layout: order?.preview_layout ? { ...DEFAULT_LAYOUT, ...order.preview_layout } : { ...DEFAULT_LAYOUT },
+      posiciones: order?.posiciones?.length
+        ? order.posiciones.map((p) => ({
+            ...p,
+            color_hilos: p.color_hilos?.length ? p.color_hilos : [""],
+            imagen_url: p.imagen_url || "",
+            bobina_negra: p.bobina_negra ?? false,
+            bobina_blanca: p.bobina_blanca ?? false,
+            extras: p.extras || {},
+            alto_cm: p.alto_cm ?? 0,
+            ancho_cm: p.ancho_cm ?? 0,
+          }))
+        : makeDefaultDiseno().posiciones,
+    },
+  ];
+}
 
 // ─── Client Autocomplete ───────────────────────────────────────────────────────
 function ClientSearch({ value, onSelect }) {
@@ -166,21 +183,7 @@ function ClientSearch({ value, onSelect }) {
 
 export default function WorkOrderForm({ order, onSave, onCancel }) {
   const [form, setForm] = useState(() => {
-    const base = {
-      ...emptyOrder(),
-      // Si es nueva orden, inicializa con posiciones por defecto
-      posiciones: POSICIONES_DEFAULT.map(p => ({
-        ...p,
-        descripcion: "",
-        imagen_url: "",
-        color_hilos: [""],
-        bobina_negra: false,
-        bobina_blanca: false,
-        extras: {},
-        alto_cm: 0,
-        ancho_cm: 0,
-      })),
-    };
+    const base = emptyOrder();
     if (!order) return base;
     return {
       ...base,
@@ -190,30 +193,23 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
         : (order.tipo_prenda !== undefined
             ? [emptyEspec({ tipo_prenda: order.tipo_prenda || "", color_prenda: order.color_prenda || "", tallas: order.tallas || {}, total_piezas: order.total_piezas || 0 })]
             : [emptyEspec()]),
-      posiciones: order.posiciones?.length
-        ? order.posiciones.map((p) => ({
-            ...p,
-            color_hilos: p.color_hilos?.length ? p.color_hilos : [""],
-            imagen_url: p.imagen_url || "",
-            bobina_negra: p.bobina_negra ?? order.bobina_negra ?? false,
-            bobina_blanca: p.bobina_blanca ?? order.bobina_blanca ?? false,
-            extras: p.extras || (order.extras && Object.keys(order.extras).length ? order.extras : {}),
-            alto_cm: p.alto_cm ?? 0,
-            ancho_cm: p.ancho_cm ?? 0,
-          }))
-        : base.posiciones,
       tipo_trabajo: order.tipo_trabajo || {},
     };
   });
+
+  // Array de diseños de prenda
+  const [disenos, setDisenos] = useState(() => {
+    if (!order) return [makeDefaultDiseno()];
+    return migrateOrder(order);
+  });
+
   const [saving, setSaving] = useState(false);
   const [logoCatalog, setLogoCatalog] = useState([]);
 
-  // Carga el catálogo de logos una sola vez para todas las posiciones
   useEffect(() => {
     base44.entities.LogoCatalog.list("nombre").then(setLogoCatalog);
   }, []);
 
-  // Cuando una posición guarda un logo nuevo/editado, actualiza el catálogo compartido
   const handleLogoCatalogUpdate = useCallback((savedLogo) => {
     setLogoCatalog((prev) => {
       const exists = prev.find((l) => l.id === savedLogo.id);
@@ -221,22 +217,6 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
       return [...prev, savedLogo].sort((a, b) => a.nombre.localeCompare(b.nombre));
     });
   }, []);
-  const [previewLayout, setPreviewLayout] = useState(() => ({
-    ...DEFAULT_LAYOUT,
-    ...(order?.preview_layout || {}),
-  }));
-  const [selectedGarment, setSelectedGarment] = useState(() =>
-    order?.garment_frente_url
-      ? {
-          frente_url: order.garment_frente_url,
-          espalda_url: order.garment_espalda_url,
-          titulo: order.garment_titulo,
-          es_gorra: order.garment_es_gorra || false,
-          lateral_izq_url: order.garment_lateral_izq_url || "",
-          lateral_der_url: order.garment_lateral_der_url || "",
-        }
-      : null
-  );
 
   const set = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
   const setNested = (field, key, value) => setForm((prev) => ({ ...prev, [field]: { ...(prev[field] || {}), [key]: value } }));
@@ -256,62 +236,9 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
   const addEspec = () => setForm((prev) => ({ ...prev, especificaciones: [...prev.especificaciones, emptyEspec()] }));
   const removeEspec = (idx) => setForm((prev) => ({ ...prev, especificaciones: prev.especificaciones.filter((_, i) => i !== idx) }));
 
-  const setPosicion = (idx, field, value) =>
-    setForm((prev) => {
-      const posiciones = [...prev.posiciones];
-      posiciones[idx] = { ...posiciones[idx], [field]: value };
-      return { ...prev, posiciones };
-    });
-
-  const setPosicionNested = (posIdx, field, key, value) =>
-    setForm((prev) => {
-      const posiciones = [...prev.posiciones];
-      posiciones[posIdx] = { ...posiciones[posIdx], [field]: { ...(posiciones[posIdx][field] || {}), [key]: value } };
-      return { ...prev, posiciones };
-    });
-
-  const setPosicionHilo = (posIdx, hiloIdx, value) =>
-    setForm((prev) => {
-      const posiciones = [...prev.posiciones];
-      const color_hilos = [...(posiciones[posIdx].color_hilos || [""])];
-      color_hilos[hiloIdx] = value;
-      posiciones[posIdx] = { ...posiciones[posIdx], color_hilos };
-      return { ...prev, posiciones };
-    });
-
-  const addHilo = (posIdx) =>
-    setForm((prev) => {
-      const posiciones = [...prev.posiciones];
-      posiciones[posIdx] = { ...posiciones[posIdx], color_hilos: [...(posiciones[posIdx].color_hilos || [""]), ""] };
-      return { ...prev, posiciones };
-    });
-
-  const removeHilo = (posIdx, hiloIdx) =>
-    setForm((prev) => {
-      const posiciones = [...prev.posiciones];
-      const color_hilos = posiciones[posIdx].color_hilos.filter((_, i) => i !== hiloIdx);
-      posiciones[posIdx] = { ...posiciones[posIdx], color_hilos: color_hilos.length ? color_hilos : [""] };
-      return { ...prev, posiciones };
-    });
-
-  const addPosicion = () =>
-    setForm((prev) => {
-      const nums = prev.posiciones.map(p => p.numero);
-      const next = Math.max(...(nums.length ? nums : [0])) + 1;
-      // Usa nombres de POSICIONES_DEFAULT si existen, sino genera
-      const defaultName = POSICIONES_DEFAULT.find(p => p.numero === next)?.nombre || `POSICIÓN ${next}`;
-      return {
-        ...prev,
-        posiciones: [...prev.posiciones, {
-          numero: next, nombre: defaultName, descripcion: "", imagen_url: "", color_hilos: [""],
-          bobina_negra: false, bobina_blanca: false, extras: {},
-          alto_cm: 0, ancho_cm: 0,
-        }],
-      };
-    });
-
-  const removePosicion = (idx) =>
-    setForm((prev) => ({ ...prev, posiciones: prev.posiciones.filter((_, i) => i !== idx) }));
+  const addDiseno = () => setDisenos((prev) => [...prev, makeDefaultDiseno()]);
+  const removeDiseno = (idx) => setDisenos((prev) => prev.filter((_, i) => i !== idx));
+  const updateDiseno = (idx, updated) => setDisenos((prev) => prev.map((d, i) => i === idx ? updated : d));
 
   const generateFolio = async () => {
     const existing = await base44.entities.WorkOrder.list("-created_date", 1);
@@ -322,34 +249,22 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
 
   const handleSave = async () => {
     setSaving(true);
-    // Asegura que preview_layout tenga valores por defecto si está vacío
-    const finalLayout = Object.keys(previewLayout).length > 0 ? previewLayout : DEFAULT_LAYOUT;
+    // Para compatibilidad, guarda también el primer diseño en los campos legacy
+    const firstDiseno = disenos[0] || {};
     const data = {
       ...form,
       folio: form.folio || await generateFolio(),
-      preview_layout: finalLayout,
-      // Sanitiza especificaciones: convierte total_piezas a número
-      especificaciones: form.especificaciones.map(e => ({
-        ...e,
-        total_piezas: Number(e.total_piezas) || 0,
-      })),
-      posiciones: form.posiciones.length > 0 ? form.posiciones : POSICIONES_DEFAULT.map(p => ({
-        ...p,
-        descripcion: "",
-        imagen_url: "",
-        color_hilos: [""],
-        bobina_negra: false,
-        bobina_blanca: false,
-        extras: {},
-        alto_cm: 0,
-        ancho_cm: 0,
-      })),
-      garment_frente_url: selectedGarment?.frente_url || form.garment_frente_url || "",
-      garment_espalda_url: selectedGarment?.espalda_url || form.garment_espalda_url || "",
-      garment_titulo: selectedGarment?.titulo || form.garment_titulo || "",
-      garment_es_gorra: selectedGarment?.es_gorra || false,
-      garment_lateral_izq_url: selectedGarment?.lateral_izq_url || "",
-      garment_lateral_der_url: selectedGarment?.lateral_der_url || "",
+      especificaciones: form.especificaciones.map(e => ({ ...e, total_piezas: Number(e.total_piezas) || 0 })),
+      disenos,
+      // Legacy fields (primer diseño)
+      preview_layout: firstDiseno.preview_layout || DEFAULT_LAYOUT,
+      posiciones: firstDiseno.posiciones || [],
+      garment_frente_url: firstDiseno.garment_frente_url || "",
+      garment_espalda_url: firstDiseno.garment_espalda_url || "",
+      garment_titulo: firstDiseno.garment_titulo || "",
+      garment_es_gorra: firstDiseno.garment_es_gorra || false,
+      garment_lateral_izq_url: firstDiseno.garment_lateral_izq_url || "",
+      garment_lateral_der_url: firstDiseno.garment_lateral_der_url || "",
     };
     let saved;
     if (order?.id) {
@@ -380,7 +295,6 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
 
       {/* Encabezado cliente */}
       <div className="rounded-xl border-2 border-blue-300 bg-card p-4 space-y-3">
-        {/* Buscador de cliente */}
         <div className="space-y-0.5">
           <label className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">Buscar Cliente</label>
           <ClientSearch
@@ -400,8 +314,6 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
             }}
           />
         </div>
-
-        {/* Fila 1: datos básicos */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="space-y-0.5">
             <label className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">Nombre Cliente</label>
@@ -420,8 +332,6 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
             <Input type="date" value={form.fecha_orden} onChange={(e) => set("fecha_orden", e.target.value)} className="h-8 text-xs" />
           </div>
         </div>
-
-        {/* Fila 2: datos fiscales */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="space-y-0.5">
             <label className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">RFC</label>
@@ -436,13 +346,11 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
             <Input value={form.tipo_regimen || ""} onChange={(e) => set("tipo_regimen", e.target.value)} placeholder="Régimen fiscal..." className="h-8 text-xs" />
           </div>
         </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="space-y-0.5">
             <label className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">Uso de Factura (CFDI)</label>
             <Input value={form.uso_factura || ""} onChange={(e) => set("uso_factura", e.target.value)} placeholder="Uso de CFDI..." className="h-8 text-xs" />
           </div>
-          {/* Requiere Factura + Forma de Pago */}
           <div className="flex gap-4 items-end">
             <div className="space-y-0.5 flex-1">
               <label className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">Requiere Factura</label>
@@ -480,123 +388,28 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
         </div>
       </div>
 
-      {/* Selector de prenda + Vista previa */}
-      <div className="rounded-xl border-2 border-blue-200 bg-blue-50/30 px-6 pt-4 pb-5 space-y-4">
-        <GarmentPicker
-          selectedId={selectedGarment?.id && selectedGarment.id !== "__default_custom__" ? selectedGarment.id : (selectedGarment?.id === "__default_custom__" ? "__default_custom__" : null)}
-          onSelect={(g) => setSelectedGarment(g)}
-        />
-        <TshirtPreviewInteractive
-          posiciones={form.posiciones}
-          layout={previewLayout}
-          onLayoutChange={setPreviewLayout}
-          frenteUrl={selectedGarment?.frente_url || form.garment_frente_url}
-          espaldaUrl={selectedGarment?.espalda_url || form.garment_espalda_url}
-          latIzqUrl={selectedGarment?.lateral_izq_url || form.garment_lateral_izq_url}
-          latDerUrl={selectedGarment?.lateral_der_url || form.garment_lateral_der_url}
-          esGorra={selectedGarment?.es_gorra || false}
-        />
-      </div>
-
-      {/* Posiciones */}
-      <div className="rounded-xl border-2 border-blue-300 bg-card p-5 space-y-3">
+      {/* Diseños de prenda — múltiples */}
+      <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <p className="text-sm font-bold text-blue-700 uppercase tracking-wider">Posiciones de Bordado / Estampado</p>
-          <Button type="button" variant="outline" size="sm" onClick={addPosicion} className="gap-1 text-blue-700 border-blue-300 hover:bg-blue-50">
-            <Plus className="w-3.5 h-3.5" /> Agregar posición
+          <p className="text-sm font-bold text-blue-700 uppercase tracking-wider flex items-center gap-1.5">
+            <Shirt className="w-4 h-4" /> Vista Previa de Prendas
+          </p>
+          <Button type="button" variant="outline" size="sm" onClick={addDiseno} className="gap-1 text-blue-700 border-blue-300 hover:bg-blue-50">
+            <Plus className="w-3.5 h-3.5" /> Agregar diseño de prenda
           </Button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
-          {form.posiciones.map((pos, i) => (
-            <div key={i} className="border-2 border-blue-200 rounded-lg p-3 space-y-2 relative">
-              {/* Quitar posición (solo si hay más de 1) */}
-              {form.posiciones.length > 1 && (
-                <button type="button" onClick={() => removePosicion(i)} className="absolute top-1.5 right-1.5 p-0.5 rounded hover:bg-red-100 text-muted-foreground hover:text-destructive transition-colors">
-                  <X className="w-3 h-3" />
-                </button>
-              )}
-
-              <div className="bg-blue-600 text-white text-xs font-bold rounded px-2 py-1 text-center pr-6">
-                POSICIÓN # {pos.numero}
-              </div>
-              {/* Nombre editable */}
-              <Input
-                value={pos.nombre}
-                onChange={(e) => setPosicion(i, "nombre", e.target.value)}
-                className="text-xs font-semibold text-center bg-green-50 border-green-300 text-green-800 h-7"
-              />
-
-              {/* Logo / Imagen — catálogo compartido de logos */}
-              <LogoPicker
-                posicion={pos}
-                logos={logoCatalog}
-                onLogoCatalogUpdate={handleLogoCatalogUpdate}
-                onChange={(logoFields) =>
-                  setForm((prev) => {
-                    const posiciones = [...prev.posiciones];
-                    posiciones[i] = { ...posiciones[i], ...logoFields };
-                    return { ...prev, posiciones };
-                  })
-                }
-              />
-
-              <Textarea
-                placeholder="Descripción..."
-                value={pos.descripcion}
-                onChange={(e) => setPosicion(i, "descripcion", e.target.value)}
-                rows={3}
-                className="text-xs resize-none"
-              />
-
-              {/* Color de hilos */}
-              <div className="space-y-1 border-t border-blue-100 pt-2">
-                <p className="text-[10px] font-bold text-blue-700 uppercase">Color de Hilo</p>
-                {pos.color_hilos.map((c, hi) => (
-                  <div key={hi} className="flex items-center gap-1">
-                    <HiloColorPicker
-                      value={c}
-                      onChange={(val) => setPosicionHilo(i, hi, val)}
-                      placeholder="Código o nombre..."
-                    />
-                    {pos.color_hilos.length > 1 && (
-                      <button type="button" onClick={() => removeHilo(i, hi)} className="text-muted-foreground hover:text-destructive">
-                        <X className="w-3 h-3" />
-                      </button>
-                    )}
-                  </div>
-                ))}
-                <button type="button" onClick={() => addHilo(i)} className="flex items-center gap-1 text-[10px] text-blue-600 hover:underline mt-0.5">
-                  <Plus className="w-3 h-3" /> agregar color
-                </button>
-              </div>
-
-              {/* Bobina por posición */}
-              <div className="border-t border-blue-100 pt-2">
-                <p className="text-[10px] font-bold text-blue-700 uppercase mb-1">Bobina</p>
-                <div className="flex items-center gap-3">
-                  <CheckBox label="Negra" checked={!!pos.bobina_negra} onChange={() => setPosicion(i, "bobina_negra", !pos.bobina_negra)} />
-                  <CheckBox label="Blanca" checked={!!pos.bobina_blanca} onChange={() => setPosicion(i, "bobina_blanca", !pos.bobina_blanca)} />
-                </div>
-              </div>
-
-              {/* Vinil Textil por posición */}
-              <div className="border-t border-purple-100 pt-2">
-                <p className="text-[10px] font-bold text-purple-700 uppercase mb-1">Vinil Textil</p>
-                <VinilColorPicker
-                  value={pos.vinil_codigo || ""}
-                  onChange={(val) => setPosicion(i, "vinil_codigo", val)}
-                  placeholder="Código o color vinil..."
-                />
-              </div>
-
-              {/* Extras por posición — colapsable */}
-              <ExtrasCollapsible
-                extras={pos.extras || {}}
-                onChange={(key, val) => setPosicionNested(i, "extras", key, val)}
-              />
-            </div>
-          ))}
-        </div>
+        {disenos.map((diseno, idx) => (
+          <GarmentDesignBlock
+            key={diseno.id}
+            diseno={diseno}
+            index={idx + 1}
+            canRemove={disenos.length > 1}
+            onUpdate={(updated) => updateDiseno(idx, updated)}
+            onRemove={() => removeDiseno(idx)}
+            logoCatalog={logoCatalog}
+            onLogoCatalogUpdate={handleLogoCatalogUpdate}
+          />
+        ))}
       </div>
 
       {/* Tipo de Trabajo + Observaciones */}
@@ -626,7 +439,6 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
           <Plus className="w-3.5 h-3.5" /> Agregar modelo de prenda
         </Button>
       </div>
-
     </div>
   );
 }
