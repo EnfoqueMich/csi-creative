@@ -31,12 +31,18 @@ export default function WorkOrders() {
     });
   }, []);
 
-  const handleSave = (savedOrder) => {
+  const handleSave = async (savedOrder) => {
+    // Re-fetch completo para garantizar que todos los campos (disenos, titulo, diseno_id) estén actualizados
+    let fullOrder = savedOrder;
+    try {
+      const fresh = await base44.entities.WorkOrder.filter({ id: savedOrder.id });
+      if (fresh?.length) fullOrder = fresh[0];
+    } catch (_) {}
     setOrders((prev) => {
-      const exists = prev.find((o) => o.id === savedOrder.id);
-      return exists ? prev.map((o) => o.id === savedOrder.id ? savedOrder : o) : [savedOrder, ...prev];
+      const exists = prev.find((o) => o.id === fullOrder.id);
+      return exists ? prev.map((o) => o.id === fullOrder.id ? fullOrder : o) : [fullOrder, ...prev];
     });
-    setSelected(savedOrder);
+    setSelected(fullOrder);
     setView("view");
   };
 
@@ -167,14 +173,22 @@ export default function WorkOrders() {
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <button
-                    onClick={() => { setSelected(order); setView("view"); }}
+                    onClick={async () => {
+                      const fresh = await base44.entities.WorkOrder.filter({ id: order.id });
+                      setSelected(fresh?.length ? fresh[0] : order);
+                      setView("view");
+                    }}
                     className="p-2 rounded-lg border border-border text-muted-foreground hover:border-primary hover:text-primary transition-all"
                     title="Ver / Imprimir"
                   >
                     <Eye className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={() => { setSelected(order); setView("edit"); }}
+                    onClick={async () => {
+                      const fresh = await base44.entities.WorkOrder.filter({ id: order.id });
+                      setSelected(fresh?.length ? fresh[0] : order);
+                      setView("edit");
+                    }}
                     className="p-2 rounded-lg border border-border text-muted-foreground hover:border-primary hover:text-primary transition-all"
                     title="Editar"
                   >
