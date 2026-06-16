@@ -134,14 +134,145 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
   }, []);
 
   const hiloMap = Object.fromEntries(hiloColores.map(c => [c.codigo, c]));
-
   const handlePrint = () => window.print();
 
   const especificaciones = order.especificaciones?.length
     ? order.especificaciones
     : [{ tipo_prenda: order.tipo_prenda, color_prenda: order.color_prenda, tallas: order.tallas, total_piezas: order.total_piezas }];
 
-  const posiciones = order.posiciones || [];
+  // Soporte multi-diseño: usa order.disenos si existe, sino crea uno con datos legacy
+  const disenos = order.disenos?.length
+    ? order.disenos
+    : [{ id: "legacy", garment_frente_url: order.garment_frente_url, garment_espalda_url: order.garment_espalda_url, garment_titulo: order.garment_titulo, garment_es_gorra: order.garment_es_gorra, garment_lateral_izq_url: order.garment_lateral_izq_url, garment_lateral_der_url: order.garment_lateral_der_url, preview_layout: order.preview_layout, posiciones: order.posiciones || [] }];
+
+  const renderHeader = () => (
+    <div className="flex items-start justify-between px-6 pt-6 pb-3 border-b-2" style={{ borderColor: pdfCfg?.color_encabezado || "#1e3a8a" }}>
+      <div className="flex items-center gap-3">
+        {cfg.logo_url ? (
+          <img src={cfg.logo_url} alt="Logo" className="h-20 object-contain" />
+        ) : (
+          <div className="flex items-center gap-1">
+            <div className="bg-yellow-600 text-white font-black text-2xl px-2 py-1 rounded-sm">C</div>
+            <div className="flex flex-col leading-none">
+              <span className="font-black text-lg tracking-widest text-blue-900">CSI</span>
+              <span className="text-sm tracking-widest text-gray-600 font-semibold">CREATIVE</span>
+            </div>
+          </div>
+        )}
+        {(cfg.empresa_telefono || cfg.empresa_direccion || cfg.empresa_redes) && (
+          <div className="ml-2 text-[11px] text-gray-500 space-y-0.5 leading-tight">
+            {cfg.empresa_telefono && <p>📞 {cfg.empresa_telefono}</p>}
+            {cfg.empresa_direccion && <p>📍 {cfg.empresa_direccion}</p>}
+            {cfg.empresa_redes && <p>🌐 {cfg.empresa_redes}</p>}
+          </div>
+        )}
+      </div>
+      <div className="text-right">
+        <p className="text-2xl font-black text-yellow-600 tracking-wider">ORDEN DE TRABAJO</p>
+        <p className="text-xs text-gray-600 font-mono mt-1">No. DOCUMENTO: {pdfCfg?.numero_documento || "CR-FTW-003-V01"}</p>
+        {(pdfCfg?.mostrar_folio !== false) && order.folio && <p className="text-xs text-gray-600 font-mono">{order.folio}</p>}
+      </div>
+    </div>
+  );
+
+  const renderClienteInfo = (compact = false) => (
+    <div className={cn("space-y-2", compact ? "px-6 pt-3 pb-2 border-b border-gray-200" : "")} style={{ fontSize: pdfCfg?.fuente_datos_cliente || "11px" }}>
+      <div className="flex flex-wrap gap-2 items-center">
+        {[
+          { label: "NOMBRE CLIENTE", value: order.nombre_cliente },
+          { label: "TELÉFONO", value: order.telefono },
+          { label: "AGENTE", value: order.agente_ventas },
+          { label: "FECHA INGRESO", value: order.fecha_orden },
+        ].map(({ label, value }) => value ? (
+          <div key={label} className="border-2 rounded-lg px-3 py-1.5 flex-shrink-0 whitespace-nowrap text-center" style={{ borderColor: "#FFA500" }}>
+            <p className={cn("font-bold text-black", compact && "text-xs")}><span className="font-semibold uppercase">{label}:</span> {value}</p>
+          </div>
+        ) : null)}
+      </div>
+      {!compact && (order.rfc || order.cp || order.tipo_regimen || order.uso_factura || order.forma_pago || order.requiere_factura) && (
+        <div className="flex flex-wrap gap-2 items-center">
+          {order.rfc && <div className="border-2 rounded-lg px-3 py-1.5 flex-shrink-0 whitespace-nowrap text-center" style={{ borderColor: "#6366f1" }}><p className="font-bold text-black"><span className="font-semibold uppercase text-indigo-700">RFC:</span> {order.rfc}</p></div>}
+          {order.cp && <div className="border-2 rounded-lg px-3 py-1.5 flex-shrink-0 whitespace-nowrap text-center" style={{ borderColor: "#6366f1" }}><p className="font-bold text-black"><span className="font-semibold uppercase text-indigo-700">C.P.:</span> {order.cp}</p></div>}
+          {order.tipo_regimen && <div className="border-2 rounded-lg px-3 py-1.5 flex-shrink-0 text-center" style={{ borderColor: "#6366f1" }}><p className="font-bold text-black"><span className="font-semibold uppercase text-indigo-700">RÉGIMEN:</span> {order.tipo_regimen}</p></div>}
+          {order.uso_factura && <div className="border-2 rounded-lg px-3 py-1.5 flex-shrink-0 text-center" style={{ borderColor: "#6366f1" }}><p className="font-bold text-black"><span className="font-semibold uppercase text-indigo-700">USO CFDI:</span> {order.uso_factura}</p></div>}
+          {order.forma_pago && <div className="border-2 rounded-lg px-3 py-1.5 flex-shrink-0 whitespace-nowrap text-center" style={{ borderColor: "#6366f1" }}><p className="font-bold text-black"><span className="font-semibold uppercase text-indigo-700">PAGO:</span> {order.forma_pago}</p></div>}
+          <div className="border-2 rounded-lg px-3 py-1.5 flex-shrink-0 whitespace-nowrap text-center" style={{ borderColor: "#6366f1" }}><p className="font-bold text-black"><span className="font-semibold uppercase text-indigo-700">FACTURA:</span> {order.requiere_factura ? "Sí" : "No"}</p></div>
+        </div>
+      )}
+    </div>
+  );
+
+  const renderPosiciones = (posiciones, disenoOrder) => {
+    if (!posiciones?.length) return null;
+    return (
+      <div className="border-2 border-blue-200 rounded px-3 pt-2 pb-3 bg-blue-50/20 space-y-3">
+        {(pdfCfg?.mostrar_vista_prenda !== false) && (
+          <GarmentPreviewPrint posiciones={posiciones} layout={disenoOrder.preview_layout} order={disenoOrder} />
+        )}
+        {(pdfCfg?.mostrar_posiciones !== false) && (
+          <div>
+            <p className="text-xs font-bold text-center uppercase tracking-widest mb-2" style={{ color: pdfCfg?.color_posiciones || "#1d4ed8" }}>Posiciones de Bordado / Estampado</p>
+            <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(posiciones.length, pdfCfg?.columnas_posiciones || 5)}, minmax(0, 1fr))` }}>
+              {posiciones.map((pos, i) => (
+                <div key={i} className="border border-blue-200 rounded text-[10px]">
+                  <div className="text-white font-bold text-center py-1 rounded-t print:hidden" style={{ backgroundColor: pdfCfg?.color_posiciones || "#1d4ed8" }}>POSICIÓN # {pos.numero}</div>
+                  <div className="bg-green-100 text-green-800 font-semibold text-center py-0.5 mx-1 mt-1 rounded border border-green-300">{pos.nombre}</div>
+                  <div className="px-2 pb-2 space-y-1 mt-1">
+                    {pos.imagen_url && <img src={pos.imagen_url} alt={pos.nombre} className="w-[80%] mx-auto object-contain rounded border border-blue-100" />}
+                    {(pos.alto_cm || pos.ancho_cm) && (
+                      <div className="flex gap-2 border-t border-blue-100 pt-1">
+                        {pos.alto_cm && <span className="text-[10px]"><span className="font-bold text-blue-600 uppercase">ALTO:</span> {pos.alto_cm}<span className="text-gray-400">cm</span></span>}
+                        {pos.ancho_cm && <span className="text-[10px]"><span className="font-bold text-blue-600 uppercase">ANCHO:</span> {pos.ancho_cm}<span className="text-gray-400">cm</span></span>}
+                      </div>
+                    )}
+                    {pos.descripcion && <div className="border-t border-blue-100 pt-1"><p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{pos.descripcion}</p></div>}
+                    {pos.color_hilos?.filter(Boolean).length > 0 && (
+                      <div className="border-t border-blue-100 pt-1">
+                        <p className="font-bold text-blue-600 uppercase mb-0.5">Hilo</p>
+                        {pos.color_hilos.filter(Boolean).map((c, hi) => {
+                          const match = hiloMap[c];
+                          return (
+                            <div key={hi} className="flex items-center gap-1 mb-0.5">
+                              <div className="w-3 h-3 border border-gray-300 flex-shrink-0" style={{ backgroundColor: match?.hex || "#ffffff" }} />
+                              <span className="font-mono font-semibold text-blue-700">{c}</span>
+                              {match && <span className="text-gray-500 truncate">{match.nombre}</span>}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                    {(pos.bobina_negra || pos.bobina_blanca) && (
+                      <div className="border-t border-blue-100 pt-1">
+                        <p className="font-bold text-blue-600 uppercase mb-0.5">Bobina</p>
+                        <div className="flex items-center gap-2">
+                          {pos.bobina_negra && <span className="flex items-center gap-0.5"><Check checked={true} />Negra</span>}
+                          {pos.bobina_blanca && <span className="flex items-center gap-0.5"><Check checked={true} />Blanca</span>}
+                        </div>
+                      </div>
+                    )}
+                    {pos.vinil_codigo && (
+                      <div className="border-t border-purple-100 pt-1">
+                        <p className="font-bold text-purple-600 uppercase mb-0.5">Vinil Textil</p>
+                        <span className="font-mono font-semibold text-purple-700 text-[10px]">{pos.vinil_codigo}</span>
+                      </div>
+                    )}
+                    {pos.extras && Object.values(pos.extras).some(Boolean) && (
+                      <div className="border-t border-orange-100 pt-1">
+                        <p className="font-bold text-orange-500 uppercase mb-0.5">Extras</p>
+                        {[["foamy","Foamy"],["velcro_macho","Velcro m."],["velcro_hembra","Velcro h."],["adhesivo_termico","Adhesivo"]].map(([key,label]) =>
+                          pos.extras[key] ? <div key={key} className="flex items-center gap-1"><Check checked={true} />{label}</div> : null
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <>
@@ -159,231 +290,85 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
         </Button>
       </div>
 
-      {/* Contenedor de impresión — ambas hojas */}
+      {/* Contenedor de impresión */}
       <div id="print-container">
-      <div className="bg-white text-black rounded-xl border border-gray-300 shadow-sm w-full mx-auto print:shadow-none print:border-none print:rounded-none print:w-full" id="orden-print" style={{ fontSize: pdfCfg?.fuente_tamanio || "11px" }}>
 
-        {/* Encabezado */}
-        {(pdfCfg?.mostrar_encabezado !== false) && (
-          <div className="flex items-start justify-between px-6 pt-6 pb-3 border-b-2" style={{ borderColor: pdfCfg?.color_encabezado || "#1e3a8a" }}>
-            <div className="flex items-center gap-3">
-              {cfg.logo_url ? (
-                <img src={cfg.logo_url} alt="Logo" className="h-20 object-contain" />
-              ) : (
-                <div className="flex items-center gap-1">
-                  <div className="bg-yellow-600 text-white font-black text-2xl px-2 py-1 rounded-sm">C</div>
-                  <div className="flex flex-col leading-none">
-                    <span className="font-black text-lg tracking-widest text-blue-900">CSI</span>
-                    <span className="text-sm tracking-widest text-gray-600 font-semibold">CREATIVE</span>
-                  </div>
+      {/* ── UNA HOJA POR DISEÑO ── */}
+      {disenos.map((diseno, di) => {
+        const posiciones = diseno.posiciones || [];
+        const disenoOrder = {
+          ...order,
+          garment_frente_url: diseno.garment_frente_url,
+          garment_espalda_url: diseno.garment_espalda_url,
+          garment_titulo: diseno.garment_titulo,
+          garment_es_gorra: diseno.garment_es_gorra,
+          garment_lateral_izq_url: diseno.garment_lateral_izq_url,
+          garment_lateral_der_url: diseno.garment_lateral_der_url,
+          preview_layout: diseno.preview_layout,
+        };
+        return (
+          <div key={diseno.id || di} className="bg-white text-black rounded-xl border border-gray-300 shadow-sm w-full mx-auto print:shadow-none print:border-none print:rounded-none print:w-full print-page" style={{ fontSize: pdfCfg?.fuente_tamanio || "11px" }}>
+            {renderHeader()}
+            <div className="px-6 py-4 space-y-4">
+              {di === 0 ? renderClienteInfo(false) : renderClienteInfo(false)}
+
+              {/* Etiqueta del diseño si hay más de uno */}
+              {disenos.length > 1 && (
+                <div className="text-center">
+                  <span className="inline-block border-2 border-blue-500 text-blue-700 font-bold text-xs rounded-lg px-4 py-1 uppercase tracking-wider">
+                    Diseño #{di + 1}{diseno.garment_titulo ? ` — ${diseno.garment_titulo}` : ""}
+                  </span>
                 </div>
               )}
-              {(cfg.empresa_telefono || cfg.empresa_direccion || cfg.empresa_redes) && (
-                <div className="ml-2 text-[11px] text-gray-500 space-y-0.5 leading-tight">
-                  {cfg.empresa_telefono && <p>📞 {cfg.empresa_telefono}</p>}
-                  {cfg.empresa_direccion && <p>📍 {cfg.empresa_direccion}</p>}
-                  {cfg.empresa_redes && <p>🌐 {cfg.empresa_redes}</p>}
-                </div>
-              )}
-            </div>
-            <div className="text-right">
-              <p className="text-2xl font-black text-yellow-600 tracking-wider">ORDEN DE TRABAJO</p>
-              <p className="text-xs text-gray-600 font-mono mt-1">No. DOCUMENTO: {pdfCfg?.numero_documento || "CR-FTW-003-V01"}</p>
-              {(pdfCfg?.mostrar_folio !== false) && order.folio && <p className="text-xs text-gray-600 font-mono">{order.folio}</p>}
-            </div>
-          </div>
-        )}
 
-        <div className="px-6 py-4 space-y-4">
+              {renderPosiciones(posiciones, disenoOrder)}
 
-          {/* Datos cliente */}
-          <div className="space-y-2" style={{ fontSize: pdfCfg?.fuente_datos_cliente || "11px" }}>
-            {/* Fila 1: datos principales */}
-            <div className="flex flex-wrap gap-2 items-center">
-              {[
-                { label: "NOMBRE CLIENTE", value: order.nombre_cliente },
-                { label: "TELÉFONO", value: order.telefono },
-                { label: "AGENTE", value: order.agente_ventas },
-                { label: "FECHA INGRESO", value: order.fecha_orden },
-              ].map(({ label, value }) => (
-                <div key={label} className="border-2 rounded-lg px-3 py-1.5 flex-shrink-0 whitespace-nowrap text-center" style={{ borderColor: "#FFA500" }}>
-                  <p className="font-bold text-black"><span className="font-semibold uppercase">{label}:</span> {value || ""}</p>
-                </div>
-              ))}
-            </div>
-            {/* Fila 2: datos fiscales (solo si hay alguno) */}
-            {(order.rfc || order.cp || order.tipo_regimen || order.uso_factura || order.forma_pago || order.requiere_factura) && (
-              <div className="flex flex-wrap gap-2 items-center">
-                {order.rfc && (
-                  <div className="border-2 rounded-lg px-3 py-1.5 flex-shrink-0 whitespace-nowrap text-center" style={{ borderColor: "#6366f1" }}>
-                    <p className="font-bold text-black"><span className="font-semibold uppercase text-indigo-700">RFC:</span> {order.rfc}</p>
-                  </div>
-                )}
-                {order.cp && (
-                  <div className="border-2 rounded-lg px-3 py-1.5 flex-shrink-0 whitespace-nowrap text-center" style={{ borderColor: "#6366f1" }}>
-                    <p className="font-bold text-black"><span className="font-semibold uppercase text-indigo-700">C.P.:</span> {order.cp}</p>
-                  </div>
-                )}
-                {order.tipo_regimen && (
-                  <div className="border-2 rounded-lg px-3 py-1.5 flex-shrink-0 text-center" style={{ borderColor: "#6366f1" }}>
-                    <p className="font-bold text-black"><span className="font-semibold uppercase text-indigo-700">RÉGIMEN:</span> {order.tipo_regimen}</p>
-                  </div>
-                )}
-                {order.uso_factura && (
-                  <div className="border-2 rounded-lg px-3 py-1.5 flex-shrink-0 text-center" style={{ borderColor: "#6366f1" }}>
-                    <p className="font-bold text-black"><span className="font-semibold uppercase text-indigo-700">USO CFDI:</span> {order.uso_factura}</p>
-                  </div>
-                )}
-                {order.forma_pago && (
-                  <div className="border-2 rounded-lg px-3 py-1.5 flex-shrink-0 whitespace-nowrap text-center" style={{ borderColor: "#6366f1" }}>
-                    <p className="font-bold text-black"><span className="font-semibold uppercase text-indigo-700">PAGO:</span> {order.forma_pago}</p>
-                  </div>
-                )}
-                <div className="border-2 rounded-lg px-3 py-1.5 flex-shrink-0 whitespace-nowrap text-center" style={{ borderColor: "#6366f1" }}>
-                  <p className="font-bold text-black"><span className="font-semibold uppercase text-indigo-700">FACTURA:</span> {order.requiere_factura ? "Sí" : "No"}</p>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Vista de prenda + Posiciones juntas */}
-          {posiciones.length > 0 && (
-            <div className="border-2 border-blue-200 rounded px-3 pt-2 pb-3 bg-blue-50/20 space-y-3">
-              {(pdfCfg?.mostrar_vista_prenda !== false) && (
-                <GarmentPreviewPrint posiciones={posiciones} layout={order.preview_layout} order={order} />
-              )}
-              {(pdfCfg?.mostrar_posiciones !== false) && (
-                <div>
-                  <p className="text-xs font-bold text-center uppercase tracking-widest mb-2" style={{ color: pdfCfg?.color_posiciones || "#1d4ed8" }}>Posiciones de Bordado / Estampado</p>
-                  <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(posiciones.length, pdfCfg?.columnas_posiciones || 5)}, minmax(0, 1fr))` }}>
-                    {posiciones.map((pos, i) => (
-                    <div key={i} className="border border-blue-200 rounded text-[10px]">
-                      {/* Header posición — oculto en impresión */}
-                      <div className="text-white font-bold text-center py-1 rounded-t print:hidden" style={{ backgroundColor: pdfCfg?.color_posiciones || "#1d4ed8" }}>POSICIÓN # {pos.numero}</div>
-                      <div className="bg-green-100 text-green-800 font-semibold text-center py-0.5 mx-1 mt-1 rounded border border-green-300">{pos.nombre}</div>
-
-                      <div className="px-2 pb-2 space-y-1 mt-1">
-                        {/* Imagen */}
-                        {pos.imagen_url && (
-                          <img src={pos.imagen_url} alt={pos.nombre} className="w-[80%] mx-auto object-contain rounded border border-blue-100" />
-                        )}
-
-                        {/* Medidas */}
-                        {(pos.alto_cm || pos.ancho_cm) && (
-                          <div className="flex gap-2 border-t border-blue-100 pt-1">
-                            {pos.alto_cm && <span className="text-[10px]"><span className="font-bold text-blue-600 uppercase">ALTO:</span> {pos.alto_cm}<span className="text-gray-400">cm</span></span>}
-                            {pos.ancho_cm && <span className="text-[10px]"><span className="font-bold text-blue-600 uppercase">ANCHO:</span> {pos.ancho_cm}<span className="text-gray-400">cm</span></span>}
-                          </div>
-                        )}
-
-                        {/* Descripción */}
-                        {pos.descripcion && (
-                          <div className="border-t border-blue-100 pt-1">
-                            <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{pos.descripcion}</p>
-                          </div>
-                        )}
-
-                        {/* Hilos */}
-                        {pos.color_hilos?.filter(Boolean).length > 0 && (
-                          <div className="border-t border-blue-100 pt-1">
-                            <p className="font-bold text-blue-600 uppercase mb-0.5">Hilo</p>
-                            {pos.color_hilos.filter(Boolean).map((c, hi) => {
-                              const match = hiloMap[c];
-                              return (
-                                <div key={hi} className="flex items-center gap-1 mb-0.5">
-                                  <div className="w-3 h-3 border border-gray-300 flex-shrink-0" style={{ backgroundColor: match?.hex || "#ffffff" }} />
-                                  <span className="font-mono font-semibold text-blue-700">{c}</span>
-                                  {match && <span className="text-gray-500 truncate">{match.nombre}</span>}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-
-                        {/* Bobina */}
-                        {(pos.bobina_negra || pos.bobina_blanca) && (
-                          <div className="border-t border-blue-100 pt-1">
-                            <p className="font-bold text-blue-600 uppercase mb-0.5">Bobina</p>
-                            <div className="flex items-center gap-2">
-                              {pos.bobina_negra && <span className="flex items-center gap-0.5"><Check checked={true} />Negra</span>}
-                              {pos.bobina_blanca && <span className="flex items-center gap-0.5"><Check checked={true} />Blanca</span>}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Vinil Textil */}
-                        {pos.vinil_codigo && (
-                          <div className="border-t border-purple-100 pt-1">
-                            <p className="font-bold text-purple-600 uppercase mb-0.5">Vinil Textil</p>
-                            <span className="font-mono font-semibold text-purple-700 text-[10px]">{pos.vinil_codigo}</span>
-                          </div>
-                        )}
-
-                        {/* Extras */}
-                        {pos.extras && Object.values(pos.extras).some(Boolean) && (
-                          <div className="border-t border-orange-100 pt-1">
-                            <p className="font-bold text-orange-500 uppercase mb-0.5">Extras</p>
-                            {[["foamy","Foamy"],["velcro_macho","Velcro m."],["velcro_hembra","Velcro h."],["adhesivo_termico","Adhesivo"]].map(([key,label]) =>
-                              pos.extras[key] ? <div key={key} className="flex items-center gap-1"><Check checked={true} />{label}</div> : null
-                            )}
-                          </div>
-                        )}
-                      </div>
+              {/* Tipo trabajo + observaciones solo en el primer diseño */}
+              {di === 0 && (pdfCfg?.mostrar_tipo_trabajo !== false) && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="border rounded p-3" style={{ borderColor: pdfCfg?.color_tipo_trabajo || "#22c55e" }}>
+                    <p className="text-[10px] font-bold text-green-700 mb-1.5 uppercase">Tipo de Trabajo:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {[["bordado","Bordado"],["muestras","Muestras"],["estampado","Estampado"],["sublimado","Sublimado"],["costura","Costura"],["parche","Parche"],["riveteado","Riveteado"],["dtf","DTF"]]
+                        .filter(([key]) => !!order.tipo_trabajo?.[key])
+                        .map(([key,label]) => (
+                          <span key={key} className="inline-flex items-center gap-1 border border-green-500 rounded px-2 py-0.5 text-[10px] font-bold text-green-800 bg-green-50">
+                            <span className="text-green-600 text-[11px]">✓</span>{label}
+                          </span>
+                        ))}
                     </div>
-                    ))}
+                  </div>
+                  {(pdfCfg?.mostrar_observaciones !== false) && (
+                    <div className="border border-blue-300 rounded p-3">
+                      <p className="text-[10px] font-bold text-blue-700 mb-1 uppercase">Observaciones:</p>
+                      <p className="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed min-h-[40px]">{order.observaciones || ""}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Firmas solo en el último diseño */}
+              {di === disenos.length - 1 && (pdfCfg?.mostrar_firma !== false) && (
+                <div className="space-y-2 mt-2">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="border border-gray-300 rounded p-3 text-center">
+                      <div className="border-b border-gray-400 mb-1 mx-4 mt-6" />
+                      <p className="font-semibold text-gray-800 uppercase" style={{ fontSize: pdfCfg?.fuente_firma || "10px" }}>{order.nombre_cliente}</p>
+                      <p style={{ fontSize: pdfCfg?.fuente_leyenda || "9px" }} className="text-black">{cfg.texto_firma_cliente}</p>
+                      <p style={{ fontSize: pdfCfg?.fuente_leyenda || "9px" }} className="text-black italic mt-1 px-2">{cfg.leyenda_autorizacion}</p>
+                    </div>
+                    <div className="border border-gray-300 rounded p-3 text-center">
+                      <div className="border-b border-gray-400 mb-1 mx-4 mt-6" />
+                      <p className="font-semibold text-gray-700" style={{ fontSize: pdfCfg?.fuente_firma || "10px" }}>{cfg.atencion_nombre}</p>
+                      <p style={{ fontSize: pdfCfg?.fuente_leyenda || "9px" }} className="text-gray-500">{cfg.atencion_puesto}</p>
+                    </div>
                   </div>
                 </div>
               )}
             </div>
-          )}
-
-          {/* Tipo trabajo + observaciones */}
-          {(pdfCfg?.mostrar_tipo_trabajo !== false) && (
-            <div className="grid grid-cols-2 gap-3">
-              <div className="border rounded p-3" style={{ borderColor: pdfCfg?.color_tipo_trabajo || "#22c55e" }}>
-                <p className="text-[10px] font-bold text-green-700 mb-1.5 uppercase">Tipo de Trabajo:</p>
-                <div className="flex flex-wrap gap-2">
-                  {[["bordado","Bordado"],["muestras","Muestras"],["estampado","Estampado"],["sublimado","Sublimado"],["costura","Costura"],["parche","Parche"],["riveteado","Riveteado"],["dtf","DTF"]]
-                    .filter(([key]) => !!order.tipo_trabajo?.[key])
-                    .map(([key,label]) => (
-                      <span key={key} className="inline-flex items-center gap-1 border border-green-500 rounded px-2 py-0.5 text-[10px] font-bold text-green-800 bg-green-50">
-                        <span className="text-green-600 text-[11px]">✓</span>{label}
-                      </span>
-                    ))}
-                </div>
-              </div>
-              {(pdfCfg?.mostrar_observaciones !== false) && (
-                <div className="border border-blue-300 rounded p-3">
-                  <p className="text-[10px] font-bold text-blue-700 mb-1 uppercase">Observaciones:</p>
-                  <p className="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed min-h-[40px]">{order.observaciones || ""}</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Firmas */}
-          {(pdfCfg?.mostrar_firma !== false) && (
-            <div className="space-y-2 mt-2">
-              <div className="grid grid-cols-2 gap-4">
-                {/* Firma cliente */}
-                <div className="border border-gray-300 rounded p-3 text-center">
-                  <div className="border-b border-gray-400 mb-1 mx-4 mt-6" />
-                  <p className="font-semibold text-gray-800 uppercase" style={{ fontSize: pdfCfg?.fuente_firma || "10px" }}>{order.nombre_cliente}</p>
-                  <p style={{ fontSize: pdfCfg?.fuente_leyenda || "9px" }} className="text-black">{cfg.texto_firma_cliente}</p>
-                  <p style={{ fontSize: pdfCfg?.fuente_leyenda || "9px" }} className="text-black italic mt-1 px-2">{cfg.leyenda_autorizacion}</p>
-                </div>
-                {/* Firma atención */}
-                <div className="border border-gray-300 rounded p-3 text-center">
-                  <div className="border-b border-gray-400 mb-1 mx-4 mt-6" />
-                  <p className="font-semibold text-gray-700" style={{ fontSize: pdfCfg?.fuente_firma || "10px" }}>{cfg.atencion_nombre}</p>
-                  <p style={{ fontSize: pdfCfg?.fuente_leyenda || "9px" }} className="text-gray-500">{cfg.atencion_puesto}</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-        </div>
-      </div>{/* /orden-print */}
+          </div>
+        );
+      })}
 
       {/* ── HOJA 2: Prendas que Ingresaron ── */}
       {(pdfCfg?.mostrar_especificaciones !== false) && (
@@ -521,7 +506,7 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
             width: 100%;
             background: white;
           }
-          #orden-print {
+          .print-page {
             width: 100%;
             font-size: 11px !important;
             box-shadow: none !important;
@@ -531,14 +516,9 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
             page-break-after: always;
             break-after: page;
           }
-          #orden-print-2 {
-            width: 100%;
-            font-size: 11px !important;
-            box-shadow: none !important;
-            border-radius: 0 !important;
-            border: none !important;
-            margin: 0 !important;
-            margin-top: 0 !important;
+          .print-page:last-of-type {
+            page-break-after: avoid;
+            break-after: avoid;
           }
         }
       `}</style>
