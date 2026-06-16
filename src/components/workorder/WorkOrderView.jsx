@@ -347,21 +347,19 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
                 </div>
               )}
 
-              {/* Firmas solo en el último diseño */}
-              {di === disenos.length - 1 && (pdfCfg?.mostrar_firma !== false) && (
-                <div className="space-y-2 mt-2">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="border border-gray-300 rounded p-3 text-center">
-                      <div className="border-b border-gray-400 mb-1 mx-4 mt-6" />
-                      <p className="font-semibold text-gray-800 uppercase" style={{ fontSize: pdfCfg?.fuente_firma || "10px" }}>{order.nombre_cliente}</p>
-                      <p style={{ fontSize: pdfCfg?.fuente_leyenda || "9px" }} className="text-black">{cfg.texto_firma_cliente}</p>
-                      <p style={{ fontSize: pdfCfg?.fuente_leyenda || "9px" }} className="text-black italic mt-1 px-2">{cfg.leyenda_autorizacion}</p>
-                    </div>
-                    <div className="border border-gray-300 rounded p-3 text-center">
-                      <div className="border-b border-gray-400 mb-1 mx-4 mt-6" />
-                      <p className="font-semibold text-gray-700" style={{ fontSize: pdfCfg?.fuente_firma || "10px" }}>{cfg.atencion_nombre}</p>
-                      <p style={{ fontSize: pdfCfg?.fuente_leyenda || "9px" }} className="text-gray-500">{cfg.atencion_puesto}</p>
-                    </div>
+              {/* Firmas — siempre al final de cada hoja */}
+              {(pdfCfg?.mostrar_firma !== false) && (
+                <div className="page-footer grid grid-cols-2 gap-4 mt-2">
+                  <div className="border border-gray-300 rounded p-3 text-center">
+                    <div className="border-b border-gray-400 mb-1 mx-4 mt-6" />
+                    <p className="font-semibold text-gray-800 uppercase" style={{ fontSize: pdfCfg?.fuente_firma || "10px" }}>{order.nombre_cliente}</p>
+                    <p style={{ fontSize: pdfCfg?.fuente_leyenda || "9px" }} className="text-black">{cfg.texto_firma_cliente}</p>
+                    <p style={{ fontSize: pdfCfg?.fuente_leyenda || "9px" }} className="text-black italic mt-1 px-2">{cfg.leyenda_autorizacion}</p>
+                  </div>
+                  <div className="border border-gray-300 rounded p-3 text-center">
+                    <div className="border-b border-gray-400 mb-1 mx-4 mt-6" />
+                    <p className="font-semibold text-gray-700" style={{ fontSize: pdfCfg?.fuente_firma || "10px" }}>{cfg.atencion_nombre}</p>
+                    <p style={{ fontSize: pdfCfg?.fuente_leyenda || "9px" }} className="text-gray-500">{cfg.atencion_puesto}</p>
                   </div>
                 </div>
               )}
@@ -372,7 +370,7 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
 
       {/* ── HOJA 2: Prendas que Ingresaron ── */}
       {(pdfCfg?.mostrar_especificaciones !== false) && (
-        <div className="bg-white text-black rounded-xl border border-gray-300 shadow-sm w-full mx-auto mt-6 print:shadow-none print:border-none print:rounded-none print:mt-0" id="orden-print-2">
+        <div className="bg-white text-black rounded-xl border border-gray-300 shadow-sm w-full mx-auto mt-6 print:shadow-none print:border-none print:rounded-none print:mt-0 print-page" id="orden-print-2" style={{ position: "relative", paddingBottom: "80px" }}>
 
           {/* Header empresa (igual al principal) */}
           <div className="flex items-start justify-between px-6 pt-6 pb-3 border-b-2" style={{ borderColor: pdfCfg?.color_encabezado || "#1e3a8a" }}>
@@ -490,6 +488,23 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
               </div>
             </div>
           </div>
+
+          {/* Footer firmas hoja especificaciones */}
+          {(pdfCfg?.mostrar_firma !== false) && (
+            <div className="page-footer grid grid-cols-2 gap-4">
+              <div className="border border-gray-300 rounded p-3 text-center">
+                <div className="border-b border-gray-400 mb-1 mx-4 mt-6" />
+                <p className="font-semibold text-gray-800 uppercase" style={{ fontSize: pdfCfg?.fuente_firma || "10px" }}>{order.nombre_cliente}</p>
+                <p style={{ fontSize: pdfCfg?.fuente_leyenda || "9px" }} className="text-black">{cfg.texto_firma_cliente}</p>
+                <p style={{ fontSize: pdfCfg?.fuente_leyenda || "9px" }} className="text-black italic mt-1 px-2">{cfg.leyenda_autorizacion}</p>
+              </div>
+              <div className="border border-gray-300 rounded p-3 text-center">
+                <div className="border-b border-gray-400 mb-1 mx-4 mt-6" />
+                <p className="font-semibold text-gray-700" style={{ fontSize: pdfCfg?.fuente_firma || "10px" }}>{cfg.atencion_nombre}</p>
+                <p style={{ fontSize: pdfCfg?.fuente_leyenda || "9px" }} className="text-gray-500">{cfg.atencion_puesto}</p>
+              </div>
+            </div>
+          )}
         </div>
       )}
       </div>{/* /print-container */}
@@ -508,6 +523,7 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
           }
           .print-page {
             width: 100%;
+            min-height: calc(100vh - 16mm);
             font-size: 11px !important;
             box-shadow: none !important;
             border-radius: 0 !important;
@@ -515,10 +531,19 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
             margin: 0 !important;
             page-break-after: always;
             break-after: page;
+            position: relative;
+            padding-bottom: 80px;
           }
           .print-page:last-of-type {
             page-break-after: avoid;
             break-after: avoid;
+          }
+          .page-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 0 24px 8px 24px;
           }
         }
       `}</style>
