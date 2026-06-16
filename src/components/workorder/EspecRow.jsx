@@ -72,31 +72,30 @@ export default function EspecRow({ row, onChange, onRemove, canRemove, disenos =
       </div>
 
       {/* Selector de diseño vinculado */}
-      {disenos.length > 0 && (
-        <div className="px-4 py-2 bg-blue-50 border-b border-blue-200 flex items-center gap-2">
-          <span className="text-[10px] font-bold text-blue-700 uppercase whitespace-nowrap">Diseño vinculado:</span>
-          <select
-            value={row.diseno_id || ""}
-            onChange={e => onChange("diseno_id", e.target.value || null)}
-            className="flex-1 h-7 text-xs border border-blue-300 rounded px-2 bg-white text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-400"
-          >
-            <option value="">— Sin diseño asignado —</option>
-            {disenos.map((d, di) => {
-              const alreadyUsed = d.id !== row.diseno_id && assignedDisenos[d.id];
-              return (
-                <option key={d.id} value={d.id} disabled={!!alreadyUsed}>
-                  Diseño #{di + 1}{d.titulo ? ` — ${d.titulo}` : ""}{alreadyUsed ? " (ya asignado)" : ""}
-                </option>
-              );
-            })}
-          </select>
-          {row.diseno_id && (
-            <button type="button" onClick={() => onChange("diseno_id", null)} className="text-xs text-red-500 hover:text-red-700 whitespace-nowrap">
-              <X className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
-      )}
+      <div className="px-4 py-2 bg-blue-50 border-b border-blue-200 flex items-center gap-2">
+        <span className="text-[10px] font-bold text-blue-700 uppercase whitespace-nowrap">Diseño vinculado:</span>
+        <select
+          value={row.diseno_id || ""}
+          onChange={e => onChange("diseno_id", e.target.value || null)}
+          className="flex-1 h-7 text-xs border border-blue-300 rounded px-2 bg-white text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-400"
+        >
+          <option value="">— Sin diseño asignado —</option>
+          {disenos.map((d, di) => {
+            const alreadyUsed = d.id !== row.diseno_id && assignedDisenos[d.id];
+            const label = d.titulo || d.garment_titulo || "";
+            return (
+              <option key={d.id} value={d.id} disabled={!!alreadyUsed}>
+                Diseño #{di + 1}{label ? ` — ${label}` : ""}{alreadyUsed ? " (ya asignado)" : ""}
+              </option>
+            );
+          })}
+        </select>
+        {row.diseno_id && (
+          <button type="button" onClick={() => onChange("diseno_id", null)} className="text-xs text-red-500 hover:text-red-700 whitespace-nowrap">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </div>
 
       {/* Datos de la prenda */}
       <div className="px-4 py-3 flex flex-wrap items-end gap-3 border-b border-green-200 bg-green-50/40">
