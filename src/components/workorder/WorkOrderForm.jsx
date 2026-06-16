@@ -249,33 +249,40 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
     return `OT-${String(num).padStart(4, "0")}`;
   };
 
+  const [saveError, setSaveError] = useState(null);
+
   const handleSave = async () => {
     setSaving(true);
-    // Para compatibilidad, guarda también el primer diseño en los campos legacy
-    const firstDiseno = disenos[0] || {};
-    const data = {
-      ...form,
-      folio: form.folio || await generateFolio(),
-      especificaciones: form.especificaciones.map(e => ({ ...e, total_piezas: Number(e.total_piezas) || 0 })),
-      disenos,
-      // Legacy fields (primer diseño)
-      preview_layout: firstDiseno.preview_layout || DEFAULT_LAYOUT,
-      posiciones: firstDiseno.posiciones || [],
-      garment_frente_url: firstDiseno.garment_frente_url || "",
-      garment_espalda_url: firstDiseno.garment_espalda_url || "",
-      garment_titulo: firstDiseno.garment_titulo || "",
-      garment_es_gorra: firstDiseno.garment_es_gorra || false,
-      garment_lateral_izq_url: firstDiseno.garment_lateral_izq_url || "",
-      garment_lateral_der_url: firstDiseno.garment_lateral_der_url || "",
-    };
-    let saved;
-    if (order?.id) {
-      saved = await base44.entities.WorkOrder.update(order.id, data);
-    } else {
-      saved = await base44.entities.WorkOrder.create(data);
+    setSaveError(null);
+    try {
+      const firstDiseno = disenos[0] || {};
+      const folio = form.folio || await generateFolio();
+      const data = {
+        ...form,
+        folio,
+        especificaciones: form.especificaciones.map(e => ({ ...e, total_piezas: Number(e.total_piezas) || 0 })),
+        disenos,
+        preview_layout: firstDiseno.preview_layout || DEFAULT_LAYOUT,
+        posiciones: firstDiseno.posiciones || [],
+        garment_frente_url: firstDiseno.garment_frente_url || "",
+        garment_espalda_url: firstDiseno.garment_espalda_url || "",
+        garment_titulo: firstDiseno.garment_titulo || "",
+        garment_es_gorra: firstDiseno.garment_es_gorra || false,
+        garment_lateral_izq_url: firstDiseno.garment_lateral_izq_url || "",
+        garment_lateral_der_url: firstDiseno.garment_lateral_der_url || "",
+      };
+      let saved;
+      if (order?.id) {
+        saved = await base44.entities.WorkOrder.update(order.id, data);
+      } else {
+        saved = await base44.entities.WorkOrder.create(data);
+      }
+      setSaving(false);
+      onSave(saved);
+    } catch (err) {
+      setSaving(false);
+      setSaveError(err?.message || "Error al guardar. Intenta de nuevo.");
     }
-    setSaving(false);
-    onSave(saved);
   };
 
   return (
@@ -294,6 +301,11 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
           Guardar
         </Button>
       </div>
+      {saveError && (
+        <div className="bg-red-50 border border-red-300 text-red-700 rounded-lg px-4 py-2 text-sm font-medium">
+          ⚠️ {saveError}
+        </div>
+      )}
 
       {/* Encabezado cliente */}
       <div className="rounded-xl border-2 border-blue-300 bg-card p-4 space-y-3">
