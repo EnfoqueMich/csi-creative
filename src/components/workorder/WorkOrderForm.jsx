@@ -263,6 +263,7 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
 
   const [saving, setSaving] = useState(false);
   const [logoCatalog, setLogoCatalog] = useState([]);
+  const [activeDiseno, setActiveDiseno] = useState(0);
 
   useEffect(() => {
     base44.entities.LogoCatalog.list("nombre").then(setLogoCatalog);
@@ -294,8 +295,20 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
   const addEspec = () => setForm((prev) => ({ ...prev, especificaciones: [...prev.especificaciones, emptyEspec()] }));
   const removeEspec = (idx) => setForm((prev) => ({ ...prev, especificaciones: prev.especificaciones.filter((_, i) => i !== idx) }));
 
-  const addDiseno = () => setDisenos((prev) => [...prev, makeDefaultDiseno()]);
-  const removeDiseno = (id) => setDisenos((prev) => prev.filter((d) => d.id !== id));
+  const addDiseno = () => {
+    setDisenos((prev) => [...prev, makeDefaultDiseno()]);
+    setActiveDiseno(disenos.length); // switch to the new tab
+  };
+  const removeDiseno = (id) => {
+    setDisenos((prev) => prev.filter((d) => d.id !== id));
+    // Ajustar tab activo si se eliminó la última o una anterior
+    setActiveDiseno((prev) => {
+      const idx = disenos.findIndex(d => d.id === id);
+      if (idx < prev) return prev - 1;
+      if (prev >= disenos.length - 1) return Math.max(0, disenos.length - 2);
+      return prev;
+    });
+  };
   const updateDiseno = useCallback((id, patch) => setDisenos((prev) => prev.map((d) => d.id === id ? { ...d, ...patch } : d)), []);
 
   const generateFolio = async () => {
@@ -470,29 +483,58 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
         </div>
       </div>
 
-      {/* Diseños de prenda — múltiples */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-bold text-blue-700 uppercase tracking-wider flex items-center gap-1.5">
-            <Shirt className="w-4 h-4" /> Vista Previa de Prendas
-          </p>
-          <Button type="button" variant="outline" size="sm" onClick={addDiseno} className="gap-1 text-blue-700 border-blue-300 hover:bg-blue-50">
-            <Plus className="w-3.5 h-3.5" /> Agregar diseño de prenda
+      {/* Diseños de prenda — pestañas */}
+      <div className="rounded-xl border-2 border-blue-300 bg-card overflow-hidden">
+        {/* Barra de pestañas */}
+        <div className="flex items-center border-b border-blue-200 bg-blue-50/30 px-1 pt-1 gap-1 overflow-x-auto">
+          {disenos.map((diseno, idx) => (
+            <button
+              key={diseno.id}
+              type="button"
+              onClick={() => setActiveDiseno(idx)}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-t-md text-xs font-semibold whitespace-nowrap transition-all border-b-2",
+                activeDiseno === idx
+                  ? "bg-white text-blue-700 border-blue-600 shadow-sm"
+                  : "text-muted-foreground hover:text-blue-600 hover:bg-white/60 border-transparent"
+              )}
+            >
+              <span className="uppercase tracking-wide">Diseño #{idx + 1}</span>
+              <span className="text-[10px] text-muted-foreground truncate max-w-[100px]">
+                {diseno.titulo || diseno.garment_titulo || ""}
+              </span>
+              {disenos.length > 1 && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); removeDiseno(diseno.id); }}
+                  className="ml-1 p-0.5 rounded hover:bg-red-100 hover:text-red-600 transition-colors"
+                  title="Eliminar diseño"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </button>
+          ))}
+          <Button type="button" variant="ghost" size="sm" onClick={addDiseno} className="gap-1 text-blue-600 hover:text-blue-700 hover:bg-blue-100 flex-shrink-0 ml-auto mr-1">
+            <Plus className="w-3.5 h-3.5" /> Nuevo diseño
           </Button>
         </div>
-        {disenos.map((diseno, idx) => (
-          <GarmentDesignBlockMemo
-            key={diseno.id}
-            diseno={diseno}
-            index={idx + 1}
-            canRemove={disenos.length > 1}
-            disenoId={diseno.id}
-            updateDiseno={updateDiseno}
-            removeDiseno={removeDiseno}
-            logoCatalog={logoCatalog}
-            onLogoCatalogUpdate={handleLogoCatalogUpdate}
-          />
-        ))}
+        {/* Contenido del diseño activo */}
+        <div className="p-3">
+          {disenos[activeDiseno] && (
+            <GarmentDesignBlockMemo
+              key={disenos[activeDiseno].id}
+              diseno={disenos[activeDiseno]}
+              index={activeDiseno + 1}
+              canRemove={disenos.length > 1}
+              disenoId={disenos[activeDiseno].id}
+              updateDiseno={updateDiseno}
+              removeDiseno={removeDiseno}
+              logoCatalog={logoCatalog}
+              onLogoCatalogUpdate={handleLogoCatalogUpdate}
+            />
+          )}
+        </div>
       </div>
 
       {/* Tipo de Trabajo + Observaciones */}
