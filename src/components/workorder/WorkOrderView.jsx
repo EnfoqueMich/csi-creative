@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Pencil, Printer } from "lucide-react";
+import { ArrowLeft, Pencil, Printer, Download } from "lucide-react";
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
 import { cn } from "@/lib/utils";
 
 const TALLAS_LABELS = ["XS","S","M","L","XL","2XL","3XL","4XL"];
@@ -135,6 +137,29 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
 
   const hiloMap = Object.fromEntries(hiloColores.map(c => [c.codigo, c]));
   const handlePrint = () => window.print();
+
+  const handleDownloadPdf = async () => {
+    const container = document.getElementById("print-container");
+    if (!container) return;
+    const canvas = await html2canvas(container, { scale: 2, useCORS: true, logging: false });
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF("p", "mm", "letter");
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const imgWidth = pageWidth;
+    const imgHeight = (canvas.height * pageWidth) / canvas.width;
+    let heightLeft = imgHeight;
+    let position = 0;
+    pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+    }
+    pdf.save(`${order.folio || "orden"}.pdf`);
+  };
 
   const especificaciones = order.especificaciones?.length
     ? order.especificaciones
@@ -299,6 +324,9 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
         </Button>
         <Button onClick={handlePrint} className="gap-2">
           <Printer className="w-4 h-4" /> Imprimir
+        </Button>
+        <Button onClick={handleDownloadPdf} variant="outline" className="gap-2">
+          <Download className="w-4 h-4" /> Descargar PDF
         </Button>
       </div>
 
@@ -737,7 +765,7 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
         @media print {
           @page { size: letter portrait; margin: 8mm; }
           body * { visibility: hidden; }
-          #print-container, #print-container * { visibility: visible; }
+          #print-container, #print-container * { visibility: visible; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
           #print-container {
             position: absolute;
             left: 0;

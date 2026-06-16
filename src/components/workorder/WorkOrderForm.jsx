@@ -24,6 +24,33 @@ const TIPOS_TRABAJO = [
   ["riveteado", "Riveteado"], ["dtf", "DTF"],
 ];
 
+const USOS_CFDI = [
+  { value: "", label: "Seleccionar uso de CFDI..." },
+  { value: "G01 - Adquisición de mercancías", label: "G01 - Adquisición de mercancías" },
+  { value: "G02 - Devoluciones, descuentos o bonificaciones", label: "G02 - Devoluciones, descuentos o bonificaciones" },
+  { value: "G03 - Gastos en general", label: "G03 - Gastos en general" },
+  { value: "D01 - Honorarios médicos, dentales y gastos hospitalarios", label: "D01 - Honorarios médicos, dentales y hospitalarios" },
+  { value: "D04 - Donativos", label: "D04 - Donativos" },
+  { value: "D10 - Pagos por servicios educativos (colegiaturas)", label: "D10 - Pagos por servicios educativos (colegiaturas)" },
+  { value: "I01 - Construcciones", label: "I01 - Construcciones" },
+  { value: "I02 - Mobiliario y equipo de oficina", label: "I02 - Mobiliario y equipo de oficina" },
+  { value: "I03 - Equipo de transporte", label: "I03 - Equipo de transporte" },
+  { value: "I04 - Equipo de cómputo y accesorios", label: "I04 - Equipo de cómputo y accesorios" },
+  { value: "P01 - Por definir", label: "P01 - Por definir" },
+];
+
+const REGIMENES_FISCALES = [
+  { value: "", label: "Seleccionar régimen fiscal..." },
+  { value: "601 - General de Ley Personas Morales", label: "601 - General de Ley Personas Morales" },
+  { value: "603 - Personas Morales con Fines no Lucrativos", label: "603 - Personas Morales con Fines no Lucrativos" },
+  { value: "605 - Sueldos y Salarios e Ingresos Asimilados", label: "605 - Sueldos y Salarios e Ingresos Asimilados" },
+  { value: "606 - Arrendamiento", label: "606 - Arrendamiento" },
+  { value: "612 - Personas Físicas con Actividades Empresariales", label: "612 - Personas Físicas con Actividades Empresariales" },
+  { value: "616 - Sin obligaciones fiscales", label: "616 - Sin obligaciones fiscales" },
+  { value: "621 - Incorporación Fiscal", label: "621 - Incorporación Fiscal" },
+  { value: "626 - Régimen Simplificado de Confianza (RESICO)", label: "626 - Régimen Simplificado de Confianza (RESICO)" },
+];
+
 function CheckBox({ checked, onChange, label }) {
   return (
     <label className="flex items-center gap-2 cursor-pointer select-none">
@@ -386,13 +413,25 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
           </div>
           <div className="space-y-0.5 md:col-span-2">
             <label className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">Régimen Fiscal</label>
-            <Input value={form.tipo_regimen || ""} onChange={(e) => set("tipo_regimen", e.target.value)} placeholder="Régimen fiscal..." className="h-8 text-xs" />
+            <select value={form.tipo_regimen || ""} onChange={(e) => set("tipo_regimen", e.target.value)}
+              className="h-8 w-full rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            >
+              {REGIMENES_FISCALES.map(op => (
+                <option key={op.value} value={op.value}>{op.label}</option>
+              ))}
+            </select>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="space-y-0.5">
             <label className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">Uso de Factura (CFDI)</label>
-            <Input value={form.uso_factura || ""} onChange={(e) => set("uso_factura", e.target.value)} placeholder="Uso de CFDI..." className="h-8 text-xs" />
+            <select value={form.uso_factura || ""} onChange={(e) => set("uso_factura", e.target.value)}
+              className="h-8 w-full rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            >
+              {USOS_CFDI.map(op => (
+                <option key={op.value} value={op.value}>{op.label}</option>
+              ))}
+            </select>
           </div>
           <div className="flex gap-4 items-end">
             <div className="space-y-0.5 flex-1">
