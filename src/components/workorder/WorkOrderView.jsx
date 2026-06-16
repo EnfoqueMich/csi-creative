@@ -417,7 +417,7 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
           </div>
 
           {/* ─── Contenido: Agrupado por Diseño ─── */}
-          <div className="px-4 py-4 space-y-6">
+          <div className="px-4 py-4">
             {(() => {
               // Agrupa filas de especificaciones por diseno_id
               const grupos = new Map();
@@ -438,7 +438,8 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
 
               return (
                 <>
-                  {/* Secciones por diseño */}
+                  {/* Secciones por diseño — en 2 columnas */}
+                  <div className="grid grid-cols-2 gap-4">
                   {disenosGrupo.map(([disenoId, rows]) => {
                     const d = disenoPorId[disenoId];
                     const totalPiezasGrupo = rows.reduce((s, r) => s + (TALLAS_KEYS.reduce((a, t) => a + (Number(r.tallas?.[t]) || 0), 0)), 0);
@@ -597,62 +598,64 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
                     );
                   })}
 
-                  {/* Filas sin diseño vinculado */}
+                  </div>{/* /grid-cols-2 */}
+
+                  {/* Filas sin diseño vinculado — full width */}
                   {sinDiseno.length > 0 && (
-                    <div className="border border-gray-300 rounded overflow-hidden">
+                    <div className="mt-4 border border-gray-300 rounded overflow-hidden">
                       <div className="px-4 py-2 text-center bg-gray-100">
                         <p className="text-gray-600 font-bold text-xs uppercase tracking-wider">Prendas sin Diseño Asignado</p>
                       </div>
-                      <div className="px-4 py-3 space-y-4 divide-y divide-gray-200">
+                      <div className="grid grid-cols-2 gap-2 px-4 py-3">
                         {sinDiseno.map((row, idx) => {
                           const personalizados = row.personalizados || {};
                           const totalPiezas = TALLAS_KEYS.reduce((s, t) => s + (Number(row.tallas?.[t]) || 0), 0);
                           return (
-                            <div key={idx} className={idx > 0 ? "pt-4" : ""}>
-                              <div className="flex items-center gap-2 flex-wrap mb-2">
+                            <div key={idx} className="border border-gray-200 rounded p-2">
+                              <div className="flex items-center gap-1 flex-wrap mb-1.5">
                                 {[
                                   { label: "TIPO PRENDA", value: row.tipo_prenda },
                                   { label: "COLOR", value: row.color_prenda },
                                   row.modelo && { label: "MODELO", value: row.modelo },
                                   row.marca && { label: "MARCA", value: row.marca },
                                 ].filter(Boolean).map(({ label, value }) => (
-                                  <div key={label} className="border border-gray-300 rounded px-1.5 py-0.5 text-center">
-                                    <p className="text-[8px] text-gray-500 uppercase">{label}</p>
-                                    <p className="text-[10px] font-bold">{value}</p>
+                                  <div key={label} className="border border-gray-300 rounded px-1 py-0.5 text-center">
+                                    <p className="text-[7px] text-gray-500 uppercase">{label}</p>
+                                    <p className="text-[9px] font-bold">{value}</p>
                                   </div>
                                 ))}
-                                <div className="ml-auto border-2 border-green-500 rounded px-2 py-0.5 text-center">
-                                  <p className="text-[8px] text-gray-500 uppercase">Total Piezas</p>
-                                  <p className="text-base font-black text-green-700 leading-none">{totalPiezas}</p>
+                                <div className="ml-auto border-2 border-green-500 rounded px-1.5 py-0.5 text-center">
+                                  <p className="text-[7px] text-gray-500 uppercase">Piezas</p>
+                                  <p className="text-sm font-black text-green-700 leading-none">{totalPiezas}</p>
                                 </div>
                               </div>
-                              <div className="space-y-1.5">
+                              <div className="space-y-1">
                                 {TALLAS_KEYS.map((t, ti) => {
                                   const cantidad = Number(row.tallas?.[t]) || 0;
                                   if (!cantidad) return null;
                                   const listaP = personalizados[t] || [];
                                   const sinP = cantidad - listaP.length;
                                   return (
-                                    <div key={t} className="border border-gray-300 rounded overflow-hidden">
-                                      <div className="flex items-center gap-3 px-3 py-1.5 bg-gray-50/50">
-                                        <div className="flex flex-col items-center justify-center border border-green-500 rounded-lg w-[38px] py-0.5 bg-white flex-shrink-0">
-                                          <span className="text-[9px] font-bold text-gray-600 uppercase">{TALLAS_LABELS[ti]}</span>
-                                          <span className="text-sm font-black text-green-700 leading-none">{cantidad}</span>
+                                    <div key={t} className="border border-gray-200 rounded overflow-hidden">
+                                      <div className="flex items-center gap-2 px-2 py-1 bg-gray-50/30">
+                                        <div className="flex flex-col items-center justify-center border border-green-500 rounded w-[32px] py-0.5 bg-white flex-shrink-0">
+                                          <span className="text-[8px] font-bold text-gray-600 uppercase">{TALLAS_LABELS[ti]}</span>
+                                          <span className="text-xs font-black text-green-700 leading-none">{cantidad}</span>
                                         </div>
-                                        <div className="flex flex-col text-[10px] text-gray-700">
+                                        <div className="flex flex-col text-[9px] text-gray-700">
                                           {sinP > 0 && <span><strong className="text-black">{sinP}</strong> tallas {TALLAS_LABELS[ti]} <span className="font-semibold text-gray-500">SIN PERSONALIZAR</span></span>}
                                           {listaP.length > 0 && <span className="text-green-700 font-semibold"><strong>{listaP.length}</strong> tallas {TALLAS_LABELS[ti]} PERSONALIZADAS</span>}
                                         </div>
                                       </div>
                                       {listaP.map((p, pi) => (
-                                        <div key={pi} className="flex items-start gap-2 px-3 py-1.5 border-t border-orange-300 bg-orange-50/20">
-                                          <div className="flex flex-col items-center justify-center border border-green-400 rounded-lg w-[34px] py-0.5 bg-white flex-shrink-0">
-                                            <span className="text-[8px] font-bold text-gray-500 uppercase">{TALLAS_LABELS[ti]}</span>
-                                            <span className="text-[11px] font-black text-green-700 leading-none">1</span>
+                                        <div key={pi} className="flex items-start gap-1.5 px-2 py-1 border-t border-orange-200 bg-orange-50/20">
+                                          <div className="flex flex-col items-center justify-center border border-green-400 rounded w-[28px] py-0.5 bg-white flex-shrink-0">
+                                            <span className="text-[7px] font-bold text-gray-500 uppercase">{TALLAS_LABELS[ti]}</span>
+                                            <span className="text-[9px] font-black text-green-700 leading-none">1</span>
                                           </div>
-                                          <div className="flex-1 text-[10px] space-y-0.5">
+                                          <div className="flex-1 text-[9px] space-y-0.5">
                                             <p className="font-bold text-black">{p.nombre}</p>
-                                            <div className="flex gap-4 flex-wrap text-gray-600">
+                                            <div className="flex gap-2 flex-wrap text-gray-600">
                                               {p.color_hilo && (
                                                 <span>
                                                   <span className="font-semibold text-blue-700">Hilo:</span>{" "}
