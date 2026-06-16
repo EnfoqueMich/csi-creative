@@ -149,16 +149,16 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
   const disenoPorId = Object.fromEntries(disenos.map((d, i) => [d.id, { ...d, index: i + 1 }]));
 
   const renderHeader = () => (
-    <div className="flex items-start justify-between px-6 pt-6 pb-3 border-b-2" style={{ borderColor: pdfCfg?.color_encabezado || "#1e3a8a" }}>
+    <div className="flex items-start justify-between px-6 pt-6 pb-3 border-b-2" style={{ borderColor: pdfCfg?.color_encabezado || "#7B9DBD" }}>
       <div className="flex items-center gap-3">
         {cfg.logo_url ? (
           <img src={cfg.logo_url} alt="Logo" className="h-20 object-contain" />
         ) : (
           <div className="flex items-center gap-1">
-            <div className="bg-yellow-600 text-white font-black text-2xl px-2 py-1 rounded-sm">C</div>
+            <div className="text-[#C69C45] font-black text-2xl px-2 py-1 rounded-sm" style={{ backgroundColor: "transparent" }}>C</div>
             <div className="flex flex-col leading-none">
-              <span className="font-black text-lg tracking-widest text-blue-900">CSI</span>
-              <span className="text-sm tracking-widest text-gray-600 font-semibold">CREATIVE</span>
+              <span className="font-black text-lg tracking-widest" style={{ color: "#C69C45" }}>CSI</span>
+              <span className="text-sm tracking-widest font-semibold" style={{ color: "#C69C45" }}>CREATIVE</span>
             </div>
           </div>
         )}
@@ -171,7 +171,7 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
         )}
       </div>
       <div className="text-right">
-        <p className="text-2xl font-black text-yellow-600 tracking-wider">ORDEN DE TRABAJO</p>
+        <p className="text-2xl font-black tracking-wider" style={{ color: "#C69C45" }}>ORDEN DE TRABAJO</p>
         <p className="text-xs text-gray-600 font-mono mt-1">No. DOCUMENTO: {pdfCfg?.numero_documento || "CR-FTW-003-V01"}</p>
         {(pdfCfg?.mostrar_folio !== false) && order.folio && <p className="text-xs text-gray-600 font-mono">{order.folio}</p>}
       </div>
@@ -179,7 +179,7 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
   );
 
   const renderClienteInfo = () => (
-    <div className="px-6 pt-3 pb-2 space-y-1.5" style={{ borderBottom: `2px solid ${pdfCfg?.color_encabezado || "#3D85C6"}`, fontSize: pdfCfg?.fuente_datos_cliente || "11px" }}>
+    <div className="px-6 pt-3 pb-2 space-y-1.5" style={{ borderBottom: `2px solid ${pdfCfg?.color_encabezado || "#7B9DBD"}`, fontSize: pdfCfg?.fuente_datos_cliente || "11px" }}>
       {/* Row 1: datos principales */}
       <div className="flex flex-wrap gap-x-6 gap-y-1 items-center">
         {[
@@ -189,7 +189,7 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
           { label: "FECHA INGRESO:", value: order.fecha_orden },
         ].map(({ label, value }) => value ? (
           <div key={label} className="flex items-baseline gap-1">
-            <span className="inline-block px-1.5 py-0.5 text-xs font-semibold uppercase rounded" style={{ backgroundColor: "#FFE599" }}>{label}</span>
+            <span className="inline-block px-1.5 py-0.5 text-xs font-semibold uppercase rounded border" style={{ borderColor: "#F7CAAC", backgroundColor: "transparent" }}>{label}</span>
             <span className="font-bold text-black text-sm">{value}</span>
           </div>
         ) : null)}
@@ -205,7 +205,7 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
             { label: "FACTURA:", value: order.requiere_factura ? "SI" : "NO" },
           ].map(({ label, value }) => value ? (
             <div key={label} className="flex items-baseline gap-1">
-              <span className="inline-block px-1.5 py-0.5 text-xs font-semibold uppercase rounded" style={{ backgroundColor: "#FFE599" }}>{label}</span>
+              <span className="inline-block px-1.5 py-0.5 text-xs font-semibold uppercase rounded border" style={{ borderColor: "#F7CAAC", backgroundColor: "transparent" }}>{label}</span>
               <span className="font-bold text-black text-sm">{value}</span>
             </div>
           ) : null)}
@@ -383,16 +383,16 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
         <div className="bg-white text-black rounded-xl border border-gray-300 shadow-sm w-full mx-auto mt-6 print:shadow-none print:border-none print:rounded-none print:mt-0 print-page" id="orden-print-2" style={{ position: "relative", paddingBottom: "80px" }}>
 
           {/* Header empresa (igual al principal) */}
-          <div className="flex items-start justify-between px-6 pt-6 pb-3 border-b-2" style={{ borderColor: pdfCfg?.color_encabezado || "#1e3a8a" }}>
+          <div className="flex items-start justify-between px-6 pt-6 pb-3 border-b-2" style={{ borderColor: pdfCfg?.color_encabezado || "#7B9DBD" }}>
             <div className="flex items-center gap-3">
               {cfg.logo_url ? (
                 <img src={cfg.logo_url} alt="Logo" className="h-20 object-contain" />
               ) : (
                 <div className="flex items-center gap-1">
-                  <div className="bg-yellow-600 text-white font-black text-2xl px-2 py-1 rounded-sm">C</div>
+                  <div className="text-[#C69C45] font-black text-2xl px-2 py-1 rounded-sm" style={{ backgroundColor: "transparent" }}>C</div>
                   <div className="flex flex-col leading-none">
-                    <span className="font-black text-lg tracking-widest text-blue-900">CSI</span>
-                    <span className="text-sm tracking-widest text-gray-600 font-semibold">CREATIVE</span>
+                    <span className="font-black text-lg tracking-widest" style={{ color: "#C69C45" }}>CSI</span>
+                    <span className="text-sm tracking-widest font-semibold" style={{ color: "#C69C45" }}>CREATIVE</span>
                   </div>
                 </div>
               )}
@@ -405,14 +405,14 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
               )}
             </div>
             <div className="text-right">
-              <p className="text-2xl font-black text-yellow-600 tracking-wider">ORDEN DE TRABAJO</p>
+              <p className="text-2xl font-black tracking-wider" style={{ color: "#C69C45" }}>ORDEN DE TRABAJO</p>
               <p className="text-xs text-gray-600 font-mono mt-1">No. DOCUMENTO: {pdfCfg?.numero_documento || "CR-FTW-003-V01"}</p>
               {order.folio && <p className="text-xs text-gray-600 font-mono">{order.folio}</p>}
             </div>
           </div>
 
           {/* Datos del cliente */}
-          <div className="px-6 pt-3 pb-2 space-y-1.5" style={{ borderBottom: `2px solid ${pdfCfg?.color_encabezado || "#3D85C6"}`, fontSize: pdfCfg?.fuente_datos_cliente || "11px" }}>
+          <div className="px-6 pt-3 pb-2 space-y-1.5" style={{ borderBottom: `2px solid ${pdfCfg?.color_encabezado || "#7B9DBD"}`, fontSize: pdfCfg?.fuente_datos_cliente || "11px" }}>
             <div className="flex flex-wrap gap-x-6 gap-y-1 items-center">
               {[
                 { label: "NOMBRE CLIENTE:", value: order.nombre_cliente },
@@ -421,7 +421,7 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
                 { label: "FECHA INGRESO:", value: order.fecha_orden },
               ].map(({ label, value }) => value ? (
                 <div key={label} className="flex items-baseline gap-1">
-                  <span className="inline-block px-1.5 py-0.5 text-xs font-semibold uppercase rounded" style={{ backgroundColor: "#FFE599" }}>{label}</span>
+                  <span className="inline-block px-1.5 py-0.5 text-xs font-semibold uppercase rounded border" style={{ borderColor: "#F7CAAC", backgroundColor: "transparent" }}>{label}</span>
                   <span className="font-bold text-black text-sm">{value}</span>
                 </div>
               ) : null)}
@@ -436,7 +436,7 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
                   { label: "FACTURA:", value: order.requiere_factura ? "SI" : "NO" },
                 ].map(({ label, value }) => value ? (
                   <div key={label} className="flex items-baseline gap-1">
-                    <span className="inline-block px-1.5 py-0.5 text-xs font-semibold uppercase rounded" style={{ backgroundColor: "#FFE599" }}>{label}</span>
+                    <span className="inline-block px-1.5 py-0.5 text-xs font-semibold uppercase rounded border" style={{ borderColor: "#F7CAAC", backgroundColor: "transparent" }}>{label}</span>
                     <span className="font-bold text-black text-sm">{value}</span>
                   </div>
                 ) : null)}
