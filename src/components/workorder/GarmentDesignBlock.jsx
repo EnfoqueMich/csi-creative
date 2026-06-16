@@ -195,8 +195,11 @@ export default function GarmentDesignBlock({ diseno, index, canRemove, onUpdate,
         {/* Título editable */}
         <Input
           value={titulo}
-          onChange={e => setTitulo(e.target.value)}
-          onBlur={() => update({ titulo })}
+          onChange={e => {
+            const val = e.target.value;
+            setTitulo(val);
+            update({ titulo: val });
+          }}
           placeholder="Nombre del diseño (ej: Playera Azul)..."
           className="h-7 text-xs font-semibold flex-1 border-blue-300 bg-white"
           onClick={e => e.stopPropagation()}
