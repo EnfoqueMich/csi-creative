@@ -101,6 +101,10 @@
           "total_piezas": {
             "type": "number"
           },
+          "diseno_id": {
+            "type": "string",
+            "description": "ID del dise\u00f1o vinculado a esta fila"
+          },
           "personalizados": {
             "type": "object",
             "description": "Mapa de talla -> lista de personalizados { nombre, color_hilo, nota }"
@@ -175,6 +179,10 @@
           "id": {
             "type": "string",
             "description": "ID \u00fanico local del dise\u00f1o"
+          },
+          "titulo": {
+            "type": "string",
+            "description": "Nombre editable del dise\u00f1o (ej: Playera Azul)"
           },
           "garment_frente_url": {
             "type": "string"

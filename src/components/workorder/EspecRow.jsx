@@ -91,7 +91,7 @@ export default function EspecRow({ row, onChange, onRemove, canRemove, disenos =
           })}
         </select>
         {row.diseno_id && (
-          <button type="button" onClick={() => onChange("diseno_id", null)} className="text-xs text-red-500 hover:text-red-700 whitespace-nowrap">
+          <button type="button" onClick={() => onChange("diseno_id", "")} className="text-xs text-red-500 hover:text-red-700 whitespace-nowrap">
             <X className="w-3.5 h-3.5" />
           </button>
         )}
