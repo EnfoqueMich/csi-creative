@@ -120,7 +120,7 @@ function migrateOrder(order) {
 }
 
 // ─── Client Autocomplete ───────────────────────────────────────────────────────
-function ClientSearch({ value, onSelect }) {
+function ClientSearch({ value, onSelect, onTypeName }) {
   const [query, setQuery] = useState(value || "");
   const [clients, setClients] = useState([]);
   const [results, setResults] = useState([]);
@@ -130,6 +130,11 @@ function ClientSearch({ value, onSelect }) {
   useEffect(() => {
     base44.entities.Client.list("nombre", 200).then(setClients);
   }, []);
+
+  // Sync query si el valor externo cambia (ej: al cargar una orden)
+  useEffect(() => {
+    setQuery(value || "");
+  }, [value]);
 
   useEffect(() => {
     if (!query.trim()) { setResults([]); return; }
@@ -159,7 +164,13 @@ function ClientSearch({ value, onSelect }) {
         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
         <Input
           value={query}
-          onChange={e => { setQuery(e.target.value); setOpen(true); if (!e.target.value) onSelect(null); }}
+          onChange={e => {
+            const val = e.target.value;
+            setQuery(val);
+            setOpen(true);
+            // Siempre actualiza el nombre en el form mientras escribe
+            onTypeName(val);
+          }}
           onFocus={() => setOpen(true)}
           placeholder="Buscar cliente por nombre, RFC o ID..."
           className="h-8 text-xs pl-8"
@@ -313,17 +324,17 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
           <label className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">Buscar Cliente</label>
           <ClientSearch
             value={form.nombre_cliente}
+            onTypeName={(nombre) => set("nombre_cliente", nombre)}
             onSelect={(client) => {
-              if (!client) return;
               setForm(prev => ({
                 ...prev,
                 nombre_cliente: client.nombre,
                 cliente_id: client.id,
-                rfc: client.rfc || "",
-                cp: client.cp || "",
-                tipo_regimen: client.tipo_regimen || "",
-                uso_factura: client.uso_factura || "",
-                telefono: prev.telefono || client.tel_celular || "",
+                rfc: client.rfc || prev.rfc || "",
+                cp: client.cp || prev.cp || "",
+                tipo_regimen: client.tipo_regimen || prev.tipo_regimen || "",
+                uso_factura: client.uso_factura || prev.uso_factura || "",
+                telefono: client.tel_celular || prev.telefono || "",
               }));
             }}
           />

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -91,12 +91,6 @@ function makeDefaultPosiciones() {
  */
 export default function GarmentDesignBlock({ diseno, index, canRemove, onUpdate, onRemove, logoCatalog, onLogoCatalogUpdate }) {
   const [collapsed, setCollapsed] = useState(false);
-  const [titulo, setTitulo] = useState(diseno.titulo || "");
-
-  // Sync si el prop cambia desde afuera (ej: al cargar orden guardada)
-  useEffect(() => {
-    setTitulo(diseno.titulo || "");
-  }, [diseno.id]);
 
   const selectedGarment = diseno.garment_frente_url
     ? {
@@ -192,14 +186,10 @@ export default function GarmentDesignBlock({ diseno, index, canRemove, onUpdate,
           {collapsed ? <ChevronDown className="w-4 h-4 text-blue-600" /> : <ChevronUp className="w-4 h-4 text-blue-600" />}
           <span className="text-sm font-bold text-blue-700 uppercase tracking-wide whitespace-nowrap">Diseño #{index}</span>
         </button>
-        {/* Título editable */}
+        {/* Título editable — controlado directamente por prop */}
         <Input
-          value={titulo}
-          onChange={e => {
-            const val = e.target.value;
-            setTitulo(val);
-            update({ titulo: val });
-          }}
+          value={diseno.titulo || ""}
+          onChange={e => update({ titulo: e.target.value })}
           placeholder="Nombre del diseño (ej: Playera Azul)..."
           className="h-7 text-xs font-semibold flex-1 border-blue-300 bg-white"
           onClick={e => e.stopPropagation()}
