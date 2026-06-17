@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { X, Plus, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import TshirtPreviewInteractive, { DEFAULT_LAYOUT } from "./TshirtPreviewInteractive";
+import { nextAnnId } from "./GarmentAnnotationLayer";
 import GarmentPicker from "./GarmentPicker";
 import HiloColorPicker from "./HiloColorPicker";
 import VinilColorPicker from "./VinilColorPicker";
@@ -175,6 +176,33 @@ export default function GarmentDesignBlock({ diseno, index, canRemove, onUpdate,
 
   const selectedId = diseno.garment_id || (diseno.garment_frente_url ? "__default_custom__" : null);
 
+  // Annotations management
+  const annotations = diseno.annotations || [];
+
+  const updateAnnotation = useCallback((updatedAnn) => {
+    const next = annotations.map(a => a.id === updatedAnn.id ? updatedAnn : a);
+    update({ annotations: next });
+  }, [annotations, update]);
+
+  const deleteAnnotation = useCallback((annId) => {
+    const next = annotations.filter(a => a.id !== annId);
+    update({ annotations: next });
+  }, [annotations, update]);
+
+  const addAnnotation = useCallback((view, type, extra = {}) => {
+    const id = nextAnnId();
+    let newAnn;
+    if (type === "text") {
+      newAnn = { id, type: "text", view, x: 50, y: 20, text: "", color: "#E91E63", fontSize: 10 };
+    } else if (type === "line") {
+      newAnn = { id, type: "line", view, x1: 50, y1: 15, x2: 50, y2: 85, color: "#33B2E0", strokeWidth: 2, dashStyle: "dotted" };
+    } else if (type === "sticker") {
+      newAnn = { id, type: "sticker", view, x: 35, y: 40, w: 18, image_url: extra.image_url || "", label: extra.label || "" };
+    }
+    const next = [...annotations, newAnn];
+    update({ annotations: next });
+  }, [annotations, update]);
+
   return (
     <div className="rounded-xl border-2 border-blue-200 bg-blue-50/20">
       {/* Header del bloque */}
@@ -218,6 +246,10 @@ export default function GarmentDesignBlock({ diseno, index, canRemove, onUpdate,
             latIzqUrl={diseno.garment_lateral_izq_url}
             latDerUrl={diseno.garment_lateral_der_url}
             esGorra={diseno.garment_es_gorra || false}
+            annotations={annotations}
+            onUpdateAnnotation={updateAnnotation}
+            onDeleteAnnotation={deleteAnnotation}
+            onAddAnnotation={addAnnotation}
           />
 
           {/* Posiciones */}

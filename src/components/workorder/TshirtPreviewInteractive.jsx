@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Move, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
+import GarmentAnnotationLayer, { AnnotationToolbar, nextAnnId } from "./GarmentAnnotationLayer";
 
 export const DEFAULT_FRENTE_URL = "https://media.base44.com/images/public/69d2f43e55d64f6bbfa30f2c/6b6aec754_frente.png";
 export const DEFAULT_ESPALDA_URL = "https://media.base44.com/images/public/69d2f43e55d64f6bbfa30f2c/173365721_espalda.png";
@@ -149,8 +150,10 @@ function DraggableImage({ imgUrl, posNum, layout, onUpdateLayout, containerRef }
   );
 }
 
-function ShirtView({ bgUrl, posNums, posiciones, layout, onUpdateLayout, label }) {
+function ShirtView({ bgUrl, posNums, posiciones, layout, onUpdateLayout, label, viewName, annotations, onUpdateAnnotation, onDeleteAnnotation, onAddAnnotation }) {
   const containerRef = useRef(null);
+
+  const viewAnnotations = (annotations || []).filter(a => a.view === viewName);
 
   return (
     <div ref={containerRef} style={{ position: "relative", display: "inline-block", width: "100%" }}>
@@ -169,11 +172,26 @@ function ShirtView({ bgUrl, posNums, posiciones, layout, onUpdateLayout, label }
           />
         );
       })}
+      {/* Annotation layer */}
+      <GarmentAnnotationLayer
+        annotations={viewAnnotations}
+        containerRef={containerRef}
+        onUpdate={onUpdateAnnotation}
+        onDelete={onDeleteAnnotation}
+      />
+      {/* Mini toolbar per view */}
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-40">
+        <AnnotationToolbar
+          onAddText={() => onAddAnnotation(viewName, "text")}
+          onAddLine={() => onAddAnnotation(viewName, "line")}
+          onAddSticker={(url, label) => onAddAnnotation(viewName, "sticker", { image_url: url, label })}
+        />
+      </div>
     </div>
   );
 }
 
-export default function TshirtPreviewInteractive({ posiciones, layout, onLayoutChange, frenteUrl, espaldaUrl, latIzqUrl, latDerUrl, esGorra }) {
+export default function TshirtPreviewInteractive({ posiciones, layout, onLayoutChange, frenteUrl, espaldaUrl, latIzqUrl, latDerUrl, esGorra, annotations, onUpdateAnnotation, onDeleteAnnotation, onAddAnnotation }) {
   const handleUpdate = (posNum, newPos) => {
     onLayoutChange({ ...layout, [posNum]: newPos });
   };
@@ -205,30 +223,30 @@ export default function TshirtPreviewInteractive({ posiciones, layout, onLayoutC
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <div className="text-center">
             <p className="text-xs font-bold text-blue-600 uppercase mb-1 tracking-wider">Vista Frontal</p>
-            <ShirtView bgUrl={frenteUrl || DEFAULT_FRENTE_URL} posNums={[1]} posiciones={posiciones} layout={layout} onUpdateLayout={handleUpdate} />
+            <ShirtView bgUrl={frenteUrl || DEFAULT_FRENTE_URL} posNums={[1]} posiciones={posiciones} layout={layout} onUpdateLayout={handleUpdate} viewName="frente" annotations={annotations} onUpdateAnnotation={onUpdateAnnotation} onDeleteAnnotation={onDeleteAnnotation} onAddAnnotation={onAddAnnotation} />
           </div>
           <div className="text-center">
             <p className="text-xs font-bold text-blue-600 uppercase mb-1 tracking-wider">Lateral Izq.</p>
-            <ShirtView bgUrl={latIzqUrl || frenteUrl || DEFAULT_FRENTE_URL} posNums={[6]} posiciones={posiciones} layout={layout} onUpdateLayout={handleUpdate} />
+            <ShirtView bgUrl={latIzqUrl || frenteUrl || DEFAULT_FRENTE_URL} posNums={[6]} posiciones={posiciones} layout={layout} onUpdateLayout={handleUpdate} viewName="lat_izq" annotations={annotations} onUpdateAnnotation={onUpdateAnnotation} onDeleteAnnotation={onDeleteAnnotation} onAddAnnotation={onAddAnnotation} />
           </div>
           <div className="text-center">
             <p className="text-xs font-bold text-blue-600 uppercase mb-1 tracking-wider">Lateral Der.</p>
-            <ShirtView bgUrl={latDerUrl || frenteUrl || DEFAULT_FRENTE_URL} posNums={[7]} posiciones={posiciones} layout={layout} onUpdateLayout={handleUpdate} />
+            <ShirtView bgUrl={latDerUrl || frenteUrl || DEFAULT_FRENTE_URL} posNums={[7]} posiciones={posiciones} layout={layout} onUpdateLayout={handleUpdate} viewName="lat_der" annotations={annotations} onUpdateAnnotation={onUpdateAnnotation} onDeleteAnnotation={onDeleteAnnotation} onAddAnnotation={onAddAnnotation} />
           </div>
           <div className="text-center">
             <p className="text-xs font-bold text-blue-600 uppercase mb-1 tracking-wider">Vista Trasera</p>
-            <ShirtView bgUrl={espaldaUrl || DEFAULT_ESPALDA_URL} posNums={[5]} posiciones={posiciones} layout={layout} onUpdateLayout={handleUpdate} />
+            <ShirtView bgUrl={espaldaUrl || DEFAULT_ESPALDA_URL} posNums={[5]} posiciones={posiciones} layout={layout} onUpdateLayout={handleUpdate} viewName="espalda" annotations={annotations} onUpdateAnnotation={onUpdateAnnotation} onDeleteAnnotation={onDeleteAnnotation} onAddAnnotation={onAddAnnotation} />
           </div>
         </div>
       ) : (
         <div className="flex gap-6 justify-center items-start">
           <div className="text-center flex-1 max-w-sm">
             <p className="text-xs font-bold text-blue-600 uppercase mb-1 tracking-wider">Vista Frontal</p>
-            <ShirtView bgUrl={frenteUrl || DEFAULT_FRENTE_URL} posNums={[1, 2, 3, 4]} posiciones={posiciones} layout={layout} onUpdateLayout={handleUpdate} />
+            <ShirtView bgUrl={frenteUrl || DEFAULT_FRENTE_URL} posNums={[1, 2, 3, 4]} posiciones={posiciones} layout={layout} onUpdateLayout={handleUpdate} viewName="frente" annotations={annotations} onUpdateAnnotation={onUpdateAnnotation} onDeleteAnnotation={onDeleteAnnotation} onAddAnnotation={onAddAnnotation} />
           </div>
           <div className="text-center flex-1 max-w-sm">
             <p className="text-xs font-bold text-blue-600 uppercase mb-1 tracking-wider">Vista Trasera</p>
-            <ShirtView bgUrl={espaldaUrl || DEFAULT_ESPALDA_URL} posNums={[5]} posiciones={posiciones} layout={layout} onUpdateLayout={handleUpdate} />
+            <ShirtView bgUrl={espaldaUrl || DEFAULT_ESPALDA_URL} posNums={[5]} posiciones={posiciones} layout={layout} onUpdateLayout={handleUpdate} viewName="espalda" annotations={annotations} onUpdateAnnotation={onUpdateAnnotation} onDeleteAnnotation={onDeleteAnnotation} onAddAnnotation={onAddAnnotation} />
           </div>
         </div>
       )}
