@@ -117,7 +117,7 @@ const emptyOrder = () => ({
 
 // Migra órdenes antiguas que tenían un solo diseño a la nueva estructura
 function migrateOrder(order) {
-  if (order?.disenos?.length) return order.disenos.map(d => ({ ...d, titulo: d.titulo || "" }));
+  if (order?.disenos?.length) return order.disenos.map(d => ({ ...d, titulo: d.titulo || "", annotations: d.annotations || [] }));
   // Orden antigua: un solo diseño
   return [
     {
@@ -130,6 +130,7 @@ function migrateOrder(order) {
       garment_lateral_izq_url: order?.garment_lateral_izq_url || "",
       garment_lateral_der_url: order?.garment_lateral_der_url || "",
       garment_id: null,
+      annotations: [],
       preview_layout: order?.preview_layout ? { ...DEFAULT_LAYOUT, ...order.preview_layout } : { ...DEFAULT_LAYOUT },
       posiciones: order?.posiciones?.length
         ? order.posiciones.map((p) => ({
