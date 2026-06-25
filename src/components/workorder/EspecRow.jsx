@@ -81,11 +81,10 @@ export default function EspecRow({ row, onChange, onRemove, canRemove, disenos =
         >
           <option value="">— Sin diseño asignado —</option>
           {disenos.map((d, di) => {
-            const alreadyUsed = d.id !== row.diseno_id && assignedDisenos[d.id];
             const label = d.titulo || d.garment_titulo || "";
             return (
-              <option key={d.id} value={d.id} disabled={!!alreadyUsed}>
-                Diseño #{di + 1}{label ? ` — ${label}` : ""}{alreadyUsed ? " (ya asignado)" : ""}
+              <option key={d.id} value={d.id}>
+                Diseño #{di + 1}{label ? ` — ${label}` : ""}
               </option>
             );
           })}

@@ -558,10 +558,6 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {form.especificaciones.map((row, idx) => {
             // Mapa de qué diseños ya están asignados (excluyendo el de esta fila)
-            const assignedDisenos = {};
-            form.especificaciones.forEach((e, i) => {
-              if (i !== idx && e.diseno_id) assignedDisenos[e.diseno_id] = true;
-            });
             return (
               <EspecRow
                 key={idx}
@@ -570,11 +566,24 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
                 onRemove={() => removeEspec(idx)}
                 canRemove={form.especificaciones.length > 1}
                 disenos={disenos}
-                assignedDisenos={assignedDisenos}
               />
             );
           })}
         </div>
+        {/* Total global de todas las prendas */}
+        {(() => {
+          const TALLAS_KEYS = ["xs","s","m","l","xl","xxl","xxxl","xxxxl"];
+          const totalGlobal = form.especificaciones.reduce((sum, e) =>
+            sum + TALLAS_KEYS.reduce((s, t) => s + (Number(e.tallas?.[t]) || 0), 0), 0);
+          return totalGlobal > 0 ? (
+            <div className="flex items-center justify-end gap-3 px-2">
+              <span className="text-xs font-bold text-green-700 uppercase tracking-wide">TOTAL GLOBAL DE PRENDAS:</span>
+              <div className="border-2 border-green-600 rounded-lg px-5 py-1 bg-green-50 text-center">
+                <p className="text-2xl font-black text-green-700 leading-none">{totalGlobal}</p>
+              </div>
+            </div>
+          ) : null;
+        })()}
         <Button type="button" variant="outline" size="sm" onClick={addEspec} className="gap-1 text-green-700 border-green-400 hover:bg-green-50 w-full">
           <Plus className="w-3.5 h-3.5" /> Agregar modelo de prenda
         </Button>

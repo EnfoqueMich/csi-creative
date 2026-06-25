@@ -2,6 +2,14 @@
   "name": "GarmentCatalog",
   "type": "object",
   "properties": {
+    "categoria": {
+      "type": "string",
+      "description": "Categor\u00eda de la prenda"
+    },
+    "codigo": {
+      "type": "string",
+      "description": "C\u00f3digo de la prenda"
+    },
     "marca": {
       "type": "string",
       "description": "Marca de la prenda"
@@ -22,6 +30,14 @@
       "type": "number",
       "description": "Cantidad en almac\u00e9n",
       "default": 0
+    },
+    "frente_url": {
+      "type": "string",
+      "description": "URL imagen frontal de la prenda"
+    },
+    "espalda_url": {
+      "type": "string",
+      "description": "URL imagen trasera de la prenda"
     }
   },
   "required": [

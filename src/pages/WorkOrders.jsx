@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Plus, Loader2, FileText, Trash2, Eye, Settings, Package, Scissors, Palette } from "lucide-react";
+import { Plus, Loader2, FileText, Trash2, Eye, Settings, Package, Scissors, Palette, BookImage } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import WorkOrderForm from "../components/workorder/WorkOrderForm";
@@ -9,6 +9,7 @@ import OrderSettingsPanel from "../components/workorder/OrderSettingsPanel";
 import HiloColorManager from "../components/workorder/HiloColorManager";
 import GarmentCatalogManager from "../components/workorder/GarmentCatalogManager";
 import VinilTextilManager from "../components/workorder/VinilTextilManager";
+import LogoCatalogManager from "../components/workorder/LogoCatalogManager";
 
 const estadoConfig = {
   borrador: { label: "Borrador", cls: "bg-muted text-muted-foreground" },
@@ -22,7 +23,7 @@ export default function WorkOrders() {
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState("list");
   const [selected, setSelected] = useState(null);
-  const [tab, setTab] = useState("ordenes"); // 'ordenes' | 'configuracion' | 'catalogo' | 'hilos' | 'vinil'
+  const [tab, setTab] = useState("ordenes"); // 'ordenes' | 'configuracion' | 'catalogo' | 'hilos' | 'vinil' | 'logos'
 
   useEffect(() => {
     base44.entities.WorkOrder.list("-created_date", 200).then((data) => {
@@ -135,6 +136,16 @@ export default function WorkOrders() {
           <Scissors className="w-3.5 h-3.5 inline mr-1.5" />
           Vinil Textil
         </button>
+        <button
+          onClick={() => setTab("logos")}
+          className={cn(
+            "px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap",
+            tab === "logos" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <BookImage className="w-3.5 h-3.5 inline mr-1.5" />
+          Catálogo Logos
+        </button>
       </div>
 
       {/* Contenido según tab */}
@@ -146,6 +157,8 @@ export default function WorkOrders() {
         <GarmentCatalogManager />
       ) : tab === "configuracion" ? (
         <OrderSettingsPanel />
+      ) : tab === "logos" ? (
+        <LogoCatalogManager />
       ) : loading ? (
         <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-muted-foreground" /></div>
       ) : orders.length === 0 ? (

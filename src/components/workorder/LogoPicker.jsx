@@ -341,6 +341,7 @@ export default function LogoPicker({ posicion, onChange, logos = [], onLogoCatal
 
   // Aplicar un logo (del catálogo o sin guardar) a la posición
   const applyLogo = (logoData) => {
+    // No cargamos costo/iva/puntadas en la posición, solo datos técnicos
     onChange({
       imagen_url: logoData.imagen_url || "",
       alto_cm: logoData.alto_cm || 0,

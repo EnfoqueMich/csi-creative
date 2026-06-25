@@ -18,6 +18,18 @@
       "type": "string",
       "description": "Descripci\u00f3n del logo / instrucciones"
     },
+    "costo": {
+      "type": "number",
+      "description": "Costo base del logo"
+    },
+    "iva": {
+      "type": "number",
+      "description": "Tasa de IVA (0, 0.08, 0.16)"
+    },
+    "puntadas": {
+      "type": "number",
+      "description": "N\u00famero de puntadas del bordado"
+    },
     "alto_cm": {
       "type": "number",
       "description": "Alto en cm"

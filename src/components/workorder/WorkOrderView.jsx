@@ -56,11 +56,48 @@ function Field({ label, value, blue }) {
   );
 }
 
-function GarmentPreviewPrint({ posiciones, layout, order }) {
+function AnnotationsStatic({ annotations = [], viewName }) {
+  const viewAnns = annotations.filter(a => a.view === viewName);
+  if (!viewAnns.length) return null;
+  return (
+    <>
+      {/* SVG lines */}
+      <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", overflow: "visible", pointerEvents: "none" }}>
+        {viewAnns.filter(a => a.type === "line").map(a => {
+          const dash = a.dashStyle === "dotted" ? "4,6" : a.dashStyle === "solid" ? "" : "8,6";
+          return (
+            <line key={a.id} x1={`${a.x1}%`} y1={`${a.y1}%`} x2={`${a.x2}%`} y2={`${a.y2}%`}
+              stroke={a.color || "#33B2E0"} strokeWidth={a.strokeWidth || 2} strokeDasharray={dash} />
+          );
+        })}
+      </svg>
+      {/* Text bubbles */}
+      {viewAnns.filter(a => a.type === "text" && a.text).map(a => (
+        <div key={a.id} style={{
+          position: "absolute", left: `${a.x}%`, top: `${a.y}%`, transform: "translate(-50%, -100%)",
+          background: "#fff", border: "2px solid #444", borderRadius: 5, padding: "2px 5px",
+          fontSize: a.fontSize || 10, color: a.color || "#333", fontWeight: 600, whiteSpace: "nowrap",
+          boxShadow: "0 1px 4px rgba(0,0,0,0.15)",
+        }}>
+          {a.text}
+          <div style={{ position: "absolute", bottom: -5, left: "50%", transform: "translateX(-50%)", width: 0, height: 0, borderLeft: "4px solid transparent", borderRight: "4px solid transparent", borderTop: "5px solid #444" }} />
+        </div>
+      ))}
+      {/* Stickers */}
+      {viewAnns.filter(a => a.type === "sticker" && a.image_url).map(a => (
+        <img key={a.id} src={a.image_url} alt={a.label || "sticker"}
+          style={{ position: "absolute", left: `${a.x}%`, top: `${a.y}%`, width: `${a.w || 15}%`, objectFit: "contain", pointerEvents: "none" }} />
+      ))}
+    </>
+  );
+}
+
+function GarmentPreviewPrint({ posiciones, layout, order, annotations }) {
   const resolvedLayout = layout || DEFAULT_LAYOUT;
   const esGorra = order.garment_es_gorra;
+  const anns = annotations || [];
 
-  const renderImages = (nums, bgUrl) => (
+  const renderImages = (nums, bgUrl, viewName) => (
     <div className="text-center flex-1">
       <div className="relative inline-block w-full">
         <img src={bgUrl} alt="" className="w-full object-contain" />
@@ -77,6 +114,7 @@ function GarmentPreviewPrint({ posiciones, layout, order }) {
             />
           );
         })}
+        <AnnotationsStatic annotations={anns} viewName={viewName} />
       </div>
     </div>
   );
@@ -87,19 +125,19 @@ function GarmentPreviewPrint({ posiciones, layout, order }) {
         <div className="flex gap-3 justify-center items-start" style={{ width: "90%", margin: "0 auto" }}>
           <div className="text-center flex-1">
             <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Vista Frontal</p>
-            {renderImages([1], order.garment_frente_url || DEFAULT_FRENTE)}
+            {renderImages([1], order.garment_frente_url || DEFAULT_FRENTE, "frente")}
           </div>
           <div className="text-center flex-1">
             <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Lateral Izquierda</p>
-            {renderImages([6], order.garment_lateral_izq_url || order.garment_frente_url || DEFAULT_FRENTE)}
+            {renderImages([6], order.garment_lateral_izq_url || order.garment_frente_url || DEFAULT_FRENTE, "lat_izq")}
           </div>
           <div className="text-center flex-1">
             <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Lateral Derecha</p>
-            {renderImages([7], order.garment_lateral_der_url || order.garment_frente_url || DEFAULT_FRENTE)}
+            {renderImages([7], order.garment_lateral_der_url || order.garment_frente_url || DEFAULT_FRENTE, "lat_der")}
           </div>
           <div className="text-center flex-1">
             <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Vista Trasera</p>
-            {renderImages([5], order.garment_espalda_url || DEFAULT_ESPALDA)}
+            {renderImages([5], order.garment_espalda_url || DEFAULT_ESPALDA, "espalda")}
           </div>
         </div>
       </div>
@@ -110,11 +148,11 @@ function GarmentPreviewPrint({ posiciones, layout, order }) {
     <div className="flex gap-6 justify-center items-start" style={{ width: "90%", margin: "0 auto" }}>
       <div className="text-center flex-1">
         <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Vista Frontal</p>
-        {renderImages([1, 2, 3, 4], order.garment_frente_url || DEFAULT_FRENTE)}
+        {renderImages([1, 2, 3, 4], order.garment_frente_url || DEFAULT_FRENTE, "frente")}
       </div>
       <div className="text-center flex-1">
         <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Vista Trasera</p>
-        {renderImages([5], order.garment_espalda_url || DEFAULT_ESPALDA)}
+        {renderImages([5], order.garment_espalda_url || DEFAULT_ESPALDA, "espalda")}
       </div>
     </div>
   );
@@ -239,12 +277,12 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
     </div>
   );
 
-  const renderPosiciones = (posiciones, disenoOrder) => {
+  const renderPosiciones = (posiciones, disenoOrder, disenoData) => {
     if (!posiciones?.length) return null;
     return (
       <div className="border-2 border-blue-200 rounded px-3 pt-2 pb-3 bg-blue-50/20 space-y-3">
         {(pdfCfg?.mostrar_vista_prenda !== false) && (
-          <GarmentPreviewPrint posiciones={posiciones} layout={disenoOrder.preview_layout} order={disenoOrder} />
+          <GarmentPreviewPrint posiciones={posiciones} layout={disenoOrder.preview_layout} order={disenoOrder} annotations={disenoData?.annotations || []} />
         )}
         {(pdfCfg?.mostrar_posiciones !== false) && (
           <div>
@@ -359,7 +397,7 @@ export default function WorkOrderView({ order, onBack, onEdit }) {
                 </span>
               </div>
 
-              {renderPosiciones(posiciones, disenoOrder)}
+              {renderPosiciones(posiciones, disenoOrder, diseno)}
 
               {/* Tipo trabajo + observaciones solo en el primer diseño */}
               {di === 0 && (pdfCfg?.mostrar_tipo_trabajo !== false) && (
