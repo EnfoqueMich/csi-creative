@@ -27,24 +27,13 @@ function formatDuration(seconds) {
 }
 
 // ── Reloj en tiempo real ─────────────────────────────────────────────────────
-function ElapsedTimer({ since }) {
-  const [elapsed, setElapsed] = useState("");
-
-  useEffect(() => {
-    if (!since) return;
-    const tick = () => {
-      const diff = Math.max(0, Math.floor((Date.now() - new Date(since).getTime()) / 1000));
-      const h = Math.floor(diff / 3600).toString().padStart(2, "0");
-      const m = Math.floor((diff % 3600) / 60).toString().padStart(2, "0");
-      const s = Math.floor(diff % 60).toString().padStart(2, "0");
-      setElapsed(`${h}:${m}:${s}`);
-    };
-    tick();
-    const id = setInterval(tick, 1000);
-    return () => clearInterval(id);
-  }, [since]);
-
-  if (!since || !elapsed) return null;
+function ElapsedTimer({ since, now }) {
+  if (!since) return null;
+  const diff = Math.max(0, Math.floor((now - new Date(since).getTime()) / 1000));
+  const h = Math.floor(diff / 3600).toString().padStart(2, "0");
+  const m = Math.floor((diff % 3600) / 60).toString().padStart(2, "0");
+  const s = Math.floor(diff % 60).toString().padStart(2, "0");
+  const elapsed = `${h}:${m}:${s}`;
 
   return (
     <span className="flex items-center gap-1 text-xs font-mono bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full">
@@ -54,28 +43,26 @@ function ElapsedTimer({ since }) {
   );
 }
 
-// ── Modal imagen ampliada ────────────────────────────────────────────────────
+// ── Modal imagen ampliada (pantalla completa) ────────────────────────────────
 function ImageModal({ img, onClose }) {
   const { url, titulo } = normalizeImg(img);
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="relative max-w-3xl max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
-        <img src={url} alt={titulo || "Tarea"} className="max-w-full max-h-[85vh] object-contain rounded-xl" />
-        {titulo && (
-          <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-sm text-center py-2 px-3 rounded-b-xl">
-            {titulo}
-          </div>
-        )}
-        <button onClick={onClose} className="absolute -top-3 -right-3 bg-white rounded-full p-1.5 shadow-lg">
-          <X className="w-4 h-4" />
-        </button>
-      </div>
+    <div className="fixed inset-0 z-50 bg-black flex items-center justify-center" onClick={onClose}>
+      <img src={url} alt={titulo || "Tarea"} className="w-screen h-screen object-contain" />
+      {titulo && (
+        <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-sm text-center py-3 px-4">
+          {titulo}
+        </div>
+      )}
+      <button onClick={onClose} className="absolute top-4 right-4 bg-white rounded-full p-2 shadow-lg">
+        <X className="w-5 h-5" />
+      </button>
     </div>
   );
 }
 
 // ── Tarjeta individual de tarea ──────────────────────────────────────────────
-function TaskCard({ task, onToggle, onUploadImage, uploadingId, onUrgente, onEdit }) {
+function TaskCard({ task, onToggle, onUploadImage, uploadingId, onUrgente, onEdit, now }) {
   const [expandedImg, setExpandedImg] = useState(null);
   const [editing, setEditing] = useState(false);
   const [editTitulo, setEditTitulo] = useState(task.titulo || "");
@@ -126,7 +113,7 @@ function TaskCard({ task, onToggle, onUploadImage, uploadingId, onUrgente, onEdi
             )}
             {/* Cronómetro activo (solo si no completada) */}
             {!task.completada && task.fecha_asignacion && (
-              <ElapsedTimer since={task.fecha_asignacion} />
+              <ElapsedTimer since={task.fecha_asignacion} now={now} />
             )}
             {/* Tiempo total al completar */}
             {task.completada && duracion && (
@@ -230,7 +217,7 @@ function TaskCard({ task, onToggle, onUploadImage, uploadingId, onUrgente, onEdi
 }
 
 // ── Grupo colapsable de completadas ──────────────────────────────────────────
-function CompletedGroup({ tasks, onToggle, onUploadImage, uploadingId, onUrgente, onEdit }) {
+function CompletedGroup({ tasks, onToggle, onUploadImage, uploadingId, onUrgente, onEdit, now }) {
   const [open, setOpen] = useState(false);
   if (tasks.length === 0) return null;
   return (
@@ -247,7 +234,7 @@ function CompletedGroup({ tasks, onToggle, onUploadImage, uploadingId, onUrgente
       {open && (
         <div className="p-3 space-y-2 bg-card">
           {tasks.map((t) => (
-            <TaskCard key={t.id} task={t} onToggle={onToggle} onUrgente={onUrgente} onEdit={onEdit} onUploadImage={onUploadImage} uploadingId={uploadingId} />
+            <TaskCard key={t.id} task={t} onToggle={onToggle} onUrgente={onUrgente} onEdit={onEdit} onUploadImage={onUploadImage} uploadingId={uploadingId} now={now} />
           ))}
         </div>
       )}
@@ -270,6 +257,12 @@ export default function Tasks() {
   const [uploadingNew, setUploadingNew] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploadingId, setUploadingId] = useState(null);
+  const [now, setNow] = useState(Date.now());
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     Promise.all([
@@ -517,9 +510,9 @@ export default function Tasks() {
             <p className="text-center text-muted-foreground text-sm py-10">No hay tareas aún.</p>
           )}
           {pendientes.map((t) => (
-            <TaskCard key={t.id} task={t} onToggle={handleToggle} onUrgente={handleUrgente} onEdit={handleEdit} onUploadImage={handleUploadImage} uploadingId={uploadingId} />
+            <TaskCard key={t.id} task={t} onToggle={handleToggle} onUrgente={handleUrgente} onEdit={handleEdit} onUploadImage={handleUploadImage} uploadingId={uploadingId} now={now} />
           ))}
-          <CompletedGroup tasks={completadas} onToggle={handleToggle} onUrgente={handleUrgente} onEdit={handleEdit} onUploadImage={handleUploadImage} uploadingId={uploadingId} />
+          <CompletedGroup tasks={completadas} onToggle={handleToggle} onUrgente={handleUrgente} onEdit={handleEdit} onUploadImage={handleUploadImage} uploadingId={uploadingId} now={now} />
         </div>
       )}
     </div>
