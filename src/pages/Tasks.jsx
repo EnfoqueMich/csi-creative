@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { toast } from "@/components/ui/use-toast";
 
 // Normaliza una imagen: puede ser string URL (legacy) o {url, titulo}
 function normalizeImg(img) {
@@ -285,13 +286,19 @@ export default function Tasks() {
 
   const handleNewImageUpload = async (e) => {
     const files = Array.from(e.target.files);
+    e.target.value = "";
     if (!files.length) return;
     setUploadingNew(true);
-    const uploaded = await Promise.all(
-      files.map((file) => base44.integrations.Core.UploadFile({ file }).then((r) => ({ url: r.file_url, titulo: "" })))
-    );
-    setNewImages((prev) => [...prev, ...uploaded]);
-    setUploadingNew(false);
+    try {
+      const uploaded = await Promise.all(
+        files.map((file) => base44.integrations.Core.UploadFile({ file }).then((r) => ({ url: r.file_url, titulo: "" })))
+      );
+      setNewImages((prev) => [...prev, ...uploaded]);
+    } catch (error) {
+      toast({ variant: "destructive", title: "Error al subir imagen", description: error.message || "Intenta de nuevo." });
+    } finally {
+      setUploadingNew(false);
+    }
   };
 
   const setNewImageTitulo = (idx, titulo) => {
@@ -301,25 +308,30 @@ export default function Tasks() {
   const handleCreate = async () => {
     if (!texto.trim()) return;
     setSaving(true);
-    const worker = workers.find((w) => w.id === asignadoId);
-    const nueva = await base44.entities.Task.create({
-      folio: generateFolio(tasks.length),
-      titulo: titulo.trim() || undefined,
-      descripcion: texto.trim(),
-      completada: false,
-      urgente: nuevaUrgente,
-      imagenes: newImages,
-      asignado_id: worker?.id || undefined,
-      asignado_nombre: worker?.nombre || undefined,
-      fecha_asignacion: worker ? new Date().toISOString() : undefined,
-    });
-    setTasks((prev) => [nueva, ...prev]);
-    setTitulo("");
-    setTexto("");
-    setNuevaUrgente(false);
-    setAsignadoId("");
-    setNewImages([]);
-    setSaving(false);
+    try {
+      const worker = workers.find((w) => w.id === asignadoId);
+      const nueva = await base44.entities.Task.create({
+        folio: generateFolio(tasks.length),
+        titulo: titulo.trim() || undefined,
+        descripcion: texto.trim(),
+        completada: false,
+        urgente: nuevaUrgente,
+        imagenes: newImages,
+        asignado_id: worker?.id || undefined,
+        asignado_nombre: worker?.nombre || undefined,
+        fecha_asignacion: worker ? new Date().toISOString() : undefined,
+      });
+      setTasks((prev) => [nueva, ...prev]);
+      setTitulo("");
+      setTexto("");
+      setNuevaUrgente(false);
+      setAsignadoId("");
+      setNewImages([]);
+    } catch (error) {
+      toast({ variant: "destructive", title: "Error al crear la tarea", description: error.message || "Intenta de nuevo." });
+    } finally {
+      setSaving(false);
+    }
   };
 
   // Sanitiza imagenes legacy (strings → objetos) antes de cualquier update
@@ -345,16 +357,22 @@ export default function Tasks() {
 
   const handleUploadImage = async (e, task) => {
     const files = Array.from(e.target.files);
+    e.target.value = "";
     if (!files.length) return;
     setUploadingId(task.id);
-    const uploaded = await Promise.all(
-      files.map((file) => base44.integrations.Core.UploadFile({ file }).then((r) => ({ url: r.file_url, titulo: "" })))
-    );
-    const existingNorm = (task.imagenes || []).map(normalizeImg);
-    const imagenes = [...existingNorm, ...uploaded];
-    await base44.entities.Task.update(task.id, { imagenes });
-    setTasks((prev) => prev.map((t) => t.id === task.id ? { ...t, imagenes } : t));
-    setUploadingId(null);
+    try {
+      const uploaded = await Promise.all(
+        files.map((file) => base44.integrations.Core.UploadFile({ file }).then((r) => ({ url: r.file_url, titulo: "" })))
+      );
+      const existingNorm = (task.imagenes || []).map(normalizeImg);
+      const imagenes = [...existingNorm, ...uploaded];
+      await base44.entities.Task.update(task.id, { imagenes });
+      setTasks((prev) => prev.map((t) => t.id === task.id ? { ...t, imagenes } : t));
+    } catch (error) {
+      toast({ variant: "destructive", title: "Error al subir imagen", description: error.message || "Intenta de nuevo." });
+    } finally {
+      setUploadingId(null);
+    }
   };
 
   const filtered = tasks.filter((t) => {
