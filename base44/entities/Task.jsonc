@@ -5,6 +5,10 @@
     "folio": {
       "type": "string"
     },
+    "crea_interno": {
+      "type": "string",
+      "description": "N\u00famero interno CREA- asignado manualmente"
+    },
     "titulo": {
       "type": "string",
       "description": "T\u00edtulo de la tarea"

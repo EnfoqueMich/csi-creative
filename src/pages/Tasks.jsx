@@ -11,8 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { toast } from "@/components/ui/use-toast";
 import DailyCompletedGroups from "@/components/tasks/DailyCompletedGroups";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
+
+const TIJUANA_TZ = "America/Tijuana";
 
 // Normaliza una imagen: puede ser string URL (legacy) o {url, titulo}
 function normalizeImg(img) {
@@ -65,11 +65,12 @@ function ImageModal({ img, onClose }) {
 }
 
 // ── Tarjeta individual de tarea ──────────────────────────────────────────────
-function TaskCard({ task, onToggle, onUploadImage, uploadingId, onUrgente, onEdit, now }) {
+function TaskCard({ task, onToggle, onUploadImage, uploadingId, onUrgente, onEdit, onCrea, now }) {
   const [expandedImg, setExpandedImg] = useState(null);
   const [editing, setEditing] = useState(false);
   const [editTitulo, setEditTitulo] = useState(task.titulo || "");
   const [editDesc, setEditDesc] = useState(task.descripcion || "");
+  const [creaValue, setCreaValue] = useState(task.crea_interno || "");
 
   const imagenes = (task.imagenes || []).map(normalizeImg);
 
@@ -80,6 +81,10 @@ function TaskCard({ task, onToggle, onUploadImage, uploadingId, onUrgente, onEdi
   const handleSaveEdit = async () => {
     await onEdit(task, editTitulo.trim(), editDesc.trim());
     setEditing(false);
+  };
+
+  const handleCreaBlur = () => {
+    if (creaValue !== (task.crea_interno || "")) onCrea(task, creaValue.trim());
   };
 
   return (
@@ -101,6 +106,16 @@ function TaskCard({ task, onToggle, onUploadImage, uploadingId, onUrgente, onEdi
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1.5 flex-wrap">
             <span className="text-xs font-bold text-primary font-mono">{task.folio}</span>
+            <span className="flex items-center gap-1 text-xs font-mono text-muted-foreground">
+              CREA-:
+              <input
+                value={creaValue}
+                onChange={(e) => setCreaValue(e.target.value)}
+                onBlur={handleCreaBlur}
+                placeholder="___"
+                className="w-14 bg-transparent border-b border-dashed border-border focus:outline-none focus:border-primary text-foreground font-semibold"
+              />
+            </span>
             {task.urgente && !task.completada && (
               <span className="flex items-center gap-1 text-xs font-bold text-orange-600 bg-orange-100 border border-orange-200 px-2 py-0.5 rounded-full">
                 <AlertTriangle className="w-3 h-3" /> URGENTE
@@ -116,7 +131,8 @@ function TaskCard({ task, onToggle, onUploadImage, uploadingId, onUrgente, onEdi
             )}
             {task.created_date && (
               <span className="text-xs text-muted-foreground">
-                {format(new Date(task.created_date), "d 'de' MMMM, yyyy '·' HH:mm", { locale: es })}
+                Fecha: {new Date(task.created_date).toLocaleDateString("es-MX", { timeZone: TIJUANA_TZ, day: "numeric", month: "long", year: "numeric" })}
+                {" "}Hora: {new Date(task.created_date).toLocaleTimeString("es-MX", { timeZone: TIJUANA_TZ, hour: "2-digit", minute: "2-digit" })}
               </span>
             )}
             {/* Cronómetro activo (solo si no completada) */}
@@ -330,6 +346,11 @@ export default function Tasks() {
     await base44.entities.Task.update(task.id, { titulo: newTitulo, descripcion: newDesc, imagenes: sanitizedImagenes(task) });
   };
 
+  const handleCrea = async (task, crea_interno) => {
+    setTasks((prev) => prev.map((t) => t.id === task.id ? { ...t, crea_interno } : t));
+    await base44.entities.Task.update(task.id, { crea_interno, imagenes: sanitizedImagenes(task) });
+  };
+
   const handleUploadImage = async (e, task) => {
     const files = Array.from(e.target.files);
     e.target.value = "";
@@ -492,7 +513,7 @@ export default function Tasks() {
             <p className="text-center text-muted-foreground text-sm py-10">No hay tareas aún.</p>
           )}
           {pendientes.map((t) => (
-            <TaskCard key={t.id} task={t} onToggle={handleToggle} onUrgente={handleUrgente} onEdit={handleEdit} onUploadImage={handleUploadImage} uploadingId={uploadingId} now={now} />
+            <TaskCard key={t.id} task={t} onToggle={handleToggle} onUrgente={handleUrgente} onEdit={handleEdit} onCrea={handleCrea} onUploadImage={handleUploadImage} uploadingId={uploadingId} now={now} />
           ))}
           <DailyCompletedGroups
             tasks={completadas}
@@ -500,6 +521,7 @@ export default function Tasks() {
             onToggle={handleToggle}
             onUrgente={handleUrgente}
             onEdit={handleEdit}
+            onCrea={handleCrea}
             onUploadImage={handleUploadImage}
             uploadingId={uploadingId}
             now={now}
