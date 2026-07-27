@@ -17,7 +17,9 @@ export default function DailyCompletedGroups({ tasks, TaskCard, ...cardProps }) 
     groups[dateKey].push(t);
   });
 
-  const sortedKeys = Object.keys(groups).sort((a, b) => (a < b ? 1 : -1));
+  const sortedKeys = Object.keys(groups)
+    .filter((dateKey) => dateKey === "sin-fecha" || new Date(dateKey).getDay() !== 0)
+    .sort((a, b) => (a < b ? 1 : -1));
 
   return (
     <div className="space-y-3">

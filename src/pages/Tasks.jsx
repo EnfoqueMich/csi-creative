@@ -11,6 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { toast } from "@/components/ui/use-toast";
 import DailyCompletedGroups from "@/components/tasks/DailyCompletedGroups";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 // Normaliza una imagen: puede ser string URL (legacy) o {url, titulo}
 function normalizeImg(img) {
@@ -110,6 +112,11 @@ function TaskCard({ task, onToggle, onUploadImage, uploadingId, onUrgente, onEdi
             {task.asignado_nombre && (
               <span className="flex items-center gap-1 text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full border border-border">
                 <User className="w-3 h-3" /> {task.asignado_nombre}
+              </span>
+            )}
+            {task.created_date && (
+              <span className="text-xs text-muted-foreground">
+                {format(new Date(task.created_date), "d 'de' MMMM, yyyy '·' HH:mm", { locale: es })}
               </span>
             )}
             {/* Cronómetro activo (solo si no completada) */}
