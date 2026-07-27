@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { toast } from "@/components/ui/use-toast";
+import DailyCompletedGroups from "@/components/tasks/DailyCompletedGroups";
 
 // Normaliza una imagen: puede ser string URL (legacy) o {url, titulo}
 function normalizeImg(img) {
@@ -212,32 +213,6 @@ function TaskCard({ task, onToggle, onUploadImage, uploadingId, onUrgente, onEdi
       )}
 
       {expandedImg && <ImageModal img={expandedImg} onClose={() => setExpandedImg(null)} />}
-    </div>
-  );
-}
-
-// ── Grupo colapsable de completadas ──────────────────────────────────────────
-function CompletedGroup({ tasks, onToggle, onUploadImage, uploadingId, onUrgente, onEdit, now }) {
-  const [open, setOpen] = useState(false);
-  if (tasks.length === 0) return null;
-  return (
-    <div className="rounded-xl border border-green-200 overflow-hidden">
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full flex items-center gap-3 px-5 py-3 bg-green-50/50 hover:bg-green-50 transition-colors text-left"
-      >
-        {open ? <ChevronDown className="w-4 h-4 text-green-600" /> : <ChevronRight className="w-4 h-4 text-green-600" />}
-        <CheckCircle2 className="w-4 h-4 text-status-green" />
-        <span className="text-sm font-semibold text-green-800 flex-1">Tareas Completadas</span>
-        <span className="text-xs text-green-700 font-mono bg-green-100 px-2 py-0.5 rounded-full">{tasks.length}</span>
-      </button>
-      {open && (
-        <div className="p-3 space-y-2 bg-card">
-          {tasks.map((t) => (
-            <TaskCard key={t.id} task={t} onToggle={onToggle} onUrgente={onUrgente} onEdit={onEdit} onUploadImage={onUploadImage} uploadingId={uploadingId} now={now} />
-          ))}
-        </div>
-      )}
     </div>
   );
 }
@@ -512,7 +487,16 @@ export default function Tasks() {
           {pendientes.map((t) => (
             <TaskCard key={t.id} task={t} onToggle={handleToggle} onUrgente={handleUrgente} onEdit={handleEdit} onUploadImage={handleUploadImage} uploadingId={uploadingId} now={now} />
           ))}
-          <CompletedGroup tasks={completadas} onToggle={handleToggle} onUrgente={handleUrgente} onEdit={handleEdit} onUploadImage={handleUploadImage} uploadingId={uploadingId} now={now} />
+          <DailyCompletedGroups
+            tasks={completadas}
+            TaskCard={TaskCard}
+            onToggle={handleToggle}
+            onUrgente={handleUrgente}
+            onEdit={handleEdit}
+            onUploadImage={handleUploadImage}
+            uploadingId={uploadingId}
+            now={now}
+          />
         </div>
       )}
     </div>
