@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -167,7 +167,7 @@ export default function GarmentPicker({ selectedId, onSelect }) {
   const [editingId, setEditingId] = useState(null);
   const [editingDefault, setEditingDefault] = useState(false);
   const [search, setSearch] = useState("");
-  const [carouselIndex, setCarouselIndex] = useState(0);
+  const scrollRef = useRef(null);
 
   useEffect(() => {
     base44.entities.GarmentTemplate.list("titulo").then((g) => {
@@ -245,79 +245,84 @@ export default function GarmentPicker({ selectedId, onSelect }) {
       {loading ? (
         <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-blue-400" /></div>
       ) : (() => {
-          // Build flat list: default first, then filtered garments
-          const defaultItem = { id: null, titulo: "Playera Default", frente_url: DEFAULT_FRENTE, _isDefault: true };
-          const filtered = garments.filter(g => {
+          // Lista completa: default primero, luego prendas guardadas
+          const defaultItem = { id: null, titulo: "Playera Default", frente_url: DEFAULT_FRENTE, _isDefault: true, modelo: "", marca: "", color: "" };
+          const allItems = [defaultItem, ...garments];
+          const filtered = allItems.filter(g => {
             if (!search) return true;
             const s = search.toLowerCase();
             return g.titulo?.toLowerCase().includes(s) || g.modelo?.toLowerCase().includes(s) || g.marca?.toLowerCase().includes(s) || g.color?.toLowerCase().includes(s);
           });
-          const allItems = [defaultItem, ...filtered];
-          const total = allItems.length;
-          const safeIdx = Math.min(carouselIndex, total - 1);
-          const item = allItems[safeIdx];
-          const isSelected = item._isDefault
-            ? (!selectedId || selectedId === "__default_custom__")
-            : selectedId === item.id;
+
+          if (filtered.length === 0) {
+            return (
+              <div className="text-center py-6 text-xs text-muted-foreground border border-dashed border-blue-200 rounded-xl">
+                No hay prendas que coincidan con "{search}".
+              </div>
+            );
+          }
+
+          const scrollByPage = (dir) => {
+            const el = scrollRef.current;
+            if (!el) return;
+            el.scrollBy({ left: dir * el.clientWidth * 0.8, behavior: "smooth" });
+          };
 
           return (
-            <div className="flex items-center gap-3 bg-blue-50/40 border border-blue-200 rounded-xl px-3 py-2">
+            <div className="flex items-center gap-2 bg-blue-50/40 border border-blue-200 rounded-xl px-2 py-2">
               {/* Flecha izquierda */}
               <button
                 type="button"
-                onClick={() => setCarouselIndex((i) => (i - 1 + total) % total)}
+                onClick={() => scrollByPage(-1)}
                 className="p-1.5 rounded-full border border-blue-200 hover:bg-blue-100 text-blue-600 flex-shrink-0"
-                disabled={total <= 1}
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
 
-              {/* Tarjeta central */}
-              <div className="flex-1 flex items-center gap-3 min-w-0">
-                <button
-                  type="button"
-                  onClick={() => item._isDefault ? onSelect(null) : onSelect(item)}
-                  className={cn(
-                    "relative flex flex-col items-center gap-1 border-2 rounded-lg p-2 w-20 flex-shrink-0 transition-all group",
-                    isSelected ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-blue-300 bg-white"
-                  )}
-                >
-                  <img src={item.frente_url || DEFAULT_FRENTE} alt={item.titulo} className="w-12 h-12 object-contain" />
-                  <span className="text-[9px] font-semibold text-center leading-tight">{item.titulo}</span>
-                  {isSelected && <div className="absolute top-1 right-1 w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center"><Check className="w-2 h-2 text-white" /></div>}
-                  {!item._isDefault && (
-                    <div className="absolute top-1 left-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button type="button" onClick={(e) => { e.stopPropagation(); setEditingId(item.id); setShowForm(true); }} className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center" title="Editar"><Edit2 className="w-2.5 h-2.5 text-white" /></button>
-                      <button type="button" onClick={(e) => handleDelete(e, item.id)} className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center" title="Eliminar"><X className="w-2.5 h-2.5 text-white" /></button>
-                    </div>
-                  )}
-                  {item._isDefault && (
-                    <div className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button type="button" onClick={(e) => { e.stopPropagation(); setEditingDefault(true); }} className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center" title="Editar default"><Edit2 className="w-2.5 h-2.5 text-white" /></button>
-                    </div>
-                  )}
-                </button>
-
-                {/* Info del item */}
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-blue-700 truncate">{item.titulo}</p>
-                  {!item._isDefault && (
-                    <div className="space-y-0.5 mt-0.5">
-                      {item.modelo && <p className="text-[10px] text-gray-500 truncate">Modelo: {item.modelo}</p>}
-                      {item.marca && <p className="text-[10px] text-gray-500 truncate">Marca: {item.marca}</p>}
-                      {item.color && <p className="text-[10px] text-gray-500 truncate">Color: {item.color}</p>}
-                    </div>
-                  )}
-                  <p className="text-[10px] text-muted-foreground mt-1">{safeIdx + 1} / {total}</p>
-                </div>
+              {/* Carrusel: solo las que caben a lo ancho, el resto con scroll */}
+              <div
+                ref={scrollRef}
+                className="flex-1 flex gap-2 overflow-x-auto scroll-smooth snap-x snap-mandatory py-1"
+                style={{ scrollbarWidth: "thin" }}
+              >
+                {filtered.map((item) => {
+                  const isSelected = item._isDefault
+                    ? (!selectedId || selectedId === "__default_custom__")
+                    : selectedId === item.id;
+                  return (
+                    <button
+                      key={item._isDefault ? "__default__" : item.id}
+                      type="button"
+                      onClick={() => item._isDefault ? onSelect(null) : onSelect(item)}
+                      className={cn(
+                        "relative flex flex-col items-center gap-1 border-2 rounded-lg p-2 w-20 flex-shrink-0 snap-start transition-all group",
+                        isSelected ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-blue-300 bg-white"
+                      )}
+                    >
+                      <img src={item.frente_url || DEFAULT_FRENTE} alt={item.titulo} className="w-12 h-12 object-contain" />
+                      <span className="text-[9px] font-semibold text-center leading-tight truncate w-full">{item.titulo}</span>
+                      {isSelected && <div className="absolute top-1 right-1 w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center"><Check className="w-2 h-2 text-white" /></div>}
+                      {!item._isDefault && (
+                        <div className="absolute top-1 left-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button type="button" onClick={(e) => { e.stopPropagation(); setEditingId(item.id); setShowForm(true); }} className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center" title="Editar"><Edit2 className="w-2.5 h-2.5 text-white" /></button>
+                          <button type="button" onClick={(e) => handleDelete(e, item.id)} className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center" title="Eliminar"><X className="w-2.5 h-2.5 text-white" /></button>
+                        </div>
+                      )}
+                      {item._isDefault && (
+                        <div className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button type="button" onClick={(e) => { e.stopPropagation(); setEditingDefault(true); }} className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center" title="Editar default"><Edit2 className="w-2.5 h-2.5 text-white" /></button>
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Flecha derecha */}
               <button
                 type="button"
-                onClick={() => setCarouselIndex((i) => (i + 1) % total)}
+                onClick={() => scrollByPage(1)}
                 className="p-1.5 rounded-full border border-blue-200 hover:bg-blue-100 text-blue-600 flex-shrink-0"
-                disabled={total <= 1}
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
