@@ -262,12 +262,17 @@ export default function Tasks() {
     return () => clearInterval(id);
   }, []);
 
+  const loadTasks = async () => {
+    const taskData = await base44.entities.Task.list("-created_date", 500);
+    setTasks(taskData);
+    return taskData;
+  };
+
   useEffect(() => {
     Promise.all([
-      base44.entities.Task.list("-created_date", 500),
+      loadTasks(),
       base44.entities.Worker.filter({ activo: true }, "nombre"),
-    ]).then(([taskData, workerData]) => {
-      setTasks(taskData);
+    ]).then(([, workerData]) => {
       setWorkers(workerData);
       setLoading(false);
     });
@@ -301,7 +306,7 @@ export default function Tasks() {
     setSaving(true);
     try {
       const worker = workers.find((w) => w.id === asignadoId);
-      const nueva = await base44.entities.Task.create({
+      await base44.entities.Task.create({
         folio: generateFolio(tasks.length),
         titulo: titulo.trim() || undefined,
         descripcion: texto.trim(),
@@ -312,7 +317,8 @@ export default function Tasks() {
         asignado_nombre: worker?.nombre || undefined,
         fecha_asignacion: worker ? new Date().toISOString() : undefined,
       });
-      setTasks((prev) => [nueva, ...prev]);
+      // Recargar desde el servidor para garantizar estado consistente
+      await loadTasks();
       setTitulo("");
       setTexto("");
       setNuevaUrgente(false);

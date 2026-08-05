@@ -24,16 +24,16 @@ export default function DailyCompletedGroups({ tasks, TaskCard, ...cardProps }) 
   return (
     <div className="space-y-3">
       <p className="text-sm font-semibold text-muted-foreground px-1">Control diario de tareas completadas</p>
-      {sortedKeys.map((dateKey) => {
+      {sortedKeys.map((dateKey, idx) => {
         const dayTasks = groups[dateKey];
         const label = dateKey === "sin-fecha"
           ? "Sin fecha"
           : format(new Date(dateKey), "EEEE d 'de' MMMM, yyyy", { locale: es });
-        const isOpen = !!openDays[dateKey];
+        const isOpen = openDays[dateKey] !== undefined ? openDays[dateKey] : idx === 0;
         return (
           <div key={dateKey} className="rounded-xl border border-green-200 overflow-hidden">
             <button
-              onClick={() => setOpenDays((prev) => ({ ...prev, [dateKey]: !prev[dateKey] }))}
+              onClick={() => setOpenDays((prev) => ({ ...prev, [dateKey]: !isOpen }))}
               className="w-full flex items-center gap-3 px-5 py-3 bg-green-50/50 hover:bg-green-50 transition-colors text-left"
             >
               {isOpen ? <ChevronDown className="w-4 h-4 text-green-600" /> : <ChevronRight className="w-4 h-4 text-green-600" />}
