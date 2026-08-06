@@ -5,6 +5,7 @@ import { ArrowLeft, Pencil, Printer, Download } from "lucide-react";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import { cn } from "@/lib/utils";
+import { SHIRT_W, CAP_W } from "./TshirtPreviewInteractive";
 
 const TALLAS_LABELS = ["XS","S","M","L","XL","2XL","3XL","4XL"];
 const TALLAS_KEYS =   ["xs","s","m","l","xl","xxl","xxxl","xxxxl"];
@@ -97,8 +98,8 @@ function GarmentPreviewPrint({ posiciones, layout, order, annotations }) {
   const esGorra = order.garment_es_gorra;
   const anns = annotations || [];
 
-  const renderImages = (nums, bgUrl, viewName) => (
-    <div className="text-center flex-1">
+  const renderImages = (nums, bgUrl, viewName, width) => (
+    <div className="text-center flex-shrink-0" style={{ width: `${width}px` }}>
       <div className="relative inline-block w-full">
         <img src={bgUrl} alt="" className="w-full object-contain" />
         {nums.map((num) => {
@@ -122,22 +123,22 @@ function GarmentPreviewPrint({ posiciones, layout, order, annotations }) {
   if (esGorra) {
     return (
       <div className="space-y-1">
-        <div className="flex gap-3 justify-center items-start" style={{ width: "90%", margin: "0 auto" }}>
-          <div className="text-center flex-1">
+        <div className="flex gap-3 justify-center items-start overflow-x-auto">
+          <div className="text-center">
             <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Vista Frontal</p>
-            {renderImages([1], order.garment_frente_url || DEFAULT_FRENTE, "frente")}
+            {renderImages([1], order.garment_frente_url || DEFAULT_FRENTE, "frente", CAP_W)}
           </div>
-          <div className="text-center flex-1">
+          <div className="text-center">
             <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Lateral Izquierda</p>
-            {renderImages([6], order.garment_lateral_izq_url || order.garment_frente_url || DEFAULT_FRENTE, "lat_izq")}
+            {renderImages([6], order.garment_lateral_izq_url || order.garment_frente_url || DEFAULT_FRENTE, "lat_izq", CAP_W)}
           </div>
-          <div className="text-center flex-1">
+          <div className="text-center">
             <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Lateral Derecha</p>
-            {renderImages([7], order.garment_lateral_der_url || order.garment_frente_url || DEFAULT_FRENTE, "lat_der")}
+            {renderImages([7], order.garment_lateral_der_url || order.garment_frente_url || DEFAULT_FRENTE, "lat_der", CAP_W)}
           </div>
-          <div className="text-center flex-1">
+          <div className="text-center">
             <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Vista Trasera</p>
-            {renderImages([5], order.garment_espalda_url || DEFAULT_ESPALDA, "espalda")}
+            {renderImages([5], order.garment_espalda_url || DEFAULT_ESPALDA, "espalda", CAP_W)}
           </div>
         </div>
       </div>
@@ -145,14 +146,14 @@ function GarmentPreviewPrint({ posiciones, layout, order, annotations }) {
   }
 
   return (
-    <div className="flex gap-6 justify-center items-start" style={{ width: "90%", margin: "0 auto" }}>
-      <div className="text-center flex-1">
+    <div className="flex gap-6 justify-center items-start overflow-x-auto">
+      <div className="text-center">
         <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Vista Frontal</p>
-        {renderImages([1, 2, 3, 4], order.garment_frente_url || DEFAULT_FRENTE, "frente")}
+        {renderImages([1, 2, 3, 4], order.garment_frente_url || DEFAULT_FRENTE, "frente", SHIRT_W)}
       </div>
-      <div className="text-center flex-1">
+      <div className="text-center">
         <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Vista Trasera</p>
-        {renderImages([5], order.garment_espalda_url || DEFAULT_ESPALDA, "espalda")}
+        {renderImages([5], order.garment_espalda_url || DEFAULT_ESPALDA, "espalda", SHIRT_W)}
       </div>
     </div>
   );
