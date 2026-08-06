@@ -155,15 +155,15 @@ function DraggableImage({ imgUrl, posNum, layout, onUpdateLayout, containerRef }
 const SHIRT_W = 340;
 const CAP_W = 200;
 
-function ShirtView({ bgUrl, posNums, posiciones, layout, onUpdateLayout, label, viewName, width = SHIRT_W, annotations, onUpdateAnnotation, onDeleteAnnotation, onAddAnnotation }) {
+function ShirtView({ bgUrl, posNums, posiciones, layout, onUpdateLayout, label, viewName, width = SHIRT_W, imageHeight, annotations, onUpdateAnnotation, onDeleteAnnotation, onAddAnnotation }) {
   const containerRef = useRef(null);
 
   const viewAnnotations = (annotations || []).filter(a => a.view === viewName);
 
   return (
     <div style={{ display: "inline-block", width: `${width}px` }}>
-      <div ref={containerRef} style={{ position: "relative", display: "inline-block", width: "100%" }}>
-        <img src={bgUrl} alt="playera" style={{ width: "100%", display: "block", objectFit: "contain" }} />
+      <div ref={containerRef} style={{ position: "relative", display: "inline-block", width: "100%", height: imageHeight ? `${imageHeight}px` : undefined }}>
+        <img src={bgUrl} alt="playera" style={{ width: "100%", height: imageHeight ? "100%" : "auto", display: "block", objectFit: "contain" }} />
         {posNums.map((num) => {
           const pos = posiciones.find(p => p.numero === num);
           if (!pos?.imagen_url) return null;
@@ -227,23 +227,18 @@ export default function TshirtPreviewInteractive({ posiciones, layout, onLayoutC
       )}
 
       {esGorra ? (
-        <div className="flex gap-3 justify-center items-start overflow-x-auto pb-2">
-          <div className="text-center flex-shrink-0" style={{ width: CAP_W }}>
-            <p className="text-xs font-bold text-blue-600 uppercase mb-1 tracking-wider">Vista Frontal</p>
-            <ShirtView bgUrl={frenteUrl || DEFAULT_FRENTE_URL} posNums={[1]} posiciones={posiciones} layout={layout} onUpdateLayout={handleUpdate} viewName="frente" width={CAP_W} annotations={annotations} onUpdateAnnotation={onUpdateAnnotation} onDeleteAnnotation={onDeleteAnnotation} onAddAnnotation={onAddAnnotation} />
-          </div>
-          <div className="text-center flex-shrink-0" style={{ width: CAP_W }}>
-            <p className="text-xs font-bold text-blue-600 uppercase mb-1 tracking-wider">Lateral Izq.</p>
-            <ShirtView bgUrl={latIzqUrl || frenteUrl || DEFAULT_FRENTE_URL} posNums={[6]} posiciones={posiciones} layout={layout} onUpdateLayout={handleUpdate} viewName="lat_izq" width={CAP_W} annotations={annotations} onUpdateAnnotation={onUpdateAnnotation} onDeleteAnnotation={onDeleteAnnotation} onAddAnnotation={onAddAnnotation} />
-          </div>
-          <div className="text-center flex-shrink-0" style={{ width: CAP_W }}>
-            <p className="text-xs font-bold text-blue-600 uppercase mb-1 tracking-wider">Lateral Der.</p>
-            <ShirtView bgUrl={latDerUrl || frenteUrl || DEFAULT_FRENTE_URL} posNums={[7]} posiciones={posiciones} layout={layout} onUpdateLayout={handleUpdate} viewName="lat_der" width={CAP_W} annotations={annotations} onUpdateAnnotation={onUpdateAnnotation} onDeleteAnnotation={onDeleteAnnotation} onAddAnnotation={onAddAnnotation} />
-          </div>
-          <div className="text-center flex-shrink-0" style={{ width: CAP_W }}>
-            <p className="text-xs font-bold text-blue-600 uppercase mb-1 tracking-wider">Vista Trasera</p>
-            <ShirtView bgUrl={espaldaUrl || DEFAULT_ESPALDA_URL} posNums={[5]} posiciones={posiciones} layout={layout} onUpdateLayout={handleUpdate} viewName="espalda" width={CAP_W} annotations={annotations} onUpdateAnnotation={onUpdateAnnotation} onDeleteAnnotation={onDeleteAnnotation} onAddAnnotation={onAddAnnotation} />
-          </div>
+        <div className="grid grid-cols-4 gap-4 pb-2">
+          {[
+            { key: "frente", label: "Vista Frontal", bg: frenteUrl || DEFAULT_FRENTE_URL, nums: [1], view: "frente" },
+            { key: "lat_izq", label: "Lateral Izq.", bg: latIzqUrl || frenteUrl || DEFAULT_FRENTE_URL, nums: [6], view: "lat_izq" },
+            { key: "lat_der", label: "Lateral Der.", bg: latDerUrl || frenteUrl || DEFAULT_FRENTE_URL, nums: [7], view: "lat_der" },
+            { key: "espalda", label: "Vista Trasera", bg: espaldaUrl || DEFAULT_ESPALDA_URL, nums: [5], view: "espalda" },
+          ].map((v) => (
+            <div key={v.key} className="flex flex-col items-center min-w-0">
+              <p className="text-xs font-bold text-blue-600 uppercase mb-1 tracking-wider w-full text-center">{v.label}</p>
+              <ShirtView bgUrl={v.bg} posNums={v.nums} posiciones={posiciones} layout={layout} onUpdateLayout={handleUpdate} viewName={v.view} width={CAP_W} imageHeight={CAP_W} annotations={annotations} onUpdateAnnotation={onUpdateAnnotation} onDeleteAnnotation={onDeleteAnnotation} onAddAnnotation={onAddAnnotation} />
+            </div>
+          ))}
         </div>
       ) : (
         <div className="flex gap-6 justify-center items-start overflow-x-auto pb-2">
