@@ -19,6 +19,32 @@ const POSICIONES_DEFAULT = [
   { numero: 5, nombre: "ESPALDA" },
 ];
 
+const POSICIONES_GORRA = [
+  { numero: 1, nombre: "FRENTE" },
+  { numero: 5, nombre: "ESPALDA" },
+  { numero: 6, nombre: "LATERAL IZQUIERDO" },
+  { numero: 7, nombre: "LATERAL DERECHO" },
+];
+
+function defaultPosObj(p) {
+  return { ...p, descripcion: "", imagen_url: "", color_hilos: [""], bobina_negra: false, bobina_blanca: false, extras: {}, alto_cm: 0, ancho_cm: 0 };
+}
+
+// Construye el set de posiciones canónico para el tipo de prenda,
+// conservando los datos ya cargados en posiciones existentes con el mismo número.
+// Las posiciones personalizadas extra (numero > 7) se conservan; las del otro
+// tipo de prenda se descartan para evitar posiciones huérfanas sin vista.
+function buildPosicionesForType(esGorra, existing = []) {
+  const set = esGorra ? POSICIONES_GORRA : POSICIONES_DEFAULT;
+  const otherSet = esGorra ? POSICIONES_DEFAULT : POSICIONES_GORRA;
+  const byNum = new Map((existing || []).map(p => [p.numero, p]));
+  const canonicalNums = new Set(set.map(p => p.numero));
+  const otherNums = new Set(otherSet.map(p => p.numero));
+  const base = set.map(p => byNum.get(p.numero) || defaultPosObj(p));
+  const extras = (existing || []).filter(p => !canonicalNums.has(p.numero) && !otherNums.has(p.numero));
+  return [...base, ...extras];
+}
+
 const EXTRAS_LIST = [
   ["foamy","Foamy"],["velcro_macho","Velcro macho"],
   ["velcro_hembra","Velcro hembra"],["adhesivo_termico","Adhesivo térmico"]
@@ -105,23 +131,26 @@ export default function GarmentDesignBlock({ diseno, index, canRemove, onUpdate,
       }
     : null;
 
-  const posiciones = diseno.posiciones?.length ? diseno.posiciones : makeDefaultPosiciones();
+  const posiciones = buildPosicionesForType(diseno.garment_es_gorra, diseno.posiciones || []);
   const layout = diseno.preview_layout && Object.keys(diseno.preview_layout).length > 0
-    ? diseno.preview_layout
+    ? { ...DEFAULT_LAYOUT, ...diseno.preview_layout }
     : { ...DEFAULT_LAYOUT };
 
   const update = (patch) => onUpdate(patch);
 
   const handleSelectGarment = (g) => {
+    const esGorra = g?.es_gorra || false;
     update({
       garment_id: g?.id && g.id !== "__default_custom__" ? g.id : null,
       garment_frente_url: g?.frente_url || "",
       garment_espalda_url: g?.espalda_url || "",
       garment_titulo: g?.titulo || "",
       titulo: g?.titulo || "",
-      garment_es_gorra: g?.es_gorra || false,
+      garment_es_gorra: esGorra,
       garment_lateral_izq_url: g?.lateral_izq_url || "",
       garment_lateral_der_url: g?.lateral_der_url || "",
+      posiciones: buildPosicionesForType(esGorra, diseno.posiciones || []),
+      preview_layout: { ...DEFAULT_LAYOUT, ...(diseno.preview_layout || {}) },
     });
   };
 

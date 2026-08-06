@@ -12,6 +12,8 @@ const DEFAULT_LAYOUT = {
   3: { x: 5,  y: 28, w: 17 }, // Manga Derecha
   4: { x: 76, y: 28, w: 17 }, // Manga Izquierda
   5: { x: 22, y: 20, w: 56 }, // Espalda
+  6: { x: 35, y: 30, w: 30 }, // Lateral Izquierdo (gorra)
+  7: { x: 35, y: 30, w: 30 }, // Lateral Derecho (gorra)
 };
 
 function DraggableImage({ imgUrl, posNum, layout, onUpdateLayout, containerRef }) {
