@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, X, Loader2, ImagePlus, Check, Shirt, Search, Edit2, ChevronLeft, ChevronRight } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Plus, X, Loader2, ImagePlus, Check, Shirt, Search, Edit2, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const DEFAULT_FRENTE = "https://media.base44.com/images/public/69d2f43e55d64f6bbfa30f2c/6b6aec754_frente.png";
@@ -167,6 +168,7 @@ export default function GarmentPicker({ selectedId, onSelect }) {
   const [editingId, setEditingId] = useState(null);
   const [editingDefault, setEditingDefault] = useState(false);
   const [search, setSearch] = useState("");
+  const [pendingDelete, setPendingDelete] = useState(null);
   const scrollRef = useRef(null);
 
   useEffect(() => {
@@ -176,11 +178,18 @@ export default function GarmentPicker({ selectedId, onSelect }) {
     });
   }, []);
 
-  const handleDelete = async (e, id) => {
+  const handleDeleteClick = (e, item) => {
     e.stopPropagation();
-    await base44.entities.GarmentTemplate.delete(id);
-    setGarments((prev) => prev.filter((g) => g.id !== id));
-    if (selectedId === id) onSelect(null);
+    setPendingDelete(item);
+  };
+
+  const confirmDelete = async () => {
+    const item = pendingDelete;
+    if (!item) return;
+    setPendingDelete(null);
+    await base44.entities.GarmentTemplate.delete(item.id);
+    setGarments((prev) => prev.filter((g) => g.id !== item.id));
+    if (selectedId === item.id) onSelect(null);
   };
 
   const handleSaved = (updated) => {
@@ -305,7 +314,7 @@ export default function GarmentPicker({ selectedId, onSelect }) {
                       {!item._isDefault && (
                         <div className="absolute top-1 left-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button type="button" onClick={(e) => { e.stopPropagation(); setEditingId(item.id); setShowForm(true); }} className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center" title="Editar"><Edit2 className="w-2.5 h-2.5 text-white" /></button>
-                          <button type="button" onClick={(e) => handleDelete(e, item.id)} className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center" title="Eliminar"><X className="w-2.5 h-2.5 text-white" /></button>
+                          <button type="button" onClick={(e) => handleDeleteClick(e, item)} className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center" title="Eliminar"><X className="w-2.5 h-2.5 text-white" /></button>
                         </div>
                       )}
                       {item._isDefault && (
@@ -329,6 +338,27 @@ export default function GarmentPicker({ selectedId, onSelect }) {
             </div>
           );
         })()}
+
+      <AlertDialog open={!!pendingDelete} onOpenChange={(open) => { if (!open) setPendingDelete(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <div className="flex items-center gap-2">
+              <div className="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center">
+                <Trash2 className="w-4 h-4 text-red-600" />
+              </div>
+              <AlertDialogTitle>Eliminar prenda</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription>
+              ¿ESTÁS SEGURO QUE QUIERES ELIMINAR ESTA PRENDA{pendingDelete ? ` "${pendingDelete.titulo}"` : ""}?
+              Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700 text-white">Aceptar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
