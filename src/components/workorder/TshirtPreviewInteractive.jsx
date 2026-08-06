@@ -161,31 +161,33 @@ function ShirtView({ bgUrl, posNums, posiciones, layout, onUpdateLayout, label, 
   const viewAnnotations = (annotations || []).filter(a => a.view === viewName);
 
   return (
-    <div ref={containerRef} style={{ position: "relative", display: "inline-block", width: `${width}px` }}>
-      <img src={bgUrl} alt="playera" style={{ width: "100%", display: "block", objectFit: "contain" }} />
-      {posNums.map((num) => {
-        const pos = posiciones.find(p => p.numero === num);
-        if (!pos?.imagen_url) return null;
-        return (
-          <DraggableImage
-            key={num}
-            imgUrl={pos.imagen_url}
-            posNum={num}
-            layout={layout}
-            onUpdateLayout={onUpdateLayout}
-            containerRef={containerRef}
-          />
-        );
-      })}
-      {/* Annotation layer */}
-      <GarmentAnnotationLayer
-        annotations={viewAnnotations}
-        containerRef={containerRef}
-        onUpdate={onUpdateAnnotation}
-        onDelete={onDeleteAnnotation}
-      />
-      {/* Mini toolbar per view */}
-      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-40">
+    <div style={{ display: "inline-block", width: `${width}px` }}>
+      <div ref={containerRef} style={{ position: "relative", display: "inline-block", width: "100%" }}>
+        <img src={bgUrl} alt="playera" style={{ width: "100%", display: "block", objectFit: "contain" }} />
+        {posNums.map((num) => {
+          const pos = posiciones.find(p => p.numero === num);
+          if (!pos?.imagen_url) return null;
+          return (
+            <DraggableImage
+              key={num}
+              imgUrl={pos.imagen_url}
+              posNum={num}
+              layout={layout}
+              onUpdateLayout={onUpdateLayout}
+              containerRef={containerRef}
+            />
+          );
+        })}
+        {/* Annotation layer */}
+        <GarmentAnnotationLayer
+          annotations={viewAnnotations}
+          containerRef={containerRef}
+          onUpdate={onUpdateAnnotation}
+          onDelete={onDeleteAnnotation}
+        />
+      </div>
+      {/* Mini toolbar debajo de la imagen para no taparla */}
+      <div className="mt-1 flex justify-center">
         <AnnotationToolbar
           onAddText={() => onAddAnnotation(viewName, "text")}
           onAddLine={() => onAddAnnotation(viewName, "line")}
