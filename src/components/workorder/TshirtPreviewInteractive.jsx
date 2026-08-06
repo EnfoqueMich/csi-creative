@@ -163,7 +163,7 @@ function ShirtView({ bgUrl, posNums, posiciones, layout, onUpdateLayout, label, 
   return (
     <div style={{ display: "inline-block", width: `${width}px` }}>
       <div ref={containerRef} style={{ position: "relative", display: "inline-block", width: "100%", height: imageHeight ? `${imageHeight}px` : undefined }}>
-        <img src={bgUrl} alt="playera" style={{ width: "100%", height: imageHeight ? "100%" : "auto", display: "block", objectFit: "contain" }} />
+        <img src={bgUrl} alt="playera" style={{ width: "100%", height: imageHeight ? "100%" : "auto", display: "block", objectFit: imageHeight ? "cover" : "contain", objectPosition: "center", backgroundColor: "#fff" }} />
         {posNums.map((num) => {
           const pos = posiciones.find(p => p.numero === num);
           if (!pos?.imagen_url) return null;
