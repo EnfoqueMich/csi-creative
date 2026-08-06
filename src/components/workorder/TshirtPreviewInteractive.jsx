@@ -161,9 +161,9 @@ function ShirtView({ bgUrl, posNums, posiciones, layout, onUpdateLayout, label, 
   const viewAnnotations = (annotations || []).filter(a => a.view === viewName);
 
   return (
-    <div style={{ display: "inline-block", width: `${width}px` }}>
-      <div ref={containerRef} style={{ position: "relative", display: "inline-block", width: "100%", height: imageHeight ? `${imageHeight}px` : undefined }}>
-        <img src={bgUrl} alt="playera" style={{ width: "100%", height: imageHeight ? "100%" : "auto", display: "block", objectFit: imageHeight ? "cover" : "contain", objectPosition: "center", backgroundColor: "#fff" }} />
+    <div style={{ display: "inline-block", width: imageHeight ? "auto" : `${width}px` }}>
+      <div ref={containerRef} style={{ position: "relative", display: "inline-block", width: imageHeight ? "auto" : "100%" }}>
+        <img src={bgUrl} alt="playera" style={{ display: "block", width: imageHeight ? "auto" : "100%", height: imageHeight ? `${imageHeight}px` : "auto", objectFit: "contain", objectPosition: "center" }} />
         {posNums.map((num) => {
           const pos = posiciones.find(p => p.numero === num);
           if (!pos?.imagen_url) return null;
@@ -227,7 +227,7 @@ export default function TshirtPreviewInteractive({ posiciones, layout, onLayoutC
       )}
 
       {esGorra ? (
-        <div className="grid grid-cols-4 gap-4 pb-2">
+        <div className="flex justify-center items-start gap-4 overflow-x-auto pb-2">
           {[
             { key: "frente", label: "Vista Frontal", bg: frenteUrl || DEFAULT_FRENTE_URL, nums: [1], view: "frente" },
             { key: "lat_izq", label: "Lateral Izq.", bg: latIzqUrl || frenteUrl || DEFAULT_FRENTE_URL, nums: [6], view: "lat_izq" },
