@@ -8,7 +8,14 @@
     },
     "cliente": {
       "type": "string",
-      "description": "Nombre del cliente al que pertenece el logo"
+      "description": "Cliente principal (legado; primer cliente asignado)"
+    },
+    "clientes": {
+      "type": "array",
+      "description": "Clientes/empresas a los que pertenece este logo (multi-asignacion)",
+      "items": {
+        "type": "string"
+      }
     },
     "imagen_url": {
       "type": "string",

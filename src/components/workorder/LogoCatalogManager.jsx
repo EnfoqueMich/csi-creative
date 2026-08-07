@@ -38,9 +38,15 @@ function CheckBox({ checked, onChange, label }) {
   );
 }
 
+const logoClientsOf = (l) => {
+  const arr = Array.isArray(l?.clientes) && l.clientes.length ? l.clientes : (l?.cliente ? [l.cliente] : []);
+  return arr.filter(Boolean);
+};
+
 const emptyForm = () => ({
   nombre: "",
   cliente: "",
+  clientes: [],
   imagen_url: "",
   costo: "",
   iva: 0,
@@ -63,6 +69,7 @@ export default function LogoCatalogManager() {
   const [form, setForm] = useState(emptyForm());
   const [uploading, setUploading] = useState(false);
   const [search, setSearch] = useState("");
+  const [clients, setClients] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [expanded, setExpanded] = useState({});
   const [clientNames, setClientNames] = useState(() => {
@@ -82,6 +89,10 @@ export default function LogoCatalogManager() {
     });
   }, []);
 
+  useEffect(() => {
+    base44.entities.Client.list("nombre", 500).then(setClients).catch(() => {});
+  }, []);
+
   const setF = (field, val) => setForm(p => ({ ...p, [field]: val }));
 
   const uploadImg = async (e) => {
@@ -96,18 +107,35 @@ export default function LogoCatalogManager() {
   const resetForm = () => { setForm(emptyForm()); setEditingId(null); setShowForm(false); };
 
   const addForClient = (client) => {
-    setForm({ ...emptyForm(), cliente: client === "Sin cliente" ? "" : client });
+    setForm({ ...emptyForm(), clientes: client === "Sin cliente" ? [] : [client] });
     setEditingId(null);
     setShowForm(true);
   };
 
   const toggleGroup = (key) => setExpanded(prev => ({ ...prev, [key]: !prev[key] }));
 
+  const toggleCliente = (c) => {
+    setForm(p => {
+      const exists = p.clientes.some(x => x.toLowerCase() === c.toLowerCase());
+      const next = exists ? p.clientes.filter(x => x.toLowerCase() !== c.toLowerCase()) : [...p.clientes, c];
+      return { ...p, clientes: next, cliente: next.find(Boolean) || "" };
+    });
+  };
+
+  const clientList = useMemo(() => {
+    const set = new Set();
+    clients.forEach(c => c.nombre && set.add(c.nombre));
+    clientNames.forEach(c => set.add(c));
+    logos.forEach(l => logoClientsOf(l).forEach(c => set.add(c)));
+    return Array.from(set).filter(Boolean).sort((a, b) => a.localeCompare(b));
+  }, [clients, clientNames, logos]);
+
   const knownClients = useMemo(() => {
     const set = new Set(clientNames.filter(Boolean));
-    logos.forEach(l => { if (l.cliente && l.cliente.trim()) set.add(l.cliente.trim()); });
+    clients.forEach(c => c.nombre && set.add(c.nombre));
+    logos.forEach(l => logoClientsOf(l).forEach(c => set.add(c.trim())));
     return Array.from(set);
-  }, [clientNames, logos]);
+  }, [clientNames, clients, logos]);
 
   const addClient = () => {
     const name = newClient.trim();
@@ -127,7 +155,8 @@ export default function LogoCatalogManager() {
     setSaving(true);
     const data = {
       nombre: form.nombre.trim(),
-      cliente: form.cliente.trim(),
+      cliente: (form.clientes.find(Boolean) || "").trim(),
+      clientes: form.clientes.filter(Boolean),
       imagen_url: form.imagen_url,
       costo: Number(form.costo) || 0,
       iva: Number(form.iva) || 0,
@@ -163,6 +192,7 @@ export default function LogoCatalogManager() {
     setForm({
       nombre: logo.nombre || "",
       cliente: logo.cliente || "",
+      clientes: logoClientsOf(logo),
       imagen_url: logo.imagen_url || "",
       costo: logo.costo || "",
       iva: logo.iva || 0,
@@ -197,7 +227,10 @@ export default function LogoCatalogManager() {
 
   const filtered = logos.filter(l => {
     const s = search.toLowerCase();
-    return !s || l.nombre?.toLowerCase().includes(s) || l.cliente?.toLowerCase().includes(s);
+    if (!s) return true;
+    return l.nombre?.toLowerCase().includes(s)
+      || l.cliente?.toLowerCase().includes(s)
+      || (l.clientes || []).some(c => c?.toLowerCase().includes(s));
   });
 
   const groups = useMemo(() => {
@@ -205,14 +238,18 @@ export default function LogoCatalogManager() {
     if (search.trim()) {
       const map = {};
       filtered.forEach(l => {
-        const key = (l.cliente && l.cliente.trim()) || "Sin cliente";
-        (map[key] ||= []).push(l);
+        const arr = logoClientsOf(l);
+        if (!arr.length) { (map["Sin cliente"] ||= []).push(l); }
+        else arr.forEach(k => (map[k] ||= []).push(l));
       });
       entries = Object.entries(map);
     } else {
       const allClients = [...knownClients];
-      if (logos.some(l => !l.cliente || !l.cliente.trim())) allClients.push("Sin cliente");
-      entries = allClients.map(k => [k, logos.filter(l => ((l.cliente && l.cliente.trim()) || "Sin cliente") === k)]);
+      if (logos.some(l => logoClientsOf(l).length === 0)) allClients.push("Sin cliente");
+      entries = allClients.map(k => [k, logos.filter(l => {
+        const arr = logoClientsOf(l);
+        return arr.length ? arr.some(x => x.toLowerCase() === k.toLowerCase()) : k === "Sin cliente";
+      })]);
     }
     return entries.sort((a, b) => {
       if (a[0] === "Sin cliente") return 1;
@@ -260,15 +297,31 @@ export default function LogoCatalogManager() {
         <div className="bg-card border-2 border-violet-300 rounded-xl p-5 space-y-4">
           <p className="text-sm font-bold text-violet-700 uppercase tracking-widest">{editingId ? "Editar Logo" : "Nuevo Logo"}</p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-violet-700">Cliente</label>
-              <Input value={form.cliente} onChange={e => setF("cliente", e.target.value)} placeholder="Empresa / Cliente..." className="text-sm" />
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-violet-700">Nombre Logo *</label>
-              <Input value={form.nombre} onChange={e => setF("nombre", e.target.value)} placeholder="Ej: Logo Frente Principal..." className="text-sm" />
-            </div>
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-violet-700">Clientes / Empresas (marca a los que aplica)</label>
+            {clientList.length === 0 ? (
+              <p className="text-[11px] text-muted-foreground">No hay clientes registrados. Agrégalos con el botón "Agregar Cliente" de arriba.</p>
+            ) : (
+              <div className="border border-violet-200 rounded-md p-2 max-h-44 overflow-y-auto grid grid-cols-2 md:grid-cols-3 gap-1 bg-violet-50/30">
+                {clientList.map(c => {
+                  const checked = form.clientes.some(x => x.toLowerCase() === c.toLowerCase());
+                  return (
+                    <label key={c} className="flex items-center gap-2 cursor-pointer select-none text-xs">
+                      <div onClick={() => toggleCliente(c)} className={cn("w-4 h-4 border-2 rounded-sm flex items-center justify-center cursor-pointer transition-colors flex-shrink-0", checked ? "bg-violet-600 border-violet-600" : "border-gray-400 bg-white")}>
+                        {checked && <span className="text-white text-[10px] font-bold leading-none">✓</span>}
+                      </div>
+                      <span className="truncate">{c}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+            {form.clientes.length === 0 && <p className="text-[10px] text-muted-foreground">El logo aparecerá en el listado de cada cliente marcado.</p>}
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-violet-700">Nombre Logo *</label>
+            <Input value={form.nombre} onChange={e => setF("nombre", e.target.value)} placeholder="Ej: Logo Frente Principal..." className="text-sm" />
           </div>
 
           {/* Costo + IVA + Total */}
@@ -422,7 +475,11 @@ export default function LogoCatalogManager() {
                             )}
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-bold text-violet-700 truncate">{logo.nombre}</p>
-                              {logo.cliente && <p className="text-xs text-muted-foreground truncate">Cliente: {logo.cliente}</p>}
+                              {(() => {
+                                const cs = logoClientsOf(logo);
+                                const extra = cs.length - 1;
+                                return <p className="text-xs text-muted-foreground truncate">Cliente: {cs[0] || "Sin cliente"}{extra > 0 ? ` +${extra}` : ""}</p>;
+                              })()}
                               {(logo.alto_cm || logo.ancho_cm) && <p className="text-[10px] text-muted-foreground">{logo.ancho_cm || 0} × {logo.alto_cm || 0} cm</p>}
                               {logo.puntadas > 0 && <p className="text-[10px] text-muted-foreground">{logo.puntadas.toLocaleString()} puntadas</p>}
                             </div>
