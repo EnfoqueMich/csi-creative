@@ -430,11 +430,14 @@ export default function LogoCatalogManager() {
           <div className="space-y-1">
             <label className="text-xs font-semibold text-violet-700">Cargar archivo Wilcom</label>
             {(form.archivos_wilcom || []).map((f, idx) => (
-              <div key={idx} className="flex items-center gap-2">
-                <a href={f.url} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline truncate flex-1 flex items-center gap-1">
-                  <Upload className="w-3 h-3 flex-shrink-0" /> {f.nombre || "Archivo Wilcom"}
+              <div key={idx} className="flex items-start gap-1 flex-wrap">
+                <a href={f.url} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline flex items-center gap-1 min-w-0">
+                  <Upload className="w-3 h-3 flex-shrink-0" />
+                  <span className="truncate">{f.nombre || "Archivo Wilcom"}</span>
                 </a>
-                <button type="button" onClick={() => removeWilcom(idx)} className="text-muted-foreground hover:text-destructive"><X className="w-3 h-3" /></button>
+                <button type="button" onClick={() => removeWilcom(idx)} className="flex items-center gap-0.5 text-[11px] text-red-600 hover:text-red-700 font-bold">
+                  <X className="w-3 h-3 flex-shrink-0" /> ELIMINAR ARCHIVO
+                </button>
               </div>
             ))}
             <label className={cn("flex items-center gap-2 h-9 px-3 border border-dashed border-violet-300 rounded cursor-pointer hover:bg-violet-50 text-violet-500 transition-colors text-xs", uploadingWilcom && "opacity-50 pointer-events-none")}>
