@@ -152,7 +152,7 @@ function DraggableImage({ imgUrl, posNum, layout, onUpdateLayout, containerRef }
   );
 }
 
-const SHIRT_W = 340;
+const SHIRT_W = 500;
 const SHIRT_H = 460;
 const CAP_W = 200;
 
