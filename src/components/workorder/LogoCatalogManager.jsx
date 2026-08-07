@@ -64,7 +64,16 @@ export default function LogoCatalogManager() {
   const [uploading, setUploading] = useState(false);
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [collapsed, setCollapsed] = useState({});
+  const [expanded, setExpanded] = useState({});
+  const [clientNames, setClientNames] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("logo_catalog_clients") || "[]"); } catch { return []; }
+  });
+  const [newClient, setNewClient] = useState("");
+  const [dupMsg, setDupMsg] = useState("");
+
+  useEffect(() => {
+    localStorage.setItem("logo_catalog_clients", JSON.stringify(clientNames));
+  }, [clientNames]);
 
   useEffect(() => {
     base44.entities.LogoCatalog.list("nombre", 300).then((data) => {
@@ -92,7 +101,26 @@ export default function LogoCatalogManager() {
     setShowForm(true);
   };
 
-  const toggleGroup = (key) => setCollapsed(prev => ({ ...prev, [key]: !prev[key] }));
+  const toggleGroup = (key) => setExpanded(prev => ({ ...prev, [key]: !prev[key] }));
+
+  const knownClients = useMemo(() => {
+    const set = new Set(clientNames.filter(Boolean));
+    logos.forEach(l => { if (l.cliente && l.cliente.trim()) set.add(l.cliente.trim()); });
+    return Array.from(set);
+  }, [clientNames, logos]);
+
+  const addClient = () => {
+    const name = newClient.trim();
+    if (!name) return;
+    const exists = knownClients.some(c => c.toLowerCase() === name.toLowerCase());
+    if (exists) {
+      setDupMsg(`Ya existe un cliente o empresa con el nombre "${name}"`);
+      return;
+    }
+    setDupMsg("");
+    setClientNames(prev => Array.from(new Set([...prev, name])));
+    setNewClient("");
+  };
 
   const handleSave = async () => {
     if (!form.nombre.trim()) { alert("El nombre del logo es requerido"); return; }
@@ -173,17 +201,25 @@ export default function LogoCatalogManager() {
   });
 
   const groups = useMemo(() => {
-    const map = {};
-    filtered.forEach(l => {
-      const key = (l.cliente && l.cliente.trim()) || "Sin cliente";
-      (map[key] ||= []).push(l);
-    });
-    return Object.entries(map).sort((a, b) => {
+    let entries;
+    if (search.trim()) {
+      const map = {};
+      filtered.forEach(l => {
+        const key = (l.cliente && l.cliente.trim()) || "Sin cliente";
+        (map[key] ||= []).push(l);
+      });
+      entries = Object.entries(map);
+    } else {
+      const allClients = [...knownClients];
+      if (logos.some(l => !l.cliente || !l.cliente.trim())) allClients.push("Sin cliente");
+      entries = allClients.map(k => [k, logos.filter(l => ((l.cliente && l.cliente.trim()) || "Sin cliente") === k)]);
+    }
+    return entries.sort((a, b) => {
       if (a[0] === "Sin cliente") return 1;
       if (b[0] === "Sin cliente") return -1;
       return a[0].localeCompare(b[0]);
     });
-  }, [filtered]);
+  }, [search, filtered, logos, knownClients]);
 
   if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>;
 
@@ -202,6 +238,21 @@ export default function LogoCatalogManager() {
         <Button onClick={() => { resetForm(); setShowForm(true); }} className="gap-2">
           <Plus className="w-4 h-4" /> Agregar Logo
         </Button>
+      </div>
+
+      {/* Agregar cliente / empresa */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <Input
+          value={newClient}
+          onChange={e => { setNewClient(e.target.value); setDupMsg(""); }}
+          onKeyDown={e => { if (e.key === "Enter") addClient(); }}
+          placeholder="Nombre de cliente o empresa para agrupar..."
+          className="h-8 text-xs w-72"
+        />
+        <Button onClick={addClient} variant="outline" className="gap-1 text-xs h-8">
+          <Plus className="w-3.5 h-3.5" /> Agregar Cliente
+        </Button>
+        {dupMsg && <span className="text-xs text-red-600 font-medium">{dupMsg}</span>}
       </div>
 
       {/* Formulario */}
@@ -342,12 +393,12 @@ export default function LogoCatalogManager() {
       ) : (
         <div className="space-y-3">
           {groups.map(([clientKey, clientLogos]) => {
-            const isCollapsed = collapsed[clientKey];
+            const isExpanded = expanded[clientKey];
             return (
               <div key={clientKey} className="border border-violet-200 rounded-xl overflow-hidden bg-card">
                 <div className="flex items-center justify-between bg-violet-50 px-4 py-2.5">
                   <button onClick={() => toggleGroup(clientKey)} className="flex items-center gap-2 flex-1 text-left">
-                    {isCollapsed ? <ChevronRight className="w-4 h-4 text-violet-600" /> : <ChevronDown className="w-4 h-4 text-violet-600" />}
+                    {isExpanded ? <ChevronDown className="w-4 h-4 text-violet-600" /> : <ChevronRight className="w-4 h-4 text-violet-600" />}
                     <span className="text-sm font-bold text-violet-700 uppercase tracking-wide">{clientKey}</span>
                     <span className="text-xs text-muted-foreground bg-violet-100 px-2 py-0.5 rounded-full">{clientLogos.length}</span>
                   </button>
@@ -355,7 +406,7 @@ export default function LogoCatalogManager() {
                     <Plus className="w-3 h-3" /> Agregar logo
                   </button>
                 </div>
-                {!isCollapsed && (
+                {isExpanded && (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
                     {clientLogos.map(logo => {
                       const t = (logo.costo || 0) + (logo.costo || 0) * (logo.iva || 0);
