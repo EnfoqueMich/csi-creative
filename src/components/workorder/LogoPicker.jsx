@@ -287,11 +287,12 @@ function LogoSearchDropdown({ logos, onSelect, onNew }) {
 
   return (
     <div className="relative" ref={ref}>
-      {/* Dos campos de filtro */}
-      <div className="flex gap-1">
+      {/* Filtros: CLIENTES arriba, NOMBRE DEL LOGO debajo */}
+      <div className="space-y-1">
         {/* Selector de cliente (solo lista clientes/empresas) */}
-        <div className="relative flex-1">
+        <div className="relative">
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none z-10" />
+          <label className="text-[9px] font-bold text-violet-700 uppercase block mb-0.5">Clientes</label>
           <button
             type="button"
             onClick={() => { setClientesOpen((v) => !v); setOpenResults(false); }}
@@ -351,13 +352,14 @@ function LogoSearchDropdown({ logos, onSelect, onNew }) {
           )}
         </div>
         {/* Filtro por nombre */}
-        <div className="relative flex-1">
+        <div className="relative">
+          <label className="text-[9px] font-bold text-violet-700 uppercase block mb-0.5">Nombre del logo</label>
           <input
             type="text"
             value={queryNombre}
             onChange={(e) => { setQueryNombre(e.target.value); setOpenResults(true); setClientesOpen(false); }}
             onFocus={() => { setOpenResults(true); setClientesOpen(false); }}
-            placeholder="Nombre del logo..."
+            placeholder="ej: Logo Frente..."
             className="w-full px-2 py-1 text-[11px] border border-violet-200 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-violet-400"
           />
           {queryNombre && (
@@ -413,6 +415,28 @@ function LogoSearchDropdown({ logos, onSelect, onNew }) {
 export default function LogoPicker({ posicion, onChange, logos = [], onLogoCatalogUpdate }) {
   const [showForm, setShowForm] = useState(false);
   const [editingLogo, setEditingLogo] = useState(null);
+  const [uploadingProject, setUploadingProject] = useState(false);
+
+  // Subir imagen solo para este proyecto (no se guarda en el catálogo de logos)
+  const uploadProjectImage = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingProject(true);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    onChange({
+      imagen_url: file_url,
+      logo_catalog_id: null,
+      alto_cm: posicion.alto_cm || 0,
+      ancho_cm: posicion.ancho_cm || 0,
+      color_hilos: posicion.color_hilos?.length ? posicion.color_hilos : [""],
+      bobina_negra: posicion.bobina_negra || false,
+      bobina_blanca: posicion.bobina_blanca || false,
+      vinil_codigo: posicion.vinil_codigo || "",
+      extras: posicion.extras || {},
+    });
+    setUploadingProject(false);
+    e.target.value = "";
+  };
 
   // Aplicar un logo (del catálogo o sin guardar) a la posición
   const applyLogo = (logoData) => {
@@ -529,11 +553,21 @@ export default function LogoPicker({ posicion, onChange, logos = [], onLogoCatal
         </div>
       )}
 
-      {/* Sin logo aún: usa el buscador de arriba para seleccionar del catálogo */}
+      {/* Sin logo aún: botón para cargar imagen solo del proyecto + instrucción */}
       {!hasLogo && !showForm && (
-        <p className="text-[10px] text-muted-foreground text-center py-1">
-          Busca y selecciona un logo del catálogo en el filtro de arriba
-        </p>
+        <div className="space-y-1">
+          <label className={cn(
+            "flex items-center justify-center gap-1.5 w-full border border-dashed border-violet-300 rounded-lg py-2 text-[11px] text-violet-600 hover:bg-violet-50 cursor-pointer transition-colors bg-violet-50/30",
+            uploadingProject && "opacity-50 pointer-events-none"
+          )}>
+            {uploadingProject ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ImagePlus className="w-3.5 h-3.5" />}
+            <span className="font-semibold">{uploadingProject ? "Subiendo..." : "Cargar imagen del proyecto"}</span>
+            <input type="file" accept="image/*" className="hidden" onChange={uploadProjectImage} disabled={uploadingProject} />
+          </label>
+          <p className="text-[10px] text-muted-foreground text-center">
+            Imagen solo para este proyecto (no se guarda en el catálogo). O busca un logo del catálogo arriba.
+          </p>
+        </div>
       )}
     </div>
   );
