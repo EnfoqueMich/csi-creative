@@ -257,12 +257,12 @@ export default function TshirtPreviewInteractive({ posiciones, layout, onLayoutC
           ))}
         </div>
       ) : (
-        <div className="flex gap-6 justify-center items-start overflow-x-auto pb-2">
-          <div className="text-center flex-shrink-0" style={{ width: SHIRT_W }}>
+        <div className="flex gap-6 items-start pb-2">
+          <div className="flex-1 text-center">
             <p className="text-xs font-bold text-blue-600 uppercase mb-1 tracking-wider">Vista Frontal</p>
             <ShirtView bgUrl={frenteUrl || DEFAULT_FRENTE_URL} posNums={[1, 2, 3, 4]} posiciones={posiciones} layout={layout} onUpdateLayout={handleUpdate} viewName="frente" width={SHIRT_W} imageHeight={SHIRT_H} uniformHeight annotations={annotations} onUpdateAnnotation={onUpdateAnnotation} onDeleteAnnotation={onDeleteAnnotation} onAddAnnotation={onAddAnnotation} />
           </div>
-          <div className="text-center flex-shrink-0" style={{ width: SHIRT_W }}>
+          <div className="flex-1 text-center">
             <p className="text-xs font-bold text-blue-600 uppercase mb-1 tracking-wider">Vista Trasera</p>
             <ShirtView bgUrl={espaldaUrl || DEFAULT_ESPALDA_URL} posNums={[5]} posiciones={posiciones} layout={layout} onUpdateLayout={handleUpdate} viewName="espalda" width={SHIRT_W} imageHeight={SHIRT_H} uniformHeight annotations={annotations} onUpdateAnnotation={onUpdateAnnotation} onDeleteAnnotation={onDeleteAnnotation} onAddAnnotation={onAddAnnotation} />
           </div>
