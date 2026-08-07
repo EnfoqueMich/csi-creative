@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Plus, X, Edit2, ImagePlus, Search, BookImage } from "lucide-react";
+import { Loader2, Plus, X, Edit2, ImagePlus, Search, BookImage, ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import HiloColorPicker from "./HiloColorPicker";
 import VinilColorPicker from "./VinilColorPicker";
@@ -64,6 +64,7 @@ export default function LogoCatalogManager() {
   const [uploading, setUploading] = useState(false);
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [collapsed, setCollapsed] = useState({});
 
   useEffect(() => {
     base44.entities.LogoCatalog.list("nombre", 300).then((data) => {
@@ -84,6 +85,14 @@ export default function LogoCatalogManager() {
   };
 
   const resetForm = () => { setForm(emptyForm()); setEditingId(null); setShowForm(false); };
+
+  const addForClient = (client) => {
+    setForm({ ...emptyForm(), cliente: client === "Sin cliente" ? "" : client });
+    setEditingId(null);
+    setShowForm(true);
+  };
+
+  const toggleGroup = (key) => setCollapsed(prev => ({ ...prev, [key]: !prev[key] }));
 
   const handleSave = async () => {
     if (!form.nombre.trim()) { alert("El nombre del logo es requerido"); return; }
@@ -162,6 +171,19 @@ export default function LogoCatalogManager() {
     const s = search.toLowerCase();
     return !s || l.nombre?.toLowerCase().includes(s) || l.cliente?.toLowerCase().includes(s);
   });
+
+  const groups = useMemo(() => {
+    const map = {};
+    filtered.forEach(l => {
+      const key = (l.cliente && l.cliente.trim()) || "Sin cliente";
+      (map[key] ||= []).push(l);
+    });
+    return Object.entries(map).sort((a, b) => {
+      if (a[0] === "Sin cliente") return 1;
+      if (b[0] === "Sin cliente") return -1;
+      return a[0].localeCompare(b[0]);
+    });
+  }, [filtered]);
 
   if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>;
 
@@ -310,7 +332,7 @@ export default function LogoCatalogManager() {
         </div>
       )}
 
-      {/* Lista de logos */}
+      {/* Lista de logos agrupados por cliente */}
       {filtered.length === 0 ? (
         <div className="text-center py-16 text-muted-foreground">
           <BookImage className="w-12 h-12 mx-auto mb-3 opacity-30" />
@@ -318,45 +340,66 @@ export default function LogoCatalogManager() {
           <p className="text-xs mt-1">Agrega el primer logo con el botón de arriba</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map(logo => {
-            const t = (logo.costo || 0) + (logo.costo || 0) * (logo.iva || 0);
+        <div className="space-y-3">
+          {groups.map(([clientKey, clientLogos]) => {
+            const isCollapsed = collapsed[clientKey];
             return (
-              <div key={logo.id} className="bg-card border border-violet-200 rounded-xl p-4 space-y-2 hover:shadow-sm transition-shadow">
-                <div className="flex items-start gap-3">
-                  {logo.imagen_url ? (
-                    <img src={logo.imagen_url} alt={logo.nombre} className="w-16 h-16 object-contain border border-violet-100 rounded flex-shrink-0" />
-                  ) : (
-                    <div className="w-16 h-16 bg-violet-50 border border-violet-100 rounded flex items-center justify-center flex-shrink-0">
-                      <BookImage className="w-6 h-6 text-violet-300" />
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-violet-700 truncate">{logo.nombre}</p>
-                    {logo.cliente && <p className="text-xs text-muted-foreground truncate">Cliente: {logo.cliente}</p>}
-                    {(logo.alto_cm || logo.ancho_cm) && <p className="text-[10px] text-muted-foreground">{logo.ancho_cm || 0} × {logo.alto_cm || 0} cm</p>}
-                    {logo.puntadas > 0 && <p className="text-[10px] text-muted-foreground">{logo.puntadas.toLocaleString()} puntadas</p>}
-                  </div>
-                </div>
-                {logo.costo > 0 && (
-                  <div className="flex gap-3 text-xs">
-                    <span className="text-gray-500">Costo: <strong>${(logo.costo || 0).toFixed(2)}</strong></span>
-                    {logo.iva > 0 && <span className="text-gray-500">IVA: {Math.round(logo.iva * 100)}%</span>}
-                    <span className="font-bold text-violet-700">Total: ${t.toFixed(2)}</span>
-                  </div>
-                )}
-                {logo.color_hilos?.filter(Boolean).length > 0 && (
-                  <p className="text-[10px] text-blue-700">🧵 {logo.color_hilos.filter(Boolean).join(", ")}</p>
-                )}
-                {logo.descripcion && <p className="text-[10px] text-gray-500 line-clamp-2">{logo.descripcion}</p>}
-                <div className="flex gap-2 pt-1 border-t border-violet-100">
-                  <button onClick={() => handleEdit(logo)} className="flex items-center gap-1 text-[11px] text-blue-600 hover:underline">
-                    <Edit2 className="w-3 h-3" /> Editar
+              <div key={clientKey} className="border border-violet-200 rounded-xl overflow-hidden bg-card">
+                <div className="flex items-center justify-between bg-violet-50 px-4 py-2.5">
+                  <button onClick={() => toggleGroup(clientKey)} className="flex items-center gap-2 flex-1 text-left">
+                    {isCollapsed ? <ChevronRight className="w-4 h-4 text-violet-600" /> : <ChevronDown className="w-4 h-4 text-violet-600" />}
+                    <span className="text-sm font-bold text-violet-700 uppercase tracking-wide">{clientKey}</span>
+                    <span className="text-xs text-muted-foreground bg-violet-100 px-2 py-0.5 rounded-full">{clientLogos.length}</span>
                   </button>
-                  <button onClick={() => handleDelete(logo.id)} className="flex items-center gap-1 text-[11px] text-red-500 hover:underline ml-auto">
-                    <X className="w-3 h-3" /> Eliminar
+                  <button onClick={() => addForClient(clientKey)} className="flex items-center gap-1 text-[11px] text-violet-700 hover:bg-violet-200 rounded px-2 py-1 transition-colors">
+                    <Plus className="w-3 h-3" /> Agregar logo
                   </button>
                 </div>
+                {!isCollapsed && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+                    {clientLogos.map(logo => {
+                      const t = (logo.costo || 0) + (logo.costo || 0) * (logo.iva || 0);
+                      return (
+                        <div key={logo.id} className="bg-card border border-violet-200 rounded-xl p-4 space-y-2 hover:shadow-sm transition-shadow">
+                          <div className="flex items-start gap-3">
+                            {logo.imagen_url ? (
+                              <img src={logo.imagen_url} alt={logo.nombre} className="w-16 h-16 object-contain border border-violet-100 rounded flex-shrink-0" />
+                            ) : (
+                              <div className="w-16 h-16 bg-violet-50 border border-violet-100 rounded flex items-center justify-center flex-shrink-0">
+                                <BookImage className="w-6 h-6 text-violet-300" />
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-bold text-violet-700 truncate">{logo.nombre}</p>
+                              {logo.cliente && <p className="text-xs text-muted-foreground truncate">Cliente: {logo.cliente}</p>}
+                              {(logo.alto_cm || logo.ancho_cm) && <p className="text-[10px] text-muted-foreground">{logo.ancho_cm || 0} × {logo.alto_cm || 0} cm</p>}
+                              {logo.puntadas > 0 && <p className="text-[10px] text-muted-foreground">{logo.puntadas.toLocaleString()} puntadas</p>}
+                            </div>
+                          </div>
+                          {logo.costo > 0 && (
+                            <div className="flex gap-3 text-xs">
+                              <span className="text-gray-500">Costo: <strong>${(logo.costo || 0).toFixed(2)}</strong></span>
+                              {logo.iva > 0 && <span className="text-gray-500">IVA: {Math.round(logo.iva * 100)}%</span>}
+                              <span className="font-bold text-violet-700">Total: ${t.toFixed(2)}</span>
+                            </div>
+                          )}
+                          {logo.color_hilos?.filter(Boolean).length > 0 && (
+                            <p className="text-[10px] text-blue-700">🧵 {logo.color_hilos.filter(Boolean).join(", ")}</p>
+                          )}
+                          {logo.descripcion && <p className="text-[10px] text-gray-500 line-clamp-2">{logo.descripcion}</p>}
+                          <div className="flex gap-2 pt-1 border-t border-violet-100">
+                            <button onClick={() => handleEdit(logo)} className="flex items-center gap-1 text-[11px] text-blue-600 hover:underline">
+                              <Edit2 className="w-3 h-3" /> Editar
+                            </button>
+                            <button onClick={() => handleDelete(logo.id)} className="flex items-center gap-1 text-[11px] text-red-500 hover:underline ml-auto">
+                              <X className="w-3 h-3" /> Eliminar
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             );
           })}
