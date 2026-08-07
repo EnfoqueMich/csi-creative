@@ -98,6 +98,7 @@ function makeDefaultDiseno(id) {
 }
 
 const emptyOrder = () => ({
+  trabajo_solicitado: "",
   nombre_cliente: "",
   agente_ventas: "",
   fecha_orden: new Date().toISOString().split("T")[0],
@@ -376,6 +377,17 @@ export default function WorkOrderForm({ order, onSave, onCancel }) {
           ⚠️ {saveError}
         </div>
       )}
+
+      {/* TRABAJO SOLICITADO — título del proyecto */}
+      <div className="rounded-xl border-2 border-blue-400 bg-blue-50/40 p-4 space-y-1">
+        <label className="text-xs font-extrabold text-blue-800 uppercase tracking-wider">Trabajo Solicitado</label>
+        <Input
+          value={form.trabajo_solicitado || ""}
+          onChange={(e) => set("trabajo_solicitado", e.target.value)}
+          placeholder="Título del proyecto (ej: Bordados para evento corporativo)..."
+          className="h-10 text-sm font-bold"
+        />
+      </div>
 
       {/* Encabezado cliente */}
       <div className="rounded-xl border-2 border-blue-300 bg-card p-4 space-y-3">

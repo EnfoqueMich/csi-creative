@@ -5,6 +5,10 @@
     "folio": {
       "type": "string"
     },
+    "trabajo_solicitado": {
+      "type": "string",
+      "description": "T\u00edtulo del proyecto / trabajo solicitado"
+    },
     "nombre_cliente": {
       "type": "string"
     },
