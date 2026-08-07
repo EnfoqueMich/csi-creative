@@ -153,17 +153,33 @@ function DraggableImage({ imgUrl, posNum, layout, onUpdateLayout, containerRef }
 }
 
 const SHIRT_W = 340;
+const SHIRT_H = 460;
 const CAP_W = 200;
 
-function ShirtView({ bgUrl, posNums, posiciones, layout, onUpdateLayout, label, viewName, width = SHIRT_W, imageHeight, annotations, onUpdateAnnotation, onDeleteAnnotation, onAddAnnotation }) {
+function ShirtView({ bgUrl, posNums, posiciones, layout, onUpdateLayout, label, viewName, width = SHIRT_W, imageHeight, uniformHeight = false, annotations, onUpdateAnnotation, onDeleteAnnotation, onAddAnnotation }) {
   const containerRef = useRef(null);
 
   const viewAnnotations = (annotations || []).filter(a => a.view === viewName);
 
+  // uniformHeight: caja fija width×height con object-contain (playeras/chamarras)
+  // imageHeight sin uniformHeight: gorras (ancho natural, alto fijo)
+  // ninguno: comportamiento original (ancho fijo, alto auto)
+  const outerStyle = uniformHeight
+    ? { width: `${width}px`, height: `${imageHeight}px` }
+    : imageHeight
+      ? { width: "auto", height: `${imageHeight}px` }
+      : { width: `${width}px` };
+
+  const imgStyle = uniformHeight
+    ? { width: "100%", height: "100%", objectFit: "contain", objectPosition: "center" }
+    : imageHeight
+      ? { width: "auto", height: `${imageHeight}px`, objectFit: "contain", objectPosition: "center" }
+      : { width: "100%", height: "auto", objectFit: "contain", objectPosition: "center" };
+
   return (
-    <div style={{ display: "inline-block", width: imageHeight ? "auto" : `${width}px` }}>
-      <div ref={containerRef} style={{ position: "relative", display: "inline-block", width: imageHeight ? "auto" : "100%" }}>
-        <img src={bgUrl} alt="playera" style={{ display: "block", width: imageHeight ? "auto" : "100%", height: imageHeight ? `${imageHeight}px` : "auto", objectFit: "contain", objectPosition: "center" }} />
+    <div style={{ display: "inline-block", ...outerStyle }}>
+      <div ref={containerRef} style={{ position: "relative", width: "100%", height: uniformHeight ? "100%" : (imageHeight ? "auto" : "auto"), display: "block" }}>
+        <img src={bgUrl} alt="playera" style={{ display: "block", ...imgStyle }} />
         {posNums.map((num) => {
           const pos = posiciones.find(p => p.numero === num);
           if (!pos?.imagen_url) return null;
@@ -244,11 +260,11 @@ export default function TshirtPreviewInteractive({ posiciones, layout, onLayoutC
         <div className="flex gap-6 justify-center items-start overflow-x-auto pb-2">
           <div className="text-center flex-shrink-0" style={{ width: SHIRT_W }}>
             <p className="text-xs font-bold text-blue-600 uppercase mb-1 tracking-wider">Vista Frontal</p>
-            <ShirtView bgUrl={frenteUrl || DEFAULT_FRENTE_URL} posNums={[1, 2, 3, 4]} posiciones={posiciones} layout={layout} onUpdateLayout={handleUpdate} viewName="frente" width={SHIRT_W} annotations={annotations} onUpdateAnnotation={onUpdateAnnotation} onDeleteAnnotation={onDeleteAnnotation} onAddAnnotation={onAddAnnotation} />
+            <ShirtView bgUrl={frenteUrl || DEFAULT_FRENTE_URL} posNums={[1, 2, 3, 4]} posiciones={posiciones} layout={layout} onUpdateLayout={handleUpdate} viewName="frente" width={SHIRT_W} imageHeight={SHIRT_H} uniformHeight annotations={annotations} onUpdateAnnotation={onUpdateAnnotation} onDeleteAnnotation={onDeleteAnnotation} onAddAnnotation={onAddAnnotation} />
           </div>
           <div className="text-center flex-shrink-0" style={{ width: SHIRT_W }}>
             <p className="text-xs font-bold text-blue-600 uppercase mb-1 tracking-wider">Vista Trasera</p>
-            <ShirtView bgUrl={espaldaUrl || DEFAULT_ESPALDA_URL} posNums={[5]} posiciones={posiciones} layout={layout} onUpdateLayout={handleUpdate} viewName="espalda" width={SHIRT_W} annotations={annotations} onUpdateAnnotation={onUpdateAnnotation} onDeleteAnnotation={onDeleteAnnotation} onAddAnnotation={onAddAnnotation} />
+            <ShirtView bgUrl={espaldaUrl || DEFAULT_ESPALDA_URL} posNums={[5]} posiciones={posiciones} layout={layout} onUpdateLayout={handleUpdate} viewName="espalda" width={SHIRT_W} imageHeight={SHIRT_H} uniformHeight annotations={annotations} onUpdateAnnotation={onUpdateAnnotation} onDeleteAnnotation={onDeleteAnnotation} onAddAnnotation={onAddAnnotation} />
           </div>
         </div>
       )}
@@ -256,4 +272,4 @@ export default function TshirtPreviewInteractive({ posiciones, layout, onLayoutC
   );
 }
 
-export { DEFAULT_LAYOUT, SHIRT_W, CAP_W };
+export { DEFAULT_LAYOUT, SHIRT_W, SHIRT_H, CAP_W };

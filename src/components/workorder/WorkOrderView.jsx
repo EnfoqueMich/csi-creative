@@ -5,7 +5,7 @@ import { ArrowLeft, Pencil, Printer, Download } from "lucide-react";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import { cn } from "@/lib/utils";
-import { SHIRT_W, CAP_W } from "./TshirtPreviewInteractive";
+import { SHIRT_W, SHIRT_H, CAP_W } from "./TshirtPreviewInteractive";
 
 const TALLAS_LABELS = ["XS","S","M","L","XL","2XL","3XL","4XL"];
 const TALLAS_KEYS =   ["xs","s","m","l","xl","xxl","xxxl","xxxxl"];
@@ -98,10 +98,10 @@ function GarmentPreviewPrint({ posiciones, layout, order, annotations }) {
   const esGorra = order.garment_es_gorra;
   const anns = annotations || [];
 
-  const renderImages = (nums, bgUrl, viewName, width) => (
+  const renderImages = (nums, bgUrl, viewName, width, height) => (
     <div className="text-center flex-shrink-0" style={{ width: `${width}px` }}>
-      <div className="relative inline-block w-full">
-        <img src={bgUrl} alt="" className="w-full object-contain" />
+      <div className="relative inline-block w-full" style={height ? { height: `${height}px` } : undefined}>
+        <img src={bgUrl} alt="" className="w-full object-contain" style={height ? { height: `${height}px` } : undefined} />
         {nums.map((num) => {
           const pos = posiciones.find(p => p.numero === num);
           if (!pos?.imagen_url) return null;
@@ -149,11 +149,11 @@ function GarmentPreviewPrint({ posiciones, layout, order, annotations }) {
     <div className="flex gap-6 justify-center items-start overflow-x-auto">
       <div className="text-center">
         <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Vista Frontal</p>
-        {renderImages([1, 2, 3, 4], order.garment_frente_url || DEFAULT_FRENTE, "frente", SHIRT_W)}
+        {renderImages([1, 2, 3, 4], order.garment_frente_url || DEFAULT_FRENTE, "frente", SHIRT_W, SHIRT_H)}
       </div>
       <div className="text-center">
         <p className="text-[9px] font-bold text-blue-600 uppercase mb-0.5">Vista Trasera</p>
-        {renderImages([5], order.garment_espalda_url || DEFAULT_ESPALDA, "espalda", SHIRT_W)}
+        {renderImages([5], order.garment_espalda_url || DEFAULT_ESPALDA, "espalda", SHIRT_W, SHIRT_H)}
       </div>
     </div>
   );
