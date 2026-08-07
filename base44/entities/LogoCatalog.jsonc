@@ -44,6 +44,24 @@
         }
       }
     },
+    "archivos_vector": {
+      "type": "array",
+      "description": "Archivos vectoriales (Corel/Illustrator/Photoshop/Affinity) asociados al logo",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "software": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "descripcion": {
       "type": "string",
       "description": "Descripci\u00f3n del logo / instrucciones"

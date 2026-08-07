@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,8 @@ const IVA_OPCIONES = [
   { value: 0.08, label: "IVA 8%" },
   { value: 0.16, label: "IVA 16%" },
 ];
+
+const SOFTWARE_VECTOR = ["Corel Draw", "Illustrator", "Photoshop", "Affinity"];
 
 function CheckBox({ checked, onChange, label }) {
   return (
@@ -58,6 +60,8 @@ const emptyForm = () => ({
   archivo_wilcom_url: "",
   archivo_wilcom_nombre: "",
   archivos_wilcom: [],
+  archivos_vector: [],
+  vector_software: "",
   color_hilos: [""],
   bobina_negra: false,
   bobina_blanca: false,
@@ -83,6 +87,8 @@ export default function LogoCatalogManager() {
   const [dupMsg, setDupMsg] = useState("");
   const [clientQuery, setClientQuery] = useState("");
   const [uploadingWilcom, setUploadingWilcom] = useState(false);
+  const [uploadingVector, setUploadingVector] = useState(false);
+  const fileVectorInputRef = useRef(null);
 
   useEffect(() => {
     localStorage.setItem("logo_catalog_clients", JSON.stringify(clientNames));
@@ -122,6 +128,25 @@ export default function LogoCatalogManager() {
 
   const removeWilcom = (idx) => {
     setForm(p => ({ ...p, archivos_wilcom: (p.archivos_wilcom || []).filter((_, i) => i !== idx) }));
+  };
+
+  const uploadVector = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!form.vector_software) {
+      alert("Selecciona primero el software con el que se hizo el archivo vector (Corel, Illustrator, Photoshop o Affinity).");
+      e.target.value = "";
+      return;
+    }
+    setUploadingVector(true);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    setForm(p => ({ ...p, archivos_vector: [...(p.archivos_vector || []), { url: file_url, nombre: file.name, software: p.vector_software }] }));
+    setUploadingVector(false);
+    e.target.value = "";
+  };
+
+  const removeVector = (idx) => {
+    setForm(p => ({ ...p, archivos_vector: (p.archivos_vector || []).filter((_, i) => i !== idx) }));
   };
 
   const resetForm = () => { setForm(emptyForm()); setEditingId(null); setShowForm(false); };
@@ -191,6 +216,7 @@ export default function LogoCatalogManager() {
       ancho_cm: Number(form.ancho_cm) || 0,
       descripcion: form.descripcion.trim(),
       archivos_wilcom: form.archivos_wilcom || [],
+      archivos_vector: (form.archivos_vector || []).map(f => ({ url: f.url, nombre: f.nombre, software: f.software })),
       archivo_wilcom_url: form.archivos_wilcom?.[0]?.url || "",
       archivo_wilcom_nombre: form.archivos_wilcom?.[0]?.nombre || "",
       color_hilos: form.color_hilos.filter(Boolean),
@@ -234,6 +260,8 @@ export default function LogoCatalogManager() {
       archivos_wilcom: Array.isArray(logo.archivos_wilcom) && logo.archivos_wilcom.length
         ? logo.archivos_wilcom
         : (logo.archivo_wilcom_url ? [{ url: logo.archivo_wilcom_url, nombre: logo.archivo_wilcom_nombre || "Archivo Wilcom" }] : []),
+      archivos_vector: Array.isArray(logo.archivos_vector) ? logo.archivos_vector : [],
+      vector_software: "",
       color_hilos: logo.color_hilos?.length ? logo.color_hilos : [""],
       bobina_negra: logo.bobina_negra || false,
       bobina_blanca: logo.bobina_blanca || false,
@@ -447,6 +475,61 @@ export default function LogoCatalogManager() {
             </label>
           </div>
 
+          {/* Archivo Vector */}
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-violet-700">Cargar archivo Vector</label>
+            {(form.archivos_vector || []).map((f, idx) => (
+              <div key={idx} className="flex items-start gap-1 flex-wrap">
+                <a href={f.url} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline flex items-center gap-1 min-w-0">
+                  <Upload className="w-3 h-3 flex-shrink-0" />
+                  <span className="truncate">{f.nombre || "Archivo Vector"}</span>
+                </a>
+                {f.software && <span className="text-[11px] text-violet-700 font-semibold">({f.software})</span>}
+                <button type="button" onClick={() => removeVector(idx)} className="flex items-center gap-0.5 text-[11px] text-red-600 hover:text-red-700 font-bold">
+                  <X className="w-3 h-3 flex-shrink-0" /> ELIMINAR ARCHIVO
+                </button>
+              </div>
+            ))}
+            <p className="text-[10px] font-semibold text-violet-700 uppercase pt-1">Indica el software</p>
+            <div className="flex flex-wrap gap-4">
+              {SOFTWARE_VECTOR.map(s => {
+                const checked = form.vector_software === s;
+                return (
+                  <label key={s} className="flex items-center gap-2 cursor-pointer select-none">
+                    <div onClick={() => setF("vector_software", checked ? "" : s)} className={cn("w-4 h-4 border-2 rounded-full flex items-center justify-center cursor-pointer transition-colors flex-shrink-0", checked ? "bg-violet-600 border-violet-600" : "border-gray-400 bg-white")}>
+                      {checked && <span className="text-white text-[8px] font-bold leading-none">✓</span>}
+                    </div>
+                    <span className="text-xs">{s}</span>
+                  </label>
+                );
+              })}
+            </div>
+            <div className="flex gap-2 flex-wrap pt-1">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => fileVectorInputRef.current?.click()}
+                disabled={uploadingVector}
+                className="gap-1 h-8 text-xs border-violet-300 text-violet-700 hover:bg-violet-50"
+              >
+                {uploadingVector ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                Cargar archivo Vector
+              </Button>
+              {(form.archivos_vector || []).length > 0 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileVectorInputRef.current?.click()}
+                  disabled={uploadingVector}
+                  className="gap-1 h-8 text-xs border-violet-300 text-violet-700 hover:bg-violet-50"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Agregar otro archivo
+                </Button>
+              )}
+            </div>
+            <input ref={fileVectorInputRef} type="file" accept=".ai,.cdr,.eps,.svg,.pdf,.psd,.afdesign,.afphoto" className="hidden" onChange={uploadVector} disabled={uploadingVector} />
+          </div>
+
           {/* Medidas */}
           <div className="grid grid-cols-2 gap-3 max-w-xs">
             <div className="space-y-1">
@@ -593,6 +676,11 @@ export default function LogoCatalogManager() {
                                 </a>
                               ));
                             })()}
+                            {(logo.archivos_vector || []).map((f, i) => (
+                              <a key={`v${i}`} href={f.url} target="_blank" rel="noreferrer" download className="flex items-center gap-1 text-[11px] text-violet-700 hover:underline border border-violet-200 rounded px-2 py-1">
+                                <Download className="w-3 h-3" /> Vector {f.software ? `(${f.software})` : ""}
+                              </a>
+                            ))}
                           </div>
                           <div className="flex gap-2 pt-1 border-t border-violet-100">
                             <button onClick={() => handleEdit(logo)} className="flex items-center gap-1 text-[11px] text-blue-600 hover:underline">
