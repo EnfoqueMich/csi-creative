@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Plus, X, Edit2, ImagePlus, Search, BookImage, ChevronDown, ChevronRight, Upload } from "lucide-react";
+import { Loader2, Plus, X, Edit2, ImagePlus, Search, BookImage, ChevronDown, ChevronRight, Upload, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import HiloColorPicker from "./HiloColorPicker";
@@ -564,6 +564,17 @@ export default function LogoCatalogManager() {
                             <p className="text-[10px] text-blue-700">🧵 {logo.color_hilos.filter(Boolean).join(", ")}</p>
                           )}
                           {logo.descripcion && <p className="text-[10px] text-gray-500 line-clamp-2">{logo.descripcion}</p>}
+                          <div className="pt-1">
+                            {logo.archivo_wilcom_url ? (
+                              <a href={logo.archivo_wilcom_url} target="_blank" rel="noreferrer" download className="flex items-center gap-1 text-[11px] text-violet-700 hover:underline border border-violet-200 rounded px-2 py-1 mb-2 inline-flex">
+                                <Download className="w-3 h-3" /> Descargar archivo Wilcom
+                              </a>
+                            ) : (
+                              <span className="flex items-center gap-1 text-[11px] text-muted-foreground border border-dashed border-gray-200 rounded px-2 py-1 mb-2">
+                                <Download className="w-3 h-3" /> No existe archivo Wilcom
+                              </span>
+                            )}
+                          </div>
                           <div className="flex gap-2 pt-1 border-t border-violet-100">
                             <button onClick={() => handleEdit(logo)} className="flex items-center gap-1 text-[11px] text-blue-600 hover:underline">
                               <Edit2 className="w-3 h-3" /> Editar
