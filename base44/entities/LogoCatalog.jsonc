@@ -21,6 +21,14 @@
       "type": "string",
       "description": "URL de la imagen del logo"
     },
+    "archivo_wilcom_url": {
+      "type": "string",
+      "description": "URL del archivo de bordado (Wilcom .emb/.dst/.pes, etc.)"
+    },
+    "archivo_wilcom_nombre": {
+      "type": "string",
+      "description": "Nombre original del archivo Wilcom"
+    },
     "descripcion": {
       "type": "string",
       "description": "Descripci\u00f3n del logo / instrucciones"

@@ -3,8 +3,9 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Plus, X, Edit2, ImagePlus, Search, BookImage, ChevronDown, ChevronRight } from "lucide-react";
+import { Loader2, Plus, X, Edit2, ImagePlus, Search, BookImage, ChevronDown, ChevronRight, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import HiloColorPicker from "./HiloColorPicker";
 import VinilColorPicker from "./VinilColorPicker";
 
@@ -54,6 +55,8 @@ const emptyForm = () => ({
   alto_cm: "",
   ancho_cm: "",
   descripcion: "",
+  archivo_wilcom_url: "",
+  archivo_wilcom_nombre: "",
   color_hilos: [""],
   bobina_negra: false,
   bobina_blanca: false,
@@ -77,6 +80,8 @@ export default function LogoCatalogManager() {
   });
   const [newClient, setNewClient] = useState("");
   const [dupMsg, setDupMsg] = useState("");
+  const [clientQuery, setClientQuery] = useState("");
+  const [uploadingWilcom, setUploadingWilcom] = useState(false);
 
   useEffect(() => {
     localStorage.setItem("logo_catalog_clients", JSON.stringify(clientNames));
@@ -104,6 +109,16 @@ export default function LogoCatalogManager() {
     setUploading(false);
   };
 
+  const uploadWilcom = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingWilcom(true);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    setF("archivo_wilcom_url", file_url);
+    setF("archivo_wilcom_nombre", file.name);
+    setUploadingWilcom(false);
+  };
+
   const resetForm = () => { setForm(emptyForm()); setEditingId(null); setShowForm(false); };
 
   const addForClient = (client) => {
@@ -129,6 +144,12 @@ export default function LogoCatalogManager() {
     logos.forEach(l => logoClientsOf(l).forEach(c => set.add(c)));
     return Array.from(set).filter(Boolean).sort((a, b) => a.localeCompare(b));
   }, [clients, clientNames, logos]);
+
+  const filteredClients = useMemo(() => {
+    const s = clientQuery.trim().toLowerCase();
+    if (!s) return clientList;
+    return clientList.filter(c => c.toLowerCase().includes(s));
+  }, [clientQuery, clientList]);
 
   const knownClients = useMemo(() => {
     const set = new Set(clientNames.filter(Boolean));
@@ -164,6 +185,8 @@ export default function LogoCatalogManager() {
       alto_cm: Number(form.alto_cm) || 0,
       ancho_cm: Number(form.ancho_cm) || 0,
       descripcion: form.descripcion.trim(),
+      archivo_wilcom_url: form.archivo_wilcom_url,
+      archivo_wilcom_nombre: form.archivo_wilcom_nombre,
       color_hilos: form.color_hilos.filter(Boolean),
       bobina_negra: form.bobina_negra,
       bobina_blanca: form.bobina_blanca,
@@ -200,6 +223,8 @@ export default function LogoCatalogManager() {
       alto_cm: logo.alto_cm || "",
       ancho_cm: logo.ancho_cm || "",
       descripcion: logo.descripcion || "",
+      archivo_wilcom_url: logo.archivo_wilcom_url || "",
+      archivo_wilcom_nombre: logo.archivo_wilcom_nombre || "",
       color_hilos: logo.color_hilos?.length ? logo.color_hilos : [""],
       bobina_negra: logo.bobina_negra || false,
       bobina_blanca: logo.bobina_blanca || false,
@@ -302,19 +327,41 @@ export default function LogoCatalogManager() {
             {clientList.length === 0 ? (
               <p className="text-[11px] text-muted-foreground">No hay clientes registrados. Agrégalos con el botón "Agregar Cliente" de arriba.</p>
             ) : (
-              <div className="border border-violet-200 rounded-md p-2 max-h-44 overflow-y-auto grid grid-cols-2 md:grid-cols-3 gap-1 bg-violet-50/30">
-                {clientList.map(c => {
-                  const checked = form.clientes.some(x => x.toLowerCase() === c.toLowerCase());
-                  return (
-                    <label key={c} className="flex items-center gap-2 cursor-pointer select-none text-xs">
-                      <div onClick={() => toggleCliente(c)} className={cn("w-4 h-4 border-2 rounded-sm flex items-center justify-center cursor-pointer transition-colors flex-shrink-0", checked ? "bg-violet-600 border-violet-600" : "border-gray-400 bg-white")}>
-                        {checked && <span className="text-white text-[10px] font-bold leading-none">✓</span>}
-                      </div>
-                      <span className="truncate">{c}</span>
-                    </label>
-                  );
-                })}
-              </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button type="button" className="w-full h-9 px-3 border border-violet-200 rounded-md text-left text-sm flex items-center justify-between gap-2 bg-white hover:bg-violet-50 transition-colors">
+                    <span className="truncate">
+                      {form.clientes.length === 0
+                        ? <span className="text-muted-foreground">Selecciona uno o más clientes...</span>
+                        : <span><strong className="text-violet-700">{form.clientes.length}</strong> cliente(s): {form.clientes.join(", ")}</span>}
+                    </span>
+                    <ChevronDown className="w-4 h-4 text-violet-500 flex-shrink-0" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 p-0" align="start">
+                  <div className="p-2 border-b border-violet-100">
+                    <div className="relative">
+                      <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+                      <Input value={clientQuery} onChange={e => setClientQuery(e.target.value)} placeholder="Buscar cliente..." className="pl-7 h-8 text-xs" autoFocus />
+                      {clientQuery && <button type="button" onClick={() => setClientQuery("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground"><X className="w-3 h-3" /></button>}
+                    </div>
+                  </div>
+                  <div className="max-h-56 overflow-y-auto p-1">
+                    {filteredClients.length === 0 && <p className="text-xs text-muted-foreground p-2 text-center">Sin resultados</p>}
+                    {filteredClients.map(c => {
+                      const checked = form.clientes.some(x => x.toLowerCase() === c.toLowerCase());
+                      return (
+                        <label key={c} className="flex items-center gap-2 cursor-pointer select-none text-xs px-2 py-1.5 rounded hover:bg-violet-50">
+                          <div onClick={() => toggleCliente(c)} className={cn("w-4 h-4 border-2 rounded-sm flex items-center justify-center cursor-pointer transition-colors flex-shrink-0", checked ? "bg-violet-600 border-violet-600" : "border-gray-400 bg-white")}>
+                            {checked && <span className="text-white text-[10px] font-bold leading-none">✓</span>}
+                          </div>
+                          <span className="truncate">{c}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </PopoverContent>
+              </Popover>
             )}
             {form.clientes.length === 0 && <p className="text-[10px] text-muted-foreground">El logo aparecerá en el listado de cada cliente marcado.</p>}
           </div>
@@ -363,6 +410,25 @@ export default function LogoCatalogManager() {
                 {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImagePlus className="w-4 h-4" />}
                 <span className="text-[9px]">{uploading ? "Subiendo..." : "Cargar imagen"}</span>
                 <input type="file" accept="image/*" className="hidden" onChange={uploadImg} disabled={uploading} />
+              </label>
+            )}
+          </div>
+
+          {/* Archivo Wilcom */}
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-violet-700">Cargar archivo Wilcom</label>
+            {form.archivo_wilcom_url ? (
+              <div className="flex items-center gap-2">
+                <a href={form.archivo_wilcom_url} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline truncate flex-1 flex items-center gap-1">
+                  <Upload className="w-3 h-3 flex-shrink-0" /> {form.archivo_wilcom_nombre || "Archivo Wilcom"}
+                </a>
+                <button type="button" onClick={() => { setF("archivo_wilcom_url", ""); setF("archivo_wilcom_nombre", ""); }} className="text-muted-foreground hover:text-destructive"><X className="w-3 h-3" /></button>
+              </div>
+            ) : (
+              <label className={cn("flex items-center gap-2 h-9 px-3 border border-dashed border-violet-300 rounded cursor-pointer hover:bg-violet-50 text-violet-500 transition-colors text-xs", uploadingWilcom && "opacity-50 pointer-events-none")}>
+                {uploadingWilcom ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                <span>{uploadingWilcom ? "Subiendo..." : "Cargar archivo .emb / .dst / .pes..."}</span>
+                <input type="file" accept=".emb,.dst,.pes,.jef,.vp3,.exp,.hus,.pcs,.xxx,.10o,.dsb,.zsk,.dat" className="hidden" onChange={uploadWilcom} disabled={uploadingWilcom} />
               </label>
             )}
           </div>
