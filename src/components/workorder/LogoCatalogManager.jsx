@@ -57,6 +57,7 @@ const emptyForm = () => ({
   descripcion: "",
   archivo_wilcom_url: "",
   archivo_wilcom_nombre: "",
+  archivos_wilcom: [],
   color_hilos: [""],
   bobina_negra: false,
   bobina_blanca: false,
@@ -114,9 +115,13 @@ export default function LogoCatalogManager() {
     if (!file) return;
     setUploadingWilcom(true);
     const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    setF("archivo_wilcom_url", file_url);
-    setF("archivo_wilcom_nombre", file.name);
+    setForm(p => ({ ...p, archivos_wilcom: [...(p.archivos_wilcom || []), { url: file_url, nombre: file.name }] }));
     setUploadingWilcom(false);
+    e.target.value = "";
+  };
+
+  const removeWilcom = (idx) => {
+    setForm(p => ({ ...p, archivos_wilcom: (p.archivos_wilcom || []).filter((_, i) => i !== idx) }));
   };
 
   const resetForm = () => { setForm(emptyForm()); setEditingId(null); setShowForm(false); };
@@ -185,8 +190,9 @@ export default function LogoCatalogManager() {
       alto_cm: Number(form.alto_cm) || 0,
       ancho_cm: Number(form.ancho_cm) || 0,
       descripcion: form.descripcion.trim(),
-      archivo_wilcom_url: form.archivo_wilcom_url,
-      archivo_wilcom_nombre: form.archivo_wilcom_nombre,
+      archivos_wilcom: form.archivos_wilcom || [],
+      archivo_wilcom_url: form.archivos_wilcom?.[0]?.url || "",
+      archivo_wilcom_nombre: form.archivos_wilcom?.[0]?.nombre || "",
       color_hilos: form.color_hilos.filter(Boolean),
       bobina_negra: form.bobina_negra,
       bobina_blanca: form.bobina_blanca,
@@ -225,6 +231,9 @@ export default function LogoCatalogManager() {
       descripcion: logo.descripcion || "",
       archivo_wilcom_url: logo.archivo_wilcom_url || "",
       archivo_wilcom_nombre: logo.archivo_wilcom_nombre || "",
+      archivos_wilcom: Array.isArray(logo.archivos_wilcom) && logo.archivos_wilcom.length
+        ? logo.archivos_wilcom
+        : (logo.archivo_wilcom_url ? [{ url: logo.archivo_wilcom_url, nombre: logo.archivo_wilcom_nombre || "Archivo Wilcom" }] : []),
       color_hilos: logo.color_hilos?.length ? logo.color_hilos : [""],
       bobina_negra: logo.bobina_negra || false,
       bobina_blanca: logo.bobina_blanca || false,
@@ -420,20 +429,19 @@ export default function LogoCatalogManager() {
           {/* Archivo Wilcom */}
           <div className="space-y-1">
             <label className="text-xs font-semibold text-violet-700">Cargar archivo Wilcom</label>
-            {form.archivo_wilcom_url ? (
-              <div className="flex items-center gap-2">
-                <a href={form.archivo_wilcom_url} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline truncate flex-1 flex items-center gap-1">
-                  <Upload className="w-3 h-3 flex-shrink-0" /> {form.archivo_wilcom_nombre || "Archivo Wilcom"}
+            {(form.archivos_wilcom || []).map((f, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                <a href={f.url} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline truncate flex-1 flex items-center gap-1">
+                  <Upload className="w-3 h-3 flex-shrink-0" /> {f.nombre || "Archivo Wilcom"}
                 </a>
-                <button type="button" onClick={() => { setF("archivo_wilcom_url", ""); setF("archivo_wilcom_nombre", ""); }} className="text-muted-foreground hover:text-destructive"><X className="w-3 h-3" /></button>
+                <button type="button" onClick={() => removeWilcom(idx)} className="text-muted-foreground hover:text-destructive"><X className="w-3 h-3" /></button>
               </div>
-            ) : (
-              <label className={cn("flex items-center gap-2 h-9 px-3 border border-dashed border-violet-300 rounded cursor-pointer hover:bg-violet-50 text-violet-500 transition-colors text-xs", uploadingWilcom && "opacity-50 pointer-events-none")}>
-                {uploadingWilcom ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
-                <span>{uploadingWilcom ? "Subiendo..." : "Cargar archivo .emb / .dst / .pes..."}</span>
-                <input type="file" accept=".emb,.dst,.pes,.jef,.vp3,.exp,.hus,.pcs,.xxx,.10o,.dsb,.zsk,.dat" className="hidden" onChange={uploadWilcom} disabled={uploadingWilcom} />
-              </label>
-            )}
+            ))}
+            <label className={cn("flex items-center gap-2 h-9 px-3 border border-dashed border-violet-300 rounded cursor-pointer hover:bg-violet-50 text-violet-500 transition-colors text-xs", uploadingWilcom && "opacity-50 pointer-events-none")}>
+              {uploadingWilcom ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+              <span>{uploadingWilcom ? "Subiendo..." : (form.archivos_wilcom?.length ? "Cargar otro archivo .emb / .dst / .pes..." : "Cargar archivo .emb / .dst / .pes...")}</span>
+              <input type="file" accept=".emb,.dst,.pes,.jef,.vp3,.exp,.hus,.pcs,.xxx,.10o,.dsb,.zsk,.dat" className="hidden" onChange={uploadWilcom} disabled={uploadingWilcom} />
+            </label>
           </div>
 
           {/* Medidas */}
@@ -564,16 +572,24 @@ export default function LogoCatalogManager() {
                             <p className="text-[10px] text-blue-700">🧵 {logo.color_hilos.filter(Boolean).join(", ")}</p>
                           )}
                           {logo.descripcion && <p className="text-[10px] text-gray-500 line-clamp-2">{logo.descripcion}</p>}
-                          <div className="pt-1">
-                            {logo.archivo_wilcom_url ? (
-                              <a href={logo.archivo_wilcom_url} target="_blank" rel="noreferrer" download className="flex items-center gap-1 text-[11px] text-violet-700 hover:underline border border-violet-200 rounded px-2 py-1 mb-2 inline-flex">
-                                <Download className="w-3 h-3" /> Descargar archivo Wilcom
-                              </a>
-                            ) : (
-                              <span className="flex items-center gap-1 text-[11px] text-muted-foreground border border-dashed border-gray-200 rounded px-2 py-1 mb-2">
-                                <Download className="w-3 h-3" /> No existe archivo Wilcom
-                              </span>
-                            )}
+                          <div className="pt-1 space-y-1 flex flex-wrap gap-1">
+                            {(() => {
+                              const archivos = Array.isArray(logo.archivos_wilcom) && logo.archivos_wilcom.length
+                                ? logo.archivos_wilcom
+                                : (logo.archivo_wilcom_url ? [{ url: logo.archivo_wilcom_url, nombre: logo.archivo_wilcom_nombre || "Archivo Wilcom" }] : []);
+                              if (!archivos.length) {
+                                return (
+                                  <span className="flex items-center gap-1 text-[11px] text-muted-foreground border border-dashed border-gray-200 rounded px-2 py-1">
+                                    <Download className="w-3 h-3" /> No existe archivo Wilcom
+                                  </span>
+                                );
+                              }
+                              return archivos.map((f, i) => (
+                                <a key={i} href={f.url} target="_blank" rel="noreferrer" download className="flex items-center gap-1 text-[11px] text-violet-700 hover:underline border border-violet-200 rounded px-2 py-1">
+                                  <Download className="w-3 h-3" /> Descargar {archivos.length > 1 ? `archivo ${i + 1}` : "archivo Wilcom"}
+                                </a>
+                              ));
+                            })()}
                           </div>
                           <div className="flex gap-2 pt-1 border-t border-violet-100">
                             <button onClick={() => handleEdit(logo)} className="flex items-center gap-1 text-[11px] text-blue-600 hover:underline">

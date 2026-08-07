@@ -23,11 +23,26 @@
     },
     "archivo_wilcom_url": {
       "type": "string",
-      "description": "URL del archivo de bordado (Wilcom .emb/.dst/.pes, etc.)"
+      "description": "URL del primer archivo de bordado (legado, primer elemento de archivos_wilcom)"
     },
     "archivo_wilcom_nombre": {
       "type": "string",
-      "description": "Nombre original del archivo Wilcom"
+      "description": "Nombre original del primer archivo Wilcom (legado)"
+    },
+    "archivos_wilcom": {
+      "type": "array",
+      "description": "Archivos de bordado (Wilcom .emb/.dst/.pes, etc.) asociados al logo",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          }
+        }
+      }
     },
     "descripcion": {
       "type": "string",
