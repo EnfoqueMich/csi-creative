@@ -371,25 +371,28 @@ export default function LogoCatalogManager() {
             <Input value={form.nombre} onChange={e => setF("nombre", e.target.value)} placeholder="Ej: Logo Frente Principal..." className="text-sm" />
           </div>
 
-          {/* Costo + IVA + Total */}
-          <div className="grid grid-cols-3 gap-3">
+          {/* Costo final + IVA incluido */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-violet-700">Costo ($)</label>
-              <Input type="number" min="0" step="0.01" value={form.costo} onChange={e => setF("costo", e.target.value)} placeholder="0.00" className="text-sm" />
+              <label className="text-xs font-semibold text-violet-700">COSTO FINAL ($)</label>
+              <Input type="number" min="0" step="0.01" value={form.costo} onChange={e => setF("costo", e.target.value)} placeholder="0.00" className="text-sm font-bold" />
             </div>
             <div className="space-y-1">
               <label className="text-xs font-semibold text-violet-700">IVA</label>
-              <select value={form.iva} onChange={e => setF("iva", Number(e.target.value))} className="h-9 w-full border border-input rounded-md px-2 text-sm bg-transparent focus:outline-none focus:ring-1 focus:ring-ring">
-                {IVA_OPCIONES.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-violet-700">Total ($)</label>
-              <div className="h-9 border-2 border-violet-400 rounded-md px-3 flex items-center bg-violet-50">
-                <span className="font-black text-violet-700">${total.toFixed(2)}</span>
+              <div className="flex flex-wrap gap-4 h-9 items-center">
+                <CheckBox label="IVA INCLUIDO 8%" checked={form.iva === 0.08} onChange={() => setF("iva", form.iva === 0.08 ? 0 : 0.08)} />
+                <CheckBox label="IVA INCLUIDO 16%" checked={form.iva === 0.16} onChange={() => setF("iva", form.iva === 0.16 ? 0 : 0.16)} />
               </div>
             </div>
           </div>
+
+          {ivaRate > 0 && Number(form.costo) > 0 && (
+            <div className="bg-violet-50 border border-violet-200 rounded-md p-2 text-xs text-violet-700 space-y-0.5">
+              <p>Costo final (con IVA): <strong>${costo.toFixed(2)}</strong></p>
+              <p>Base sin IVA ({Math.round(ivaRate * 100)}%): <strong>${(costo / (1 + ivaRate)).toFixed(2)}</strong></p>
+              <p>IVA incluido: <strong>${(costo - costo / (1 + ivaRate)).toFixed(2)}</strong></p>
+            </div>
+          )}
 
           {/* Puntadas */}
           <div className="space-y-1 max-w-[180px]">
