@@ -276,7 +276,7 @@ export default function LogoCatalogManager() {
         return arr.length ? arr.some(x => x.toLowerCase() === k.toLowerCase()) : k === "Sin cliente";
       })]);
     }
-    return entries.sort((a, b) => {
+    return entries.filter(([, list]) => list.length > 0).sort((a, b) => {
       if (a[0] === "Sin cliente") return 1;
       if (b[0] === "Sin cliente") return -1;
       return a[0].localeCompare(b[0]);
