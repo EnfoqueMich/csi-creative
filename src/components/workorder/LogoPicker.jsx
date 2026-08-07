@@ -1,9 +1,9 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Search, X, Plus, Check, Loader2, ImagePlus, Edit2, BookImage } from "lucide-react";
+import { Search, X, Plus, Check, Loader2, ImagePlus, Edit2, BookImage, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import HiloColorPicker from "./HiloColorPicker";
 import VinilColorPicker from "./VinilColorPicker";
@@ -230,58 +230,133 @@ function LogoForm({ logo, onSaved, onCancel, onUseWithoutSaving }) {
   );
 }
 
+const logoClientsOf = (l) => {
+  const arr = Array.isArray(l?.clientes) && l.clientes.length ? l.clientes : (l?.cliente ? [l.cliente] : []);
+  return arr.filter(Boolean);
+};
+
 // Buscador inline con dropdown de resultados
 function LogoSearchDropdown({ logos, onSelect, onNew }) {
-  const [queryCliente, setQueryCliente] = useState("");
+  const [selectedClients, setSelectedClients] = useState([]);
   const [queryNombre, setQueryNombre] = useState("");
-  const [open, setOpen] = useState(false);
+  const [openResults, setOpenResults] = useState(false);
+  const [clientesOpen, setClientesOpen] = useState(false);
+  const [clientQuery, setClientQuery] = useState("");
   const ref = useRef(null);
 
+  const clients = useMemo(() => {
+    const set = new Set();
+    logos.forEach((l) => logoClientsOf(l).forEach((c) => set.add(c)));
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [logos]);
+
+  const filteredClients = useMemo(() => {
+    const s = clientQuery.trim().toLowerCase();
+    if (!s) return clients;
+    return clients.filter((c) => c.toLowerCase().includes(s));
+  }, [clientQuery, clients]);
+
+  const toggleClient = (c) => {
+    setSelectedClients((prev) =>
+      prev.some((x) => x.toLowerCase() === c.toLowerCase())
+        ? prev.filter((x) => x.toLowerCase() !== c.toLowerCase())
+        : [...prev, c]
+    );
+    setOpenResults(true);
+  };
+
   const results = logos.filter((l) => {
-    const nombre = l.nombre?.toLowerCase() || "";
-    const clienteField = l.cliente?.toLowerCase() || "";
-    const matchCliente = !queryCliente.trim() || clienteField.includes(queryCliente.toLowerCase()) || nombre.includes(queryCliente.toLowerCase());
-    const matchNombre = !queryNombre.trim() || nombre.includes(queryNombre.toLowerCase());
+    const arr = logoClientsOf(l);
+    const matchCliente = selectedClients.length === 0 || selectedClients.some((c) => arr.some((x) => x.toLowerCase() === c.toLowerCase()));
+    const matchNombre = !queryNombre.trim() || (l.nombre?.toLowerCase() || "").includes(queryNombre.toLowerCase());
     return matchCliente && matchNombre;
   });
 
   useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) {
+        setOpenResults(false);
+        setClientesOpen(false);
+      }
+    };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // Mostrar todos los logos cuando se abre sin filtros
-  const displayResults = (queryCliente.trim() || queryNombre.trim())
-    ? results
-    : logos.slice(0, 50);
+  const displayResults = (selectedClients.length > 0 || queryNombre.trim()) ? results : logos.slice(0, 50);
 
   return (
     <div className="relative" ref={ref}>
       {/* Dos campos de filtro */}
       <div className="flex gap-1">
+        {/* Selector de cliente (solo lista clientes/empresas) */}
         <div className="relative flex-1">
-          <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none" />
-          <input
-            type="text"
-            value={queryCliente}
-            onChange={(e) => { setQueryCliente(e.target.value); setOpen(true); }}
-            onFocus={() => setOpen(true)}
-            placeholder="Cliente..."
-            className="w-full pl-6 pr-6 py-1 text-[11px] border border-violet-200 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-violet-400"
-          />
-          {queryCliente && (
-            <button type="button" onClick={() => setQueryCliente("")} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+          <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none z-10" />
+          <button
+            type="button"
+            onClick={() => { setClientesOpen((v) => !v); setOpenResults(false); }}
+            className="w-full pl-6 pr-5 py-1 text-[11px] border border-violet-200 rounded-md bg-white flex items-center justify-between hover:bg-violet-50 transition-colors"
+          >
+            <span className={cn("truncate text-left", selectedClients.length === 0 && "text-muted-foreground")}>
+              {selectedClients.length === 0 ? "Cliente..." : `${selectedClients.length} cliente(s): ${selectedClients.join(", ")}`}
+            </span>
+            <ChevronDown className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+          </button>
+          {selectedClients.length > 0 && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setSelectedClients([]); }}
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
               <X className="w-3 h-3" />
             </button>
           )}
+          {clientesOpen && (
+            <div className="absolute z-50 top-full left-0 mt-1 w-full bg-popover border border-border rounded-lg shadow-lg overflow-hidden">
+              <div className="p-1 border-b border-border">
+                <div className="relative">
+                  <Search className="absolute left-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none" />
+                  <Input
+                    value={clientQuery}
+                    onChange={(e) => setClientQuery(e.target.value)}
+                    placeholder="Buscar cliente..."
+                    className="h-7 pl-6 text-[11px]"
+                    autoFocus
+                  />
+                </div>
+              </div>
+              <div className="max-h-52 overflow-y-auto p-1">
+                {filteredClients.length === 0 && (
+                  <p className="text-[11px] text-muted-foreground p-2 text-center">Sin clientes</p>
+                )}
+                {filteredClients.map((c) => {
+                  const checked = selectedClients.some((x) => x.toLowerCase() === c.toLowerCase());
+                  return (
+                    <label key={c} className="flex items-center gap-2 cursor-pointer select-none text-[11px] px-2 py-1 rounded hover:bg-muted">
+                      <div
+                        onClick={() => toggleClient(c)}
+                        className={cn(
+                          "w-3.5 h-3.5 border-2 rounded-sm flex items-center justify-center flex-shrink-0 transition-colors",
+                          checked ? "bg-violet-600 border-violet-600" : "border-gray-400 bg-white"
+                        )}
+                      >
+                        {checked && <span className="text-white text-[8px] font-bold leading-none">✓</span>}
+                      </div>
+                      <span className="truncate">{c}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
+        {/* Filtro por nombre */}
         <div className="relative flex-1">
           <input
             type="text"
             value={queryNombre}
-            onChange={(e) => { setQueryNombre(e.target.value); setOpen(true); }}
-            onFocus={() => setOpen(true)}
+            onChange={(e) => { setQueryNombre(e.target.value); setOpenResults(true); setClientesOpen(false); }}
+            onFocus={() => { setOpenResults(true); setClientesOpen(false); }}
             placeholder="Nombre del logo..."
             className="w-full px-2 py-1 text-[11px] border border-violet-200 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-violet-400"
           />
@@ -293,7 +368,7 @@ function LogoSearchDropdown({ logos, onSelect, onNew }) {
         </div>
       </div>
 
-      {open && (
+      {openResults && !clientesOpen && (
         <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-popover border border-border rounded-lg shadow-lg overflow-hidden max-h-64 overflow-y-auto">
           {displayResults.length === 0 ? (
             <div className="px-3 py-2 text-[11px] text-muted-foreground">Sin resultados</div>
@@ -302,7 +377,7 @@ function LogoSearchDropdown({ logos, onSelect, onNew }) {
               <button
                 key={l.id}
                 type="button"
-                onClick={() => { onSelect(l); setOpen(false); setQueryCliente(""); setQueryNombre(""); }}
+                onClick={() => { onSelect(l); setOpenResults(false); setSelectedClients([]); setQueryNombre(""); }}
                 className="w-full text-left px-3 py-2 hover:bg-muted transition-colors flex items-center gap-2"
               >
                 {l.imagen_url
@@ -311,7 +386,7 @@ function LogoSearchDropdown({ logos, onSelect, onNew }) {
                 }
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-semibold truncate">{l.nombre}</p>
-                  {l.cliente && <p className="text-[10px] text-violet-600 font-medium truncate">{l.cliente}</p>}
+                  {(() => { const cs = logoClientsOf(l); return cs.length ? <p className="text-[10px] text-violet-600 font-medium truncate">{cs.join(", ")}</p> : null; })()}
                   {(l.alto_cm || l.ancho_cm) && (
                     <p className="text-[10px] text-muted-foreground">{l.alto_cm}×{l.ancho_cm} cm</p>
                   )}
@@ -321,7 +396,7 @@ function LogoSearchDropdown({ logos, onSelect, onNew }) {
           )}
           <button
             type="button"
-            onClick={() => { onNew(); setOpen(false); setQueryCliente(""); setQueryNombre(""); }}
+            onClick={() => { onNew(); setOpenResults(false); setSelectedClients([]); setQueryNombre(""); }}
             className="w-full text-left px-3 py-2 hover:bg-muted transition-colors flex items-center gap-2 border-t border-border text-violet-700"
           >
             <Plus className="w-3.5 h-3.5" />
@@ -454,15 +529,11 @@ export default function LogoPicker({ posicion, onChange, logos = [], onLogoCatal
         </div>
       )}
 
-      {/* Sin logo aún */}
+      {/* Sin logo aún: usa el buscador de arriba para seleccionar del catálogo */}
       {!hasLogo && !showForm && (
-        <button
-          type="button"
-          onClick={() => setShowForm(true)}
-          className="flex items-center gap-1.5 w-full justify-center border border-dashed border-violet-300 rounded-lg py-3 text-[11px] text-violet-500 hover:bg-violet-50 transition-colors"
-        >
-          <ImagePlus className="w-3.5 h-3.5" /> Cargar logo
-        </button>
+        <p className="text-[10px] text-muted-foreground text-center py-1">
+          Busca y selecciona un logo del catálogo en el filtro de arriba
+        </p>
       )}
     </div>
   );
