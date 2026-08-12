@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, FolderPlus, Menu, X, Users, ClipboardList, FileText, UserCircle2 } from "lucide-react";
+import { LayoutDashboard, FolderPlus, Menu, X, Users, ClipboardList, FileText, UserCircle2, LogIn, LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { base44 } from "@/api/base44Client";
@@ -29,11 +29,13 @@ export default function Layout() {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [navRole, setNavRole] = useState("admin"); // 'admin' | 'lider' | 'worker'
+  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
     async function detectRole() {
       try {
         const user = await base44.auth.me();
+        setCurrentUser(user || null);
         // Admin siempre ve todo
         if (!user || user?.role === "admin") { setNavRole("admin"); return; }
         // Cualquier usuario no-admin: buscar en Worker por nombre
@@ -50,6 +52,7 @@ export default function Layout() {
         }
       } catch {
         // En caso de error, asumir admin para no bloquear acceso
+        setCurrentUser(null);
         setNavRole("admin");
       }
     }
@@ -88,6 +91,23 @@ export default function Layout() {
         <div className="border-t border-sidebar-border pt-2 pb-4">
           {navRole === "admin" && <AdminNotifications />}
           <ScrapSummary />
+          <div className="px-3 pt-2">
+            {currentUser ? (
+              <button
+                onClick={() => base44.auth.logout(window.location.href)}
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-all"
+              >
+                <LogOut className="w-4 h-4" /> Cerrar sesión
+              </button>
+            ) : (
+              <button
+                onClick={() => base44.auth.redirectToLogin(window.location.href)}
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold bg-sidebar-accent text-sidebar-accent-foreground hover:opacity-90 transition-all"
+              >
+                <LogIn className="w-4 h-4" /> Iniciar sesión como admin
+              </button>
+            )}
+          </div>
           <p className="text-xs text-sidebar-foreground/40 px-4 pt-3">v1.0 — Control de Proyectos</p>
         </div>
       </aside>
@@ -95,9 +115,20 @@ export default function Layout() {
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-sidebar text-sidebar-foreground h-14 flex items-center px-4 justify-between">
         <h1 className="text-sm font-bold">CSI CREATIVE</h1>
-        <button onClick={() => setMobileOpen(!mobileOpen)} className="p-2">
-          {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
+        <div className="flex items-center gap-1">
+          {currentUser ? (
+            <button onClick={() => base44.auth.logout(window.location.href)} className="p-2" title="Cerrar sesión">
+              <LogOut className="w-5 h-5" />
+            </button>
+          ) : (
+            <button onClick={() => base44.auth.redirectToLogin(window.location.href)} className="p-2" title="Iniciar sesión como admin">
+              <LogIn className="w-5 h-5" />
+            </button>
+          )}
+          <button onClick={() => setMobileOpen(!mobileOpen)} className="p-2">
+            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Nav Overlay */}
