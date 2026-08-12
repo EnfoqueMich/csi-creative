@@ -225,15 +225,22 @@ export default function LogoCatalogManager() {
       vinil_codigo: form.vinil_codigo,
       extras: form.extras,
     };
-    if (editingId) {
-      const updated = await base44.entities.LogoCatalog.update(editingId, data);
-      setLogos(prev => prev.map(l => l.id === editingId ? { ...l, ...data } : l));
-    } else {
-      const created = await base44.entities.LogoCatalog.create(data);
-      setLogos(prev => [created, ...prev]);
+    try {
+      if (editingId) {
+        const updated = await base44.entities.LogoCatalog.update(editingId, data);
+        setLogos(prev => prev.map(l => l.id === editingId ? { ...l, ...updated, ...data } : l));
+      } else {
+        const created = await base44.entities.LogoCatalog.create(data);
+        setLogos(prev => [created, ...prev]);
+      }
+      resetForm();
+    } catch (err) {
+      console.error("Error guardando logo:", err);
+      const msg = err?.message || err?.data?.message || err?.response?.data?.message || String(err);
+      alert(`No se pudo guardar el logo: ${msg}`);
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
-    resetForm();
   };
 
   const handleDelete = async (id) => {
