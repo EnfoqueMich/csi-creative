@@ -9,9 +9,9 @@ import AdminNotifications from "./AdminNotifications";
 const adminNavItems = [
   { path: "/", label: "Panel", icon: LayoutDashboard },
   { path: "/pedidos", label: "Pedidos", icon: FileText },
+  { path: "/clientes", label: "Clientes", icon: UserCircle2 },
   { path: "/tareas", label: "Tareas", icon: ClipboardList },
   { path: "/trabajadores", label: "Trabajadores", icon: Users },
-  { path: "/clientes", label: "Clientes", icon: UserCircle2 },
 ];
 
 const liderNavItems = [
