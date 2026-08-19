@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, FolderPlus, Menu, X, Users, ClipboardList, FileText, UserCircle2, LogIn, LogOut } from "lucide-react";
+import { LayoutDashboard, Menu, X, Users, ClipboardList, FileText, UserCircle2, LogIn, LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { base44 } from "@/api/base44Client";
@@ -8,7 +8,6 @@ import AdminNotifications from "./AdminNotifications";
 
 const adminNavItems = [
   { path: "/", label: "Panel", icon: LayoutDashboard },
-  { path: "/nuevo", label: "Nuevo Proyecto", icon: FolderPlus },
   { path: "/pedidos", label: "Pedidos", icon: FileText },
   { path: "/tareas", label: "Tareas", icon: ClipboardList },
   { path: "/trabajadores", label: "Trabajadores", icon: Users },
@@ -17,7 +16,6 @@ const adminNavItems = [
 
 const liderNavItems = [
   { path: "/", label: "Panel", icon: LayoutDashboard },
-  { path: "/nuevo", label: "Nuevo Proyecto", icon: FolderPlus },
 ];
 
 const workerNavItems = [
